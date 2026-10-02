@@ -6,16 +6,8 @@
 NAME=transcendence
 
 .PHONY: all
-all: backend frontend
-
-.PHONY: db
-db:
+all: .env
 	docker compose up -d
 
-.PHONY: backend
-backend:
-	@echo "Starting backend"
-
-.PHONY: frontend
-frontend:
-	@echo "Starting frontend"
+.env: 
+	./make_env.sh

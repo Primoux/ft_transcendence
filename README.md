@@ -17,23 +17,18 @@ With time, the whole app will be containerized with Docker and Docker-compose. F
 
 ## Usage
 
-The Makefile does not work yet.
+You can just run `make`.
+a .env file will be created with random values, then every service will be launched.
 
-1. populate the following values in `.env`. They can be anything as long as they stay the same. (in case of a problem, `docker compose down -v` will propably do the trick and also **erase all the users you may have created**.)
-     + DB_USER
-     + DB_PASSWORD
-     + DB_NAME
-2. populate the values in `backend/.env` as the ones in `backend/.env.example`.
-3. run `docker compose up -d` to start the db.
-4. `cd backend/ && npm install && npm run dev`
-5. `cd ../frontend && npm install && npm run dev`
+If you rather use custom values, follow the `.env.example` file.
+
+1. populate the values in `backend/.env` as the ones in `backend/.env.example`.
+2. run `docker compose up -d` to start the backend, frontend, and db.
 
 There is only a login form for now and no registering, so open a terminal and run this to create a user :
 
 ```
 curl -i -X POST http://localhost:5003/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","displayName":"enzo le + rigolo","password":"admin"}'
+  -d '{"username":"admin","displayName":"enzo le + rigolo","password":"admin123456"}'
 ```
-
-Some error cases will be printed on the frontend, for others look the Network tab of your browser's dev tools.
