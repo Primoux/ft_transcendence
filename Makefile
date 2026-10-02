@@ -6,7 +6,7 @@
 NAME=transcendence
 
 .PHONY: all
-all: env
+all: .env
 	docker compose up -d
 
 .env: 
