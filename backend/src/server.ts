@@ -3,6 +3,7 @@ import express from 'express';
 import gameRoutes from './routes/gameRoutes'
 import authRoutes from './routes/authRoutes'
 import userRoutes from './routes/userRoutes'
+import healthRoutes from './routes/healthRoutes'
 import requireAuth from './middleware/authMiddleware'
 import cookieParser from 'cookie-parser'
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 
 app.use("/", gameRoutes)
 app.use("/auth", authRoutes)
+app.use("/health", healthRoutes)
 
 
 app.use(requireAuth);
