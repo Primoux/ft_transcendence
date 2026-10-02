@@ -3,7 +3,7 @@
 # this makefile should be used only after
 # the app is fully containerized.
 
-NAME=transcendance
+NAME=transcendence
 
 .PHONY: all
 all: backend frontend
