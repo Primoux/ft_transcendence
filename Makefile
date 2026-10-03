@@ -14,17 +14,19 @@ restart:
 	docker compose restart
 
 .PHONY: reset
-reset:
-	docker compose down -v
+reset: down
 	rm .env
 
+down:
+	docker compose down -v
+
 .PHONY: env
-env:
+env: down
 	./make_env.sh
 
 # Internal. Should not be used.
 # Used only on first startup to automatically create the env file.
 # If you messed up your .env, use `make env` instead.
 
-.env: 
+.env:
 	./make_env.sh
