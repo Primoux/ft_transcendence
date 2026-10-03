@@ -22,7 +22,7 @@ router.get("/:id", async (req, res) => {
         res.json(user);
     }
     else {
-        res.status(404).send("User not found");
+        res.status(404).json({error: "User not found"});
     }
 })
 

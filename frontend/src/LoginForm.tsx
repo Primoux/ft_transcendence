@@ -16,7 +16,8 @@ function LoginForm() {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({username: username, password: password}),
             })
-            if (!response.ok) { setErrorMsg("Invalid credentials")}
+            const body = await response.json()
+            if (!response.ok) { setErrorMsg(body.error || "unknown error")}
         }
         catch (err) {
             setErrorMsg ("Could not reach the server")
