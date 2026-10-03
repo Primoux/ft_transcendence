@@ -2,11 +2,12 @@ import express from 'express'
 import { prisma } from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Prisma } from '../../generated/prisma/client'
 
 const router = express.Router()
 
 router.get("/", async (req, res) => {
-    res.send("auth home")
+    res.json({ msg: "auth home"})
 })
 
 router.post("/login", async (req, res) => {
@@ -52,7 +53,7 @@ router.post("/register", async (req, res) => {
             return res.status(400).json({error: "missing required values"})
         } else if (typeof(req.body.username) != "string" || typeof(req.body.password) != "string" || typeof(req.body.displayName) != "string") {
             return res.status(400).json({error: "unsupported data type"})
-        } else if (req.body.username.length < 3 || req.body.username.length > 15 || req.body.password.length < 8 || req.body.password.length > 72 ) {
+        } else if (req.body.username.length < 3 || req.body.username.length > 15 || req.body.password.length < 8 || req.body.password.length > 72 || req.body.displayName.length > 30) {
             return res.status(400).json({error: "values too long / too short"})
         }
     const { username, displayName, password } = req.body;
@@ -82,9 +83,12 @@ router.post("/register", async (req, res) => {
         return res.status(201).json(newUser);
     }
     catch (error) {
-        console.error(error);
-        console.log('Error creating user')
-        return res.status(500).send("Error creating user");
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === "P2002") {
+                    return res.status(409).json({error: "username already taken"})
+                }
+            }
+            throw error;
     }
 });
 export default router
