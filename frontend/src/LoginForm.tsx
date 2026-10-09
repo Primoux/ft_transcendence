@@ -1,6 +1,8 @@
 import { useState} from "react"
+import type { User } from './types/user'
+type LoginFormProps = {onLogin: (user: User) => void}
 
-function LoginForm() {
+function LoginForm({ onLogin } : LoginFormProps) {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
@@ -18,6 +20,7 @@ function LoginForm() {
             })
             const body = await response.json()
             if (!response.ok) { setErrorMsg(body.error || "unknown error")}
+            else {onLogin(body)}
         }
         catch (err) {
             setErrorMsg ("Could not reach the server")
@@ -36,6 +39,7 @@ function LoginForm() {
             </label>
             <button disabled={loading}>Login</button>
             {errorMsg && <p> {errorMsg} </p>}
+            <a href="/register">I don't have an account</a>
         </form>
     )
 }
