@@ -1,6 +1,8 @@
 import { useState} from "react"
+import type { User } from './types/user'
+type RegisterFormProps = {onLogin: (user : User) => void}
 
-export default function RegisterForm() {
+export default function RegisterForm({onLogin} : RegisterFormProps) {
 	const [username, setUsername] = useState('');
 	const [displayname, setDisplayName] = useState('');
 	const [password, setPassword] = useState('');
@@ -19,10 +21,11 @@ export default function RegisterForm() {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({username: username, password: password, displayName: displayname}),
             })
+			const data = await response.json()
             if (!response.ok) {
-				const data = await response.json()
 				setErrorMsg(data.error)
 			}
+			else {onLogin(data)}
         }
         catch (err) {
 			console.error(err)
@@ -33,39 +36,43 @@ export default function RegisterForm() {
     }
 
 	return (
-		<form onSubmit={handleSubmit}>
-			<label>
-				username
-				<input
-					name="username"
-					placeholder="username"
-					value={username}
-					onChange={(e) => setUsername(e.target.value)}
-				/>
-			</label>
-			<label>
-				display name
-				<input
-					name="displayname"
-					placeholder="display name"
-					value={displayname}
-					onChange={(e) => setDisplayName(e.target.value)}
-				/>
-			</label>
-			<label>
-				password
-				<input
-					type="password"
-					name="password"
-					placeholder="password"
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-				/>
-			</label>
+		<>
+			<h2>Register Form</h2>
+			<form onSubmit={handleSubmit}>
+				<label>
+					username
+					<input
+						name="username"
+						placeholder="username"
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
+					/>
+				</label>
+				<label>
+					display name
+					<input
+						name="displayname"
+						placeholder="display name"
+						value={displayname}
+						onChange={(e) => setDisplayName(e.target.value)}
+					/>
+				</label>
+				<label>
+					password
+					<input
+						type="password"
+						name="password"
+						placeholder="password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+					/>
+				</label>
 
-			<button disabled={loading} type="submit">Register</button>
-            {errorMsg && <p> {errorMsg} </p>}
+				<button disabled={loading} type="submit">Register</button>
+				{errorMsg && <p> {errorMsg} </p>}
+				<a href="/register">I already have an account</a>
 
-		</form>
+			</form>
+		</>
 	);
 }
