@@ -37,7 +37,7 @@ router.post("/login", async (req, res) => {
             sameSite: "strict",
             maxAge: 4 * 60 * 60 * 1000 ,
         });
-        res.json({id: user.id, username: user.username})
+        res.json({id: user.id, username: user.username, displayName: user.displayName})
         }
         else {
             return res.status(401).json({error : "invalid credentials"})
