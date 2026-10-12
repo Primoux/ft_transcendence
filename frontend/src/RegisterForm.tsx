@@ -1,6 +1,7 @@
 import { useState} from "react"
 import type { User } from './types/user'
 type RegisterFormProps = {onLogin: (user : User) => void}
+import { Link } from 'react-router';
 
 export default function RegisterForm({onLogin} : RegisterFormProps) {
 	const [username, setUsername] = useState('');
@@ -37,7 +38,7 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
 
 	return (
 		<>
-			<h2>Register Form</h2>
+			<h1>Create an Account</h1>
 			<form onSubmit={handleSubmit}>
 				<label>
 					username
@@ -70,7 +71,7 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
 
 				<button disabled={loading} type="submit">Register</button>
 				{errorMsg && <p> {errorMsg} </p>}
-				<a href="/register">I already have an account</a>
+				<Link to="/login">I already have an account</Link>
 
 			</form>
 		</>
