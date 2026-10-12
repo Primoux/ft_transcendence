@@ -19,19 +19,21 @@ function NavBar( {user, logout} : NavBarProps) {
     }
     let loginElement;
     if (user.id != 0) {
-        loginElement = <button onClick={disconnectUser} className="rounded-none bground-orange p-10"> Logout </button>
+        loginElement = <button onClick={disconnectUser} className="w-full text-center"> Logout </button>
     } else if (location.pathname === "/login" ){
-        loginElement = <Link to="/register" className="rounded-none bground-orange p-10"> Register </Link>
+        loginElement = <Link to="/register" className="w-full text-center"> Register </Link>
     } else {
-        loginElement = <Link to="/login" className="rounded-none bground-orange p-10"> Login </Link>
+        loginElement = <Link to="/login" className="w-full text-center"> Login </Link>
     } 
     const userString : string = "/users/" + user.username
     return (
-        <nav className="sticky border-1 border-black w-screen flex flex-row items-center justify-between rounded-sm">
-            <h1 className="p-3 justify-self-start"><Link to="/">HubDle</Link></h1>
-            <Link to={userString} className="">Profile</Link>
-            <Link to="/" className="">Home</Link>
-            {loginElement}
+        <nav className="sticky border-1 border-black w-screen flex flex-row items-center justify-between rounded-t-sm border-b-none bg-white">
+            <h1 className="p-3 justify-self-start text-5xl text-black py-4"><Link to="/">HubDle</Link></h1>
+            <div className="w-1/2 grid grid-rows-1 grid-cols-3 items-center justify-items-center divide-x-2 align-middle">
+                <Link to={userString} className="w-full text-center">Profile</Link>
+                <Link to="/" className="w-full text-center">Home</Link>
+                {loginElement}
+            </div>
         </nav>
     )
 }
