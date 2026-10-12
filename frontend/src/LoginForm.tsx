@@ -1,6 +1,7 @@
 import { useState} from "react"
 import type { User } from './types/user'
 type LoginFormProps = {onLogin: (user: User) => void}
+import { Link } from "react-router"
 
 function LoginForm({ onLogin } : LoginFormProps) {
     const [username, setUsername] = useState("")
@@ -30,17 +31,20 @@ function LoginForm({ onLogin } : LoginFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
-            <label> username 
-                <input value={username} onChange={(e) => setUsername(e.target.value)} name="username" placeholder="username" />
-            </label>
-            <label> password
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password" placeholder="password" />
-            </label>
-            <button disabled={loading}>Login</button>
-            {errorMsg && <p> {errorMsg} </p>}
-            <a href="/register">I don't have an account</a>
-        </form>
+        <>
+            <h1>Login</h1>
+            <form onSubmit={handleSubmit}>
+                <label> username
+                    <input value={username} onChange={(e) => setUsername(e.target.value)} name="username" placeholder="username" />
+                </label>
+                <label> password
+                    <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password" placeholder="password" />
+                </label>
+                <button disabled={loading}>Login</button>
+                {errorMsg && <p> {errorMsg} </p>}
+                <Link to="/register">I don't have an account</Link>
+            </form>
+        </>
     )
 }
 
