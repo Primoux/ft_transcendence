@@ -4,7 +4,8 @@ import RegisterForm from './RegisterForm'
 import { useState, useEffect } from "react"
 import type { User } from './types/user'
 import { Routes, Route, useNavigate, Navigate } from 'react-router';
-import WelcomeParagraph from "./WelcomeParagraph"
+import HomePage from './HomePage'
+import NavBar from './NavBar'
 
 function App() {
 	const goTo = useNavigate();
@@ -44,7 +45,7 @@ function App() {
 
 	let rootElement, loginElement, registerElement;
 	if (currentUser) {
-		rootElement = <WelcomeParagraph user={currentUser} onLogout={disconnectUser}/>
+		rootElement = <HomePage />
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
 	} else {
@@ -54,13 +55,16 @@ function App() {
 	}
 	return (
 		<>
-		<div className="App">
-			<Routes>
-				<Route path="/login" element={loginElement} />
-				<Route path="/register" element={registerElement} />
-				<Route path="/" element={rootElement} />
-				<Route path="*" element={<Navigate to="/" replace />} />
-			</Routes>
+		<div className="App h-dvh w-dvw flex flex-col">
+			<NavBar user={currentUser || {id: 0, username: "", displayName: ""}} logout={disconnectUser}></NavBar>
+			<div className="flex flex-col mainContent bg-blue flex-1 border-red-500">
+				<Routes>
+					<Route path="/login" element={loginElement} />
+					<Route path="/register" element={registerElement} />
+					<Route path="/" element={rootElement} />
+					<Route path="*" element={<Navigate to="/" replace />} />
+				</Routes>
+			</div>
 		</div>
 		</>
 	)
