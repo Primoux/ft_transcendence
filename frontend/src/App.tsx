@@ -57,7 +57,7 @@ function App() {
 		<>
 		<div className="App h-dvh w-dvw flex flex-col">
 			<NavBar user={currentUser || {id: 0, username: "", displayName: ""}} logout={disconnectUser}></NavBar>
-			<div className="flex flex-col mainContent bg-blue flex-1 border-red-500">
+			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-2 rounded-b-2xl border-black">
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
