@@ -1,6 +1,8 @@
+*This project has been created as part of the 42 curriculum by alpayet, cviel, enchevri, kbarru, mlouis.*
+
 # ft_transcendence
 
-## Presentation
+## Description
 
 For now : a small GameDLe-like game.
 Will be upgraded into a full Dle-game maker if time allows it.
@@ -9,26 +11,35 @@ Will be upgraded into a full Dle-game maker if time allows it.
 
 **Backend** : Node.js environment with the Express.js framework, PostreSQL database, Prisma ORM
 
-**Frontend** : React + Vite
-
-**Reverse proxy** : nginx (not yet added)
+**Frontend** : React + Vite for dev. In production, nginx will be used as reverse proxy.
 
 With time, the whole app will be containerized with Docker and Docker-compose. For now, only the db runs containerized.
 
-## Usage
+## Instructions
 
-You can just run `make`.
+## Prerequisites :
+
++ NodeJS 24+
++ npm 11+
++ A UNIX-like environment with recent versions of `sh` and `make` installed
++ openSSL 3.6 (for generating env variables)
+
+## Starting
+
+Clone the project, then run `make`.
 a .env file will be created with random values, then every service will be launched.
 
-If you rather use custom values, follow the `.env.example` file.
+If you rather use custom values, create and populate a `.env` file at the root of the repo,
+using the `.env.example` file as reference, then run `docker compose up -d` to start the backend, frontend, and db.
 
-1. populate the values in `backend/.env` as the ones in `backend/.env.example`.
-2. run `docker compose up -d` to start the backend, frontend, and db.
+## Resources
 
-There is only a login form for now and no registering, so open a terminal and run this to create a user :
++ [ExpressJS docs](https://expressjs.com/en/5x/starter/hello-world/)
++ [Prisma docs](https://www.prisma.io/docs/v7/prisma-orm/quickstart/prisma-postgres)
++ [Backend Full Course | NodeJS ExpressJS PostgreSQL Prisma & Dockee](https://www.youtube.com/watch?v=9BD9eK9VqXA&t=11807s)
 
-```
-curl -i -X POST http://localhost:5003/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","displayName":"enzo le + rigolo","password":"admin123456"}'
-```
+### AI Usage
+
+Artificial intelligence was used at lengths to provide explanations on key concepts in web development such as **async programming**
+It was a great help to have a artificial mentor for transitionning from C/C++ programming into designing a full-stack web application.
+As helpful as it was in teching concepts and warning of common pitfalls, AI was instructed to not provide heavy code snippets.
