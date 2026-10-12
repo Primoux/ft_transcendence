@@ -91,4 +91,13 @@ router.post("/register", async (req, res) => {
             throw error;
     }
 });
+
+router.post("/logout", (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "strict"
+    })
+    res.status(200).json({message: "user disconnected"})
+})
+
 export default router
