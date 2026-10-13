@@ -17,6 +17,7 @@ model User {
   username    String  @unique
   displayName String
   password    String
+  registerDate  DateTime @default(now())
   games      Game[]
 }
 
