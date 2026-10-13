@@ -57,7 +57,8 @@ router.get("/:username", async (req, res) => {
         select: {
             id: true,
             username: true,
-            displayName: true
+            displayName: true,
+            registerDate: true,
         }
     });
     if (user === null) {
