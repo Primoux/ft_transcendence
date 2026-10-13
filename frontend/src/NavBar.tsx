@@ -25,7 +25,7 @@ function NavBar( {user, logout} : NavBarProps) {
     } else {
         loginElement = <Link to="/login" className="w-full text-center"> Login </Link>
     } 
-    const userString : string = "/users/" + user.username
+    const userString : string = `/users/${user.username}`
     return (
         <nav className="sticky border-1 border-black w-screen flex flex-row items-center justify-between rounded-t-sm border-b-none bg-white">
             <h1 className="p-3 justify-self-start text-5xl text-black py-4"><Link to="/">HubDle</Link></h1>
