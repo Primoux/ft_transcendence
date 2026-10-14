@@ -31,23 +31,23 @@ router.get("/me", async (req, res) => {
     return (res.status(200).json(currentUser))
 })
 
-router.get("/:id", async (req, res) => {
-    const user = await prisma.user.findUnique({
-        where: {
-            id: parseInt(req.params.id)
-        },
-        select: {
-            id: true,
-            displayName: true
-        }
-    });
-    if (user) {
-        res.json(user);
-    }
-    else {
-        res.status(404).json({error: "User not found"});
-    }
-})
+// router.get("/:id", async (req, res) => {
+//     const user = await prisma.user.findUnique({
+//         where: {
+//             id: parseInt(req.params.id)
+//         },
+//         select: {
+//             id: true,
+//             displayName: true
+//         }
+//     });
+//     if (user) {
+//         res.json(user);
+//     }
+//     else {
+//         res.status(404).json({error: "User not found"});
+//     }
+// })
 
 router.get("/:username", async (req, res) => {
     const user = await prisma.user.findUnique({
@@ -57,13 +57,14 @@ router.get("/:username", async (req, res) => {
         select: {
             id: true,
             username: true,
-            displayName: true
+            displayName: true,
+            registerDate: true,
         }
     });
-    if (user) {
-        res.json(user);
-    } else {
+    if (user === null) {
         res.status(404).json({error: "User not found"});
+    } else {
+        res.json(user);
     }
 })
 
