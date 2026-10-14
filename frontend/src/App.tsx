@@ -49,7 +49,7 @@ function App() {
 		rootElement = <HomePage />
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
-		profileElement = <ProfilePage user={currentUser} />
+		profileElement = <ProfilePage />
 	} else {
 		rootElement = <Navigate to="/login" replace />
 		loginElement = <LoginForm onLogin={connectUser} />
