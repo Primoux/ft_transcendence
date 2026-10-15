@@ -5,7 +5,8 @@
   "main": "src/server.ts",
   "scripts": {
     "start": "tsx src/server.ts",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "check": "prisma generate && tsc --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -2,9 +2,7 @@ import { useNavigate, useParams } from 'react-router'
 import type {User} from './types/user'
 import { useState, useEffect} from "react"
 
-type ProfileProps = {user: User}
-
-function ProfilePage({user} : ProfileProps) {
+function ProfilePage() {
     const [userToView, setUserToView] = useState<User | null>(null)
     const params = useParams();
     const goTo = useNavigate();
