@@ -10,7 +10,6 @@ export const userRepository = {
       select: {
         id: true,
         email: true,
-        createdAt: true,
       },
     });
   },

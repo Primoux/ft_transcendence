@@ -18,12 +18,13 @@ enum GameStatus {
 }
 
 model User {
-    id       String @id @default(uuid())
-    username String @unique
+    id           String @id @default(cuid(2))
+    email        String @unique
+    username     String @unique
+    passwordHash String
 
-    createdDles Dle[]
-    sessions    GameSession[]
-    comments    Comment[]
+    sessions GameSession[]
+    comments Comment[]
 }
 
 model GameSession {
@@ -31,8 +32,9 @@ model GameSession {
     status    GameStatus @default(IN_PROGRESS)
     createdAt DateTime   @default(now())
 
-    userId      String
-    user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
     dailyGameId String
     dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
 
@@ -43,49 +45,22 @@ model GameSession {
 
 model DailyGame {
     id   String   @id @default(cuid(2))
-    date DateTime @db.Date
+    date DateTime @db.Date @unique
 
-    dleId        String
-    dle          Dle         @relation(fields: [dleId], references: [id], onDelete: Cascade)
-    targetItemId String
-    targetItem   CatalogItem @relation(fields: [targetItemId], references: [id])
+    targetCardId String
+    targetCard  MagicCard @relation(fields: [targetCardId], references: [id])
 
     sessions GameSession[]
     comments Comment[]
-
-    @@unique([date, dleId])
 }
 
-model Dle {
-    id   String @id @default(cuid(2))
-    slug String @unique
-    name String
-
-    creatorId String?
-    // SetNull prevents game deletion if the creator deletes their account, preserving popular dle
-    creator   User?   @relation(fields: [creatorId], references: [id], onDelete: SetNull)
-
-    items      DleCatalogItem[]
-    dailyGames DailyGame[]
-}
-
-model CatalogItem {
+model MagicCard {
     id         String @id @default(cuid(2))
     name       String
     attributes Json
 
-    dleCatalogItems DleCatalogItem[]
-    dailyTargets    DailyGame[]
-    guesses         Guess[]
-}
-
-model DleCatalogItem {
-    dleId         String
-    dle           Dle         @relation(fields: [dleId], references: [id], onDelete: Cascade)
-    catalogItemId String
-    catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
-
-    @@id([dleId, catalogItemId])
+    dailyGames  DailyGame[]
+    guesses Guess[]
 }
 
 model Guess {
@@ -94,8 +69,9 @@ model Guess {
 
     gameSessionId String
     gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-    guessedItemId String
-    guessedItem   CatalogItem @relation(fields: [guessedItemId], references: [id])
+
+    guessedCardId String
+    guessedCard   MagicCard @relation(fields: [guessedCardId], references: [id])
 }
 
 model Comment {
@@ -115,8 +91,7 @@ model Comment {
     replies  Comment[] @relation("CommentReplies")
 }
 
-// schema for only one dle (FastFood)
-//
+// schema for multiple dle
 // enum GameStatus {
 //     IN_PROGRESS
 //     WON
@@ -124,39 +99,13 @@ model Comment {
 // }
 
 // model User {
-//     id           String @id @default(cuid(2))
-//     email        String @unique
-//     username     String @unique
-//     passwordHash String
+//     id       String @id @default(uuid())
+//     username String @unique
+//     email    String @unique
 
-//     sessions GameSession[]
-//     comments Comment[]
-// }
-
-// model FastFood {
-//     id          String   @id @default(cuid(2))
-//     name        String
-//     price       Float
-//     calories    Int
-//     mainProtein String
-//     format      String
-//     ingredients String[]
-
-//     dailyGames  DailyGame[]
-//     guessesMade Guess[]
-// }
-
-// model DailyGame {
-//     id   String   @id @default(cuid(2))
-//     date DateTime @db.Date
-
-//     targetFastFoodId String
-//     targetFastFood   FastFood @relation(fields: [targetFastFoodId], references: [id])
-
-//     sessions GameSession[]
-//     comments Comment[]
-
-//     @@unique([date])
+//     createdDles Dle[]
+//     sessions    GameSession[]
+//     comments    Comment[]
 // }
 
 // model GameSession {
@@ -164,9 +113,8 @@ model Comment {
 //     status    GameStatus @default(IN_PROGRESS)
 //     createdAt DateTime   @default(now())
 
-//     userId String
-//     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+//     userId      String
+//     user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 //     dailyGameId String
 //     dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
 
@@ -175,15 +123,61 @@ model Comment {
 //     @@unique([userId, dailyGameId])
 // }
 
+// model DailyGame {
+//     id   String   @id @default(cuid(2))
+//     date DateTime @db.Date
+
+//     dleId        String
+//     dle          Dle         @relation(fields: [dleId], references: [id], onDelete: Cascade)
+//     targetItemId String
+//     targetItem   CatalogItem @relation(fields: [targetItemId], references: [id])
+
+//     sessions GameSession[]
+//     comments Comment[]
+
+//     @@unique([date, dleId])
+// }
+
+// model Dle {
+//     id   String @id @default(cuid(2))
+//     slug String @unique
+//     name String
+
+//     creatorId String?
+//     // SetNull prevents game deletion if the creator deletes their account, preserving popular dle
+//     creator   User?   @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+
+//     items      DleCatalogItem[]
+//     dailyGames DailyGame[]
+// }
+
+// model CatalogItem {
+//     id         String @id @default(cuid(2))
+//     name       String
+//     attributes Json
+
+//     dleCatalogItems DleCatalogItem[]
+//     dailyTargets    DailyGame[]
+//     guesses         Guess[]
+// }
+
+// model DleCatalogItem {
+//     dleId         String
+//     dle           Dle         @relation(fields: [dleId], references: [id], onDelete: Cascade)
+//     catalogItemId String
+//     catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
+
+//     @@id([dleId, catalogItemId])
+// }
+
 // model Guess {
 //     id            String @id @default(cuid(2))
 //     attemptNumber Int
 
 //     gameSessionId String
 //     gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-
-//     guessedFastFoodId String
-//     guessedFastFood   FastFood @relation(fields: [guessedFastFoodId], references: [id])
+//     guessedItemId String
+//     guessedItem   CatalogItem @relation(fields: [guessedItemId], references: [id])
 // }
 
 // model Comment {
@@ -202,3 +196,7 @@ model Comment {
 //     parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
 //     replies  Comment[] @relation("CommentReplies")
 // }
+
+// schema for only one dle (FastFood)
+//
+
