@@ -31,7 +31,7 @@ async function getOracleCardsUri() {
     const oracleCardsObject = items.data.find(item => item.type === "oracle_cards")
     if (oracleCardsObject === undefined) throw new Error("no Oracle Cards file available")
 
-    return (url.jsonl_download_uri);
+    return (oracleCardsObject.jsonl_download_uri);
 }
 
 async function getOracleCards(downloadUri: string) {
