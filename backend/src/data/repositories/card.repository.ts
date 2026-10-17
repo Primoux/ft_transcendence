@@ -7,7 +7,7 @@ export const cardRepository = {
         ? { startsWith: query, mode: "insensitive" as const }
         : { contains: query, mode: "insensitive" as const };
 
-    return await prisma.magicCard.findMany({
+    return prisma.magicCard.findMany({
       where: { name: searchFilter },
       orderBy: { name: "asc" },
       take: limit,
