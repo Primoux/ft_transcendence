@@ -9,5 +9,28 @@ NAME=transcendence
 all: .env
 	docker compose up -d
 
-.env: 
+.PHONY: restart
+restart:
+	docker compose restart
+
+.PHONY: reset
+reset: down
+	rm .env
+
+down:
+	docker compose down -v
+
+.PHONY: env
+env: down
+	./make_env.sh
+# Internal. Should not be used.
+# Used only on first startup to automatically create the env file.
+# If you messed up your .env, use `make env` instead.
+
+.PHONY: npm_install
+npm_install:
+	cd frontend && npm install
+	cd backend && npm install
+
+.env:
 	./make_env.sh

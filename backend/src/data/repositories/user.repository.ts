@@ -12,9 +12,6 @@ export const userRepository = {
   async findByUsername(username: string) {
     return prisma.user.findUnique({ where: { username } });
   },
-  async findByEmail(email: string) {
-    return prisma.user.findUnique({ where: { email } });
-  },
   async findAll() {
     return prisma.user.findMany();
   },
