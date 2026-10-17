@@ -10,15 +10,7 @@ export const dailyGameRepository = {
           mode,
         },
       },
-      select: {
-        targetCard: {
-          select: {
-            id: true,
-            name: true,
-            attributes: true,
-          },
-        },
-      },
+      select: { targetCard: true },
     });
   },
 };
