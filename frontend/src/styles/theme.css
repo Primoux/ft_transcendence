@@ -16,6 +16,15 @@
 
   --color-darkrose: #D8A2A2;
   --color-lightrose: #FFDCDC;
-  --color-yellowTwo: ##fff9d6;
+  --color-yellowTwo: #fff9d6;
   --color-green: #8ea66b;
+
+  /* dark auth screens (login / register) */
+
+  --color-ink: #231f2e;
+  --color-inkSoft: #2f2a3d;
+  --color-inkLine: #3f3951;
+  --color-mist: #a49fb5;
+  --color-violet: #7c5cd6;
+  --color-violetSoft: #8b6ee0;
 }
