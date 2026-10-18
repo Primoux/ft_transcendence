@@ -2,6 +2,11 @@ import { useState} from "react"
 import type { User } from '../../types/user'
 type RegisterFormProps = {onLogin: (user : User) => void}
 import { Link } from 'react-router';
+import AuthLayout from './AuthLayout'
+import TextField from './TextField'
+import PasswordField from './PasswordField'
+import SubmitButton from './SubmitButton'
+import FormError from './FormError'
 
 export default function RegisterForm({onLogin} : RegisterFormProps) {
 	const [username, setUsername] = useState('');
@@ -37,36 +42,54 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
         }
     }
 
+	const subtitle = (
+		<>
+			Already have an account?{' '}
+			<Link to="/login" className="underline">
+				Log in
+			</Link>
+		</>
+	)
+
 	return (
-		<div className="flex flex-col justify-around items-center justify-items-center h-full">
-            <form onSubmit={handleSubmit} className="border-1 flex flex-col justify-around items-center rounded-sm w-md  bg-white h-9/10">
-            <h1 className=" text-5xl text-black h-1/8">Register</h1>
-                <div className="flex flex-col items-center justify-between">
-                    <label className="font-bold text-center"> username <br />
-                        <input className="focus:outline-hidden p-2 border-orange border-1" value={username} onChange={(e) => setUsername(e.target.value)} name="username" placeholder="username" />
-                    </label>
-                </div>
-				<div className="flex flex-col items-center justify-between text-start">
-						<label className="font-bold text-center"> display name <br />
-							<input className="focus:outline-hidden p-2 border-orange border-1" value={displayName} onChange={(e) => setDisplayName(e.target.value)} name="username" placeholder="username" />
-						</label>
-                </div>
-                <div className="flex flex-col items-center ">
-					<label className="font-bold text-center"> password <br />
-						<input className="focus:outline-hidden p-2 border-1 border-orange" value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password" placeholder="password" />
-					</label>
-                </div>
-				<div className="flex flex-col items-center ">
-					<label className="font-bold text-center"> confirm password <br />
-						<input className="focus:outline-hidden p-2 border-1 border-orange" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" name="password" placeholder="password" />
-					</label>
-                </div>
-					<div className="registerMenu h-2/8 grid grid-rows-3 grid-cols-1 text-center">
-						<button disabled={loading} className="rounded-sm bg-orange font-bold">Register</button>
-						<div className="min-h-8 text-orange self-center align-middle "> {errorMsg} </div>
-						<Link to="/login" className="underline p-2">I already have an account</Link>
-					</div>
-            </form>
-        </div>
+		<AuthLayout title="Create an account" subtitle={subtitle} onSubmit={handleSubmit}>
+			<div className="flex flex-col gap-4">
+				<TextField
+					id="username"
+					label="Username"
+					value={username}
+					onChange={setUsername}
+					placeholder="Username"
+					autoComplete="username"
+				/>
+				<TextField
+					id="displayName"
+					label="Display name"
+					value={displayName}
+					onChange={setDisplayName}
+					placeholder="Display name"
+					autoComplete="nickname"
+				/>
+				<PasswordField
+					id="password"
+					label="Password"
+					value={password}
+					onChange={setPassword}
+					placeholder="Password"
+					autoComplete="new-password"
+				/>
+				<PasswordField
+					id="confirmPassword"
+					label="Confirm password"
+					value={confirmPassword}
+					onChange={setConfirmPassword}
+					placeholder="Confirm password"
+					autoComplete="new-password"
+				/>
+			</div>
+
+			<SubmitButton loading={loading} label="Create account" loadingLabel="Creating account…" />
+			<FormError message={errorMsg} />
+		</AuthLayout>
 	);
 }

@@ -2,6 +2,11 @@ import { useState} from "react"
 import type { User } from '../../types/user'
 type LoginFormProps = {onLogin: (user: User) => void}
 import { Link } from "react-router"
+import AuthLayout from './AuthLayout'
+import TextField from './TextField'
+import PasswordField from './PasswordField'
+import SubmitButton from './SubmitButton'
+import FormError from './FormError'
 
 function LoginForm({ onLogin } : LoginFormProps) {
     const [username, setUsername] = useState("")
@@ -30,28 +35,40 @@ function LoginForm({ onLogin } : LoginFormProps) {
         }
     }
 
+    const subtitle = (
+        <>
+            Don't have an account?{' '}
+            <Link to="/register" className="underline">
+                Register
+            </Link>
+        </>
+    )
+
     return (
-		<div className="flex flex-col justify-around items-center h-full">
-            <form onSubmit={handleSubmit} className="flex flex-col justify-around items-center rounded-md w-md border-2 bg-white border-solid shadow-2xl">
-            <h1 className=" text-5xl text-black h-1/8">Login</h1>
-                <div className="m-5 flex flex-col items-center justify-between">
-                    <label className="text-center font-bold"> username <br />
-                        <input className="focus:outline-hidden p-2 border-orange border-1" value={username} onChange={(e) => setUsername(e.target.value)} name="username" placeholder="username" />
-                    </label>
-                </div>
-                <div className="m-5 flex flex-col items-center">
-                <label className="text-center font-bold"> password <br />
-                    <input className="focus:outline-hidden p-2 border-1 border-orange" value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password" placeholder="password" />
-                </label>
-                </div>
-                <div className="registerMenu h-2/8 grid grid-rows-3 grid-cols-1 text-center">
-                    <button disabled={loading} className="rounded-sm bg-orange font-bold">Login</button>
-                    <div className="min-h-8 text-orange self-center align-middle "> {errorMsg} </div>
-                    <Link to="/register" className="underline p-2">I don't have an account</Link>
-                </div>
-            </form>
-        </div>
+        <AuthLayout title="Welcome back" subtitle={subtitle} onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-4">
+                <TextField
+                    id="username"
+                    label="username"
+                    value={username}
+                    onChange={setUsername}
+                    placeholder="Username"
+                    autoComplete="username"
+                />
+                <PasswordField
+                    id="password"
+                    label="password"
+                    value={password}
+                    onChange={setPassword}
+                    placeholder="Password"
+                    autoComplete="current-password"
+                />
+            </div>
+
+            <SubmitButton loading={loading} label="Log in" loadingLabel="Logging in…" />
+            <FormError message={errorMsg} />
+        </AuthLayout>
     )
 }
 
-export default LoginForm 
+export default LoginForm
