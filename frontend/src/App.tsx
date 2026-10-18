@@ -44,14 +44,12 @@ function App() {
 		return (<p>loading</p>)
 	}
 
-	let rootElement, loginElement, registerElement, profileElement;
+	let loginElement, registerElement, profileElement;
 	if (currentUser) {
-		rootElement = <HomePage />
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
 		profileElement = <ProfilePage />
 	} else {
-		rootElement = <Navigate to="/login" replace />
 		loginElement = <LoginForm onLogin={connectUser} />
 		registerElement = <RegisterForm onLogin={connectUser} />
 		profileElement = <Navigate to="/login" replace />
@@ -59,13 +57,13 @@ function App() {
 	return (
 		<>
 		<div className="App h-dvh w-dvw flex flex-col">
-			<NavBar user={currentUser || {id: 0, username: "", displayName: "", registerDate: new Date()}} logout={disconnectUser}></NavBar>
+			<NavBar user={currentUser} logout={disconnectUser} />
 			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-5 rounded-b-2xl border-black justify-center items-center">
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
 					<Route path="/users/:username" element={profileElement} />
-					<Route path="/" element={rootElement} />
+					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
 			</div>
