@@ -1,6 +1,5 @@
-import type { User } from './types/user'
+import type { User } from '../types/user'
 import {Link, useLocation } from 'react-router'
-import './NavBar.css'
 type NavBarProps = {user: User, logout: () => (void)}
 
 function NavBar( {user, logout} : NavBarProps) {

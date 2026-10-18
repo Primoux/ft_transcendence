@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router'
-import type {User} from './types/user'
+import type {User} from '../types/user'
 import { useState, useEffect} from "react"
 
 function ProfilePage() {

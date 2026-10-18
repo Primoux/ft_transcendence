@@ -1,4 +1,4 @@
-import DlePreview from "./DlePreview"
+import DlePreview from "../components/DlePreview"
 
 function HomePage() {
     return (

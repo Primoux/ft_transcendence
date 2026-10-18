@@ -1,12 +1,12 @@
-import LoginForm from './LoginForm'
-import './App.css'
-import RegisterForm from './RegisterForm'
+import LoginForm from './components/auth/LoginForm'
+import './styles/theme.css'
+import RegisterForm from './components/auth/RegisterForm'
 import { useState, useEffect } from "react"
 import type { User } from './types/user'
 import { Routes, Route, useNavigate, Navigate } from 'react-router';
-import HomePage from './HomePage'
-import NavBar from './NavBar'
-import ProfilePage from './ProfilePage'
+import HomePage from './pages/HomePage'
+import NavBar from './components/NavBar'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
 	const goTo = useNavigate();

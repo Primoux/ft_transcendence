@@ -1,5 +1,5 @@
 import { useState} from "react"
-import type { User } from './types/user'
+import type { User } from '../../types/user'
 type RegisterFormProps = {onLogin: (user : User) => void}
 import { Link } from 'react-router';
 
