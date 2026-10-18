@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import type { User } from './types/user'
 import { Routes, Route, useNavigate, Navigate } from 'react-router';
 import HomePage from './HomePage'
+import DlePage from './DlePage'
 import NavBar from './NavBar'
 
 function App() {
@@ -53,6 +54,8 @@ function App() {
 		loginElement = <LoginForm onLogin={connectUser} />
 		registerElement = <RegisterForm onLogin={connectUser} />
 	}
+	let dleElement;
+	dleElement = <DlePage />
 	return (
 		<>
 		<div className="App h-dvh w-dvw flex flex-col">
@@ -63,6 +66,7 @@ function App() {
 					<Route path="/register" element={registerElement} />
 					<Route path="/" element={rootElement} />
 					<Route path="*" element={<Navigate to="/" replace />} />
+					<Route path="/dle" element={dleElement} />
 				</Routes>
 			</div>
 		</div>

@@ -1,7 +1,9 @@
+type AttributeValue = string | number | string[];
+
 export type Entity = {
 	id: number,
 	name: string;
-	attributes: Record<string, unknown>;
+	attributes: Record<string, AttributeValue>;
 };
 
 export type AttributeResult =
@@ -13,7 +15,7 @@ export type AttributeResult =
 ;
 
 export type GuessResult = {
-	id: number;
+	name: string;
 	win: boolean;
 	attributes: Record<string, AttributeResult>;
 };
