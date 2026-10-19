@@ -1,30 +1,51 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+}
+
+
+
+
+
+@plugin "daisyui/theme" {
+  name: "mtgdle";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(96% 0.001 286.375);
+  --color-base-300: oklch(92% 0.004 286.32);
+  --color-base-content: oklch(21% 0.006 285.885);
+  --color-primary: oklch(59% 0.293 322.896);
+  --color-primary-content: oklch(97% 0.017 320.058);
+  --color-secondary: oklch(58% 0.253 17.585);
+  --color-secondary-content: oklch(96% 0.015 12.422);
+  --color-accent: oklch(54% 0.245 262.881);
+  --color-accent-content: oklch(97% 0.014 254.604);
+  --color-neutral: oklch(44% 0.017 285.786);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(54% 0.245 262.881);
+  --color-info-content: oklch(97% 0.014 254.604);
+  --color-success: oklch(62% 0.194 149.214);
+  --color-success-content: oklch(98% 0.018 155.826);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-warning-content: oklch(98% 0.022 95.277);
+  --color-error: oklch(57% 0.245 27.325);
+  --color-error-content: oklch(97% 0.013 17.38);
+  --radius-selector: 2rem;
+  --radius-field: 1rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+
+
+
 
 /* color palette from coolors.co */
 
-@theme {
-  --color-yellowOne: #dbd56e;
-  --color-green: #88ab75;
-  --color-blue: #2d93ad;
-  --color-gray: #7d7c84;
-  --color-orange: #de8f6e;
-  --color-white: #e6f4f1;
 
-
-
-  /* other palette */
-
-  --color-darkrose: #D8A2A2;
-  --color-lightrose: #FFDCDC;
-  --color-yellowTwo: #fff9d6;
-  --color-green: #8ea66b;
-
-  /* dark auth screens (login / register) */
-
-  --color-ink: #231f2e;
-  --color-inkSoft: #2f2a3d;
-  --color-inkLine: #3f3951;
-  --color-mist: #a49fb5;
-  --color-violet: #7c5cd6;
-  --color-violetSoft: #8b6ee0;
-}
