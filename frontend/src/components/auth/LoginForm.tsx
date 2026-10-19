@@ -7,6 +7,7 @@ import TextField from './TextField'
 import PasswordField from './PasswordField'
 import SubmitButton from './SubmitButton'
 import FormError from './FormError'
+import { User as UserIcon, KeyRound } from 'lucide-react'
 
 function LoginForm({ onLogin } : LoginFormProps) {
     const [username, setUsername] = useState("")
@@ -49,19 +50,21 @@ function LoginForm({ onLogin } : LoginFormProps) {
             <div className="flex flex-col gap-4">
                 <TextField
                     id="username"
-                    label="username"
+                    label="Username"
                     value={username}
                     onChange={setUsername}
                     placeholder="Username"
                     autoComplete="username"
+                    icon={<UserIcon className="h-[1em] opacity-50" />}
                 />
                 <PasswordField
                     id="password"
-                    label="password"
+                    label="Password"
                     value={password}
                     onChange={setPassword}
                     placeholder="Password"
                     autoComplete="current-password"
+                    icon={<KeyRound className="h-[1em] opacity-50" />}
                 />
             </div>
 

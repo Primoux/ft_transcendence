@@ -7,6 +7,7 @@ import TextField from './TextField'
 import PasswordField from './PasswordField'
 import SubmitButton from './SubmitButton'
 import FormError from './FormError'
+import { User as UserIcon, KeyRound, IdCard } from 'lucide-react'
 
 export default function RegisterForm({onLogin} : RegisterFormProps) {
 	const [username, setUsername] = useState('');
@@ -61,6 +62,10 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
 					onChange={setUsername}
 					placeholder="Username"
 					autoComplete="username"
+					icon={<UserIcon className="h-[1em] opacity-50" />}
+					minLength={3}
+					maxLength={15}
+					hint="Must be 3 to 15 characters"
 				/>
 				<TextField
 					id="displayName"
@@ -69,6 +74,9 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
 					onChange={setDisplayName}
 					placeholder="Display name"
 					autoComplete="nickname"
+					icon={<IdCard className="h-[1em] opacity-50" />}
+					maxLength={30}
+					hint="At most 30 characters"
 				/>
 				<PasswordField
 					id="password"
@@ -77,6 +85,10 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
 					onChange={setPassword}
 					placeholder="Password"
 					autoComplete="new-password"
+					icon={<KeyRound className="h-[1em] opacity-50" />}
+					minLength={8}
+					maxLength={72}
+					hint="Must be 8 to 72 characters"
 				/>
 				<PasswordField
 					id="confirmPassword"
@@ -85,6 +97,10 @@ export default function RegisterForm({onLogin} : RegisterFormProps) {
 					onChange={setConfirmPassword}
 					placeholder="Confirm password"
 					autoComplete="new-password"
+					icon={<KeyRound className="h-[1em] opacity-50" />}
+					minLength={8}
+					maxLength={72}
+					hint="Must be 8 to 72 characters"
 				/>
 			</div>
 
