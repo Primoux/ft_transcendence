@@ -18,7 +18,7 @@ function NavBar( {user, logout} : NavBarProps) {
     }
     let loginElement;
     if (user) {
-        loginElement = <button onClick={disconnectUser} className="px-4"> Logout </button>
+        loginElement = <button onClick={disconnectUser} className="px-4 hover:cursor-pointer" > Logout </button>
     } else if (location.pathname === "/login" ){
         loginElement = <Link to="/register" className="px-4"> Register </Link>
     } else {

@@ -31,7 +31,7 @@ function ProfilePage() {
         return (
                 <section className="flex flex-col justify-center items-center rounded-md border-2 bg-white shadow-2xl h-2/3 w-2/3">
                     <div>
-                    <h2>No such user :(</h2>
+                    	<h2>No such user : {params.username}</h2>
                     </div>
                 </section>
 
