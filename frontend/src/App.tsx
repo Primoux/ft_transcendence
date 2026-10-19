@@ -1,6 +1,5 @@
-import LoginForm from './components/auth/LoginForm'
-import './styles/theme.css'
-import RegisterForm from './components/auth/RegisterForm'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import { useState, useEffect } from "react"
 import type { User } from './types/user'
 import { Routes, Route, useNavigate, Navigate } from 'react-router';
@@ -50,15 +49,14 @@ function App() {
 		registerElement = <Navigate to="/" replace />
 		profileElement = <ProfilePage />
 	} else {
-		loginElement = <LoginForm onLogin={connectUser} />
-		registerElement = <RegisterForm onLogin={connectUser} />
+		loginElement = <LoginPage onLogin={connectUser} />
+		registerElement = <RegisterPage onLogin={connectUser} />
 		profileElement = <Navigate to="/login" replace />
 	}
 	return (
-		<>
-		<div className="App h-dvh w-dvw flex flex-col">
+		<div className="min-h-dvh flex flex-col">
 			<NavBar user={currentUser} logout={disconnectUser} />
-			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-5 rounded-b-2xl border-black justify-center items-center">
+			<main className="flex-1 flex flex-col items-center justify-center">
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
@@ -66,9 +64,8 @@ function App() {
 					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
-			</div>
+			</main>
 		</div>
-		</>
 	)
 }
 

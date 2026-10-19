@@ -1,15 +1,15 @@
 import { useState} from "react"
-import type { User } from '../../types/user'
-type LoginFormProps = {onLogin: (user: User) => void}
+import type { User } from '../types/user'
+type LoginPageProps = {onLogin: (user: User) => void}
 import { Link } from "react-router"
-import AuthLayout from './AuthLayout'
-import TextField from './TextField'
-import PasswordField from './PasswordField'
-import SubmitButton from './SubmitButton'
-import FormError from './FormError'
+import AuthLayout from '../components/auth/AuthLayout'
+import TextField from '../components/auth/TextField'
+import PasswordField from '../components/auth/PasswordField'
+import SubmitButton from '../components/auth/SubmitButton'
+import FormError from '../components/auth/FormError'
 import { User as UserIcon, KeyRound } from 'lucide-react'
 
-function LoginForm({ onLogin } : LoginFormProps) {
+function LoginPage({ onLogin } : LoginPageProps) {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
@@ -74,4 +74,4 @@ function LoginForm({ onLogin } : LoginFormProps) {
     )
 }
 
-export default LoginForm
+export default LoginPage

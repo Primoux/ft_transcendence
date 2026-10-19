@@ -1,15 +1,15 @@
 import { useState} from "react"
-import type { User } from '../../types/user'
-type RegisterFormProps = {onLogin: (user : User) => void}
+import type { User } from '../types/user'
+type RegisterPageProps = {onLogin: (user : User) => void}
 import { Link } from 'react-router';
-import AuthLayout from './AuthLayout'
-import TextField from './TextField'
-import PasswordField from './PasswordField'
-import SubmitButton from './SubmitButton'
-import FormError from './FormError'
+import AuthLayout from '../components/auth/AuthLayout'
+import TextField from '../components/auth/TextField'
+import PasswordField from '../components/auth/PasswordField'
+import SubmitButton from '../components/auth/SubmitButton'
+import FormError from '../components/auth/FormError'
 import { User as UserIcon, KeyRound, IdCard } from 'lucide-react'
 
-export default function RegisterForm({onLogin} : RegisterFormProps) {
+export default function RegisterPage({onLogin} : RegisterPageProps) {
 	const [username, setUsername] = useState('');
 	const [displayName, setDisplayName] = useState('');
 	const [password, setPassword] = useState('');
