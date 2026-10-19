@@ -1,3 +1,5 @@
+type AttributeValue = string | number | string[];
+
 export type AttributeResult =
 	"correct" |
 	"incorrect" |
@@ -9,5 +11,6 @@ export type AttributeResult =
 export type GuessResult = {
 	name: string;
 	win: boolean;
-	attributes: Record<string, AttributeResult>;
+	attributes: Record<string, AttributeValue>;
+	comparison: Record<string, AttributeResult>;
 };

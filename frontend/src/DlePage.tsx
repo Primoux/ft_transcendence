@@ -55,53 +55,122 @@ function DlePage() {
 
 	}
 	
+	// return (
+	// 	<main>
+	// 		<h1>MagicDLE</h1>
+	// 		<h2>Classic mode</h2>
+	// 		<div>
+	// 			<form onSubmit={handleSubmit}>
+	// 				<input
+	// 					value={input}
+	// 					onChange={(e) => setInput(e.target.value)}
+	// 					placeholder="Enter card name..."
+	// 				/>
+	// 				<button type="submit">Guess</button>
+	// 			</form>
+	// 		</div>
+
+	// 		<section>
+	// 			<h3>Attemps number: ({guesses.length})</h3>
+
+	// 			{guesses.length !== 0 && (
+	// 				<ul>
+	// 					{guesses.toReversed().map((guess) => (
+	// 						<li key={guess.name}>
+	// 							<h3>{guess.name}</h3>
+	// 							{Object.entries(guess.attributes).map(([attribute, feedback]) => (
+	// 								<div key={attribute} className={`rounded-md p-3 text-sm ${
+	// 									feedback === "correct"
+	// 									? "bg-green-100 text-green-900"
+	// 									: feedback === "incorrect"
+	// 										? "bg-red-100 text-red-900"
+	// 										: "bg-yellow-100 text-yellow-900"
+	// 								}`}>
+	// 									<p className="font-medium">{attribute}</p>
+	// 									<p>{feedback}</p>
+	// 								</div>
+	// 							))}
+	// 							<span>{guess.name}</span>
+
+	// 							{guess.win && (
+	// 								<p>You found the anwser! GG!</p>
+	// 							)}
+	// 						</li>
+	// 					))}
+	// 				</ul>
+	// 			)}
+	// 		</section>
+	// 	</main>
+	// );
+
 	return (
-		<main>
-			<h1>MagicDLE</h1>
-			<h2>Classic mode</h2>
+	<main>
+		<h1>MagicDLE</h1>
+		<h2>Classic mode</h2>
+		<div>
+			<form onSubmit={handleSubmit}>
+				<input
+					value={input}
+					onChange={(e) => setInput(e.target.value)}
+					placeholder="Enter card name..."
+				/>
+				<button type="submit">Guess</button>
+			</form>
+		</div>
+
+		<section>
+			{guesses.length !== 0 && (
 			<div>
-				<form onSubmit={handleSubmit}>
-					<input
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
-						placeholder="Enter card name..."
-					/>
-					<button type="submit">Guess</button>
-				</form>
-			</div>
+				<div>
+					{guesses.at(-1).win === true &&(
+						<p>GG!<br/>You've won in ({guesses.length}) guesses!</p>
+					)}
 
-			<section>
-				<h3>Attemps number: ({guesses.length})</h3>
-
-				{guesses.length !== 0 && (
-					<ul>
-						{guesses.toReversed().map((guess) => (
-							<li key={guess.name}>
-								<h3>{guess.name}</h3>
-								{Object.entries(guess.attributes).map(([attribute, feedback]) => (
-									<div key={attribute} className={`rounded-md p-3 text-sm ${
+					<table className="table-auto">
+						<thead>
+							<th className="p-3"></th>
+							{Object.keys(guesses[0].comparison).map((name) => (
+								<th className="p-3">{name}</th>
+							))}
+						</thead>
+						<tbody>
+							{guesses.toReversed().map((guess) => (
+								<tr>
+									<td className="p-2">{guess.name}</td>
+									{Object.entries(guess.attributes).map(([name, value]) => {
+									const feedback = guess.comparison[name];
+									const color = 
 										feedback === "correct"
 										? "bg-green-100 text-green-900"
 										: feedback === "incorrect"
 											? "bg-red-100 text-red-900"
 											: "bg-yellow-100 text-yellow-900"
-									}`}>
-										<p className="font-medium">{attribute}</p>
-										<p>{feedback}</p>
-									</div>
-								))}
-								<span>{guess.name}</span>
 
-								{guess.win && (
-									<p>You found the anwser! GG!</p>
-								)}
-							</li>
-						))}
-					</ul>
-				)}
-			</section>
-		</main>
+									return (
+											<td key={name} className="p-2">
+												<div className={`rounded-md p-3 text-sm ${color}`}>
+													{Array.isArray(value) ? value.join(", ") : value}
+													{
+														feedback === "higher"
+														? "↑"
+														: feedback === "lower"
+															? "↓"
+															: ""
+													}
+											</div>
+										</td>
+									)})}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			)}
+		</section>
+	</main>
 	);
+
 }
 
 export default DlePage;

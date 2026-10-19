@@ -17,5 +17,6 @@ export type AttributeResult =
 export type GuessResult = {
 	name: string;
 	win: boolean;
-	attributes: Record<string, AttributeResult>;
+	attributes: Record<string, AttributeValue>;
+	comparison: Record<string, AttributeResult>;
 };
