@@ -41,6 +41,10 @@ restart:
 up:
 	docker compose up -d
 
+.PHONy: ps
+ps:
+	docker compose ps
+
 .PHONY: logs
 logs:
 	docker compose logs -f
