@@ -11,6 +11,11 @@ type Card = {
 	artwork: string;
 };
 
+type DailyCard = {
+	card: Card;
+	date: string;
+}
+
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -26,22 +31,22 @@ router.get("/search/:input", async (req: Request, res: Response) => {
 				}
 			}
 		});
-		if (!list) {
-			res.status(404).json(null);
+		if (list.length == 0) {
+			res.status(404);
 		}
 		else {
 			res.status(200).json(list);
 		}
 	}
 	catch (err) {
-		res.status(500).json({error: "database is down"})
+		res.status(500).json({error: "database error"})
 	}
 });
 
 router.get("/classic/:id", async (req: Request, res: Response) => {
 // TODO: compare the content of req with the daily card (in db)
 	try {
-		const guess: Card = await prisma.cards.first({id: req.params.id});
+		const guess: Card = await prisma.cards.findUnique({id: req.params.id});
 		if (!guess) {
 			res.status(404).json(null);
 		}
@@ -50,11 +55,10 @@ router.get("/classic/:id", async (req: Request, res: Response) => {
 		}
 	}
 	catch (err) {
-		res.status(500).json({error: "database is down"});
+		res.status(500).json({error: "database error"});
 	}
 
 });
-
 
 /*
 router.get("/unlimited", (req, res) => {
@@ -65,13 +69,42 @@ router.get("/unlimited", (req, res) => {
 */
 
 
-/*
-router.post("/classic", async (req, res) => {
 
+router.post("/classic/:date", async (req: Request, res: Response) => {
 // TODO: select a daily card for classic mode and put it inside the daily db (if one is not already present)
-
+	try {
+		const daily_card: DailyCard = await prisma.daily.findUnique({date: req.params.date});
+		if (!daily_card) {
+			const new_daily: Card = await prisma.cards.findUnique({
+				where: {
+					id: {
+						equals: 1
+					}
+				}
+			});
+			try {
+				await prisma.daily.create({new_daily, date: req.params.date});
+				res.status(201).json(daily_card);
+			}
+			catch (err) {
+				const daily_check: DailyCard = await prisma.daily.findUnique({date: req.params.date});
+				if (!daily_check) {
+					res.status(500).json({error: "database error"});
+				}
+				else {
+					res.status(200).json(daily_card);
+				}
+			}
+		}
+		else {
+			res.status(200).json(daily_card);
+		}
+	}
+	catch (err) {
+		res.status(500).json({error: "database error"});
+	}
 })
-*/
+
 
 /*
 router.post("/unlimited",  (req, res) =>{
