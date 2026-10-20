@@ -7,11 +7,6 @@ type GuessEntity = {
 	name: string;
 };
 
-// type GuessRecord = {
-// 	entity: GuessEntity;
-// 	feedback?: Record<string, string>;
-// };
-
 const testEnt: GuessEntity[] = [
 	{id: 1, name: "Card1"},
 	{id: 2, name: "Card2"},
@@ -54,83 +49,49 @@ function DlePage() {
 
 
 	}
-	
-	// return (
-	// 	<main>
-	// 		<h1>MagicDLE</h1>
-	// 		<h2>Classic mode</h2>
-	// 		<div>
-	// 			<form onSubmit={handleSubmit}>
-	// 				<input
-	// 					value={input}
-	// 					onChange={(e) => setInput(e.target.value)}
-	// 					placeholder="Enter card name..."
-	// 				/>
-	// 				<button type="submit">Guess</button>
-	// 			</form>
-	// 		</div>
-
-	// 		<section>
-	// 			<h3>Attemps number: ({guesses.length})</h3>
-
-	// 			{guesses.length !== 0 && (
-	// 				<ul>
-	// 					{guesses.toReversed().map((guess) => (
-	// 						<li key={guess.name}>
-	// 							<h3>{guess.name}</h3>
-	// 							{Object.entries(guess.attributes).map(([attribute, feedback]) => (
-	// 								<div key={attribute} className={`rounded-md p-3 text-sm ${
-	// 									feedback === "correct"
-	// 									? "bg-green-100 text-green-900"
-	// 									: feedback === "incorrect"
-	// 										? "bg-red-100 text-red-900"
-	// 										: "bg-yellow-100 text-yellow-900"
-	// 								}`}>
-	// 									<p className="font-medium">{attribute}</p>
-	// 									<p>{feedback}</p>
-	// 								</div>
-	// 							))}
-	// 							<span>{guess.name}</span>
-
-	// 							{guess.win && (
-	// 								<p>You found the anwser! GG!</p>
-	// 							)}
-	// 						</li>
-	// 					))}
-	// 				</ul>
-	// 			)}
-	// 		</section>
-	// 	</main>
-	// );
 
 	return (
 	<main>
 		<h1>MagicDLE</h1>
 		<h2>Classic mode</h2>
-		<div>
-			<form onSubmit={handleSubmit}>
-				<input
-					value={input}
-					onChange={(e) => setInput(e.target.value)}
-					placeholder="Enter card name..."
-				/>
-				<button type="submit">Guess</button>
-			</form>
-		</div>
+		<section>
+			{guesses.length === 0 && (
+				<div>
+					<form onSubmit={handleSubmit}>
+						<input
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+							placeholder="Enter card name..."
+						/>
+						<button type="submit">Guess</button>
+					</form>
+				</div>
+			)}
+		</section>
 
 		<section>
 			{guesses.length !== 0 && (
 			<div>
 				<div>
-					{guesses.at(-1).win === true &&(
-						<p>GG!<br/>You've won in ({guesses.length}) guesses!</p>
-					)}
+					{guesses.at(-1).win 
+					? (<p>GG!<br/>You've won in {guesses.length} guesses!</p>)
+					: (<div>
+							<form onSubmit={handleSubmit}>
+								<input
+									value={input}
+									onChange={(e) => setInput(e.target.value)}
+									placeholder="Enter card name..."
+								/>
+								<button type="submit">Guess</button>
+							</form>
+						</div>)
+					}
 
 					<table className="table-auto">
 						<thead>
 							<th className="p-3"></th>
 							{Object.keys(guesses[0].comparison).map((name) => (
-								<th className="p-3">{name}</th>
+								<th className="p-3">{name.charAt(0).toUpperCase() + name.slice(1)}</th>
 							))}
 						</thead>
 						<tbody>
