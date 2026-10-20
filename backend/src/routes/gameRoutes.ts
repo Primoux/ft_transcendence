@@ -75,7 +75,7 @@ router.post("/classic/:date", async (req: Request, res: Response) => {
 	try {
 		const daily_card: DailyCard = await prisma.daily.findUnique({date: req.params.date});
 		if (!daily_card) {
-			const new_daily: Card = await prisma.cards.findUnique({
+			const random_card: Card = await prisma.cards.findUnique({
 				where: {
 					id: {
 						equals: 1
@@ -83,8 +83,8 @@ router.post("/classic/:date", async (req: Request, res: Response) => {
 				}
 			});
 			try {
-				await prisma.daily.create({new_daily, date: req.params.date});
-				res.status(201).json(daily_card);
+				const new_daily: DailyCard = await prisma.daily.create({random_card, date: req.params.date});
+				res.status(201).json(new_daily);
 			}
 			catch (err) {
 				const daily_check: DailyCard = await prisma.daily.findUnique({date: req.params.date});
