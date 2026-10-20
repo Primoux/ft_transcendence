@@ -49,7 +49,7 @@ function App() {
 		rootElement = <HomePage />
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
-		profileElement = <ProfilePage user={currentUser} />
+		profileElement = <ProfilePage currentUser={currentUser}/>
 	} else {
 		rootElement = <Navigate to="/login" replace />
 		loginElement = <LoginForm onLogin={connectUser} />
@@ -59,7 +59,7 @@ function App() {
 	return (
 		<>
 		<div className="App h-dvh w-dvw flex flex-col">
-			<NavBar user={currentUser || {id: 0, username: "", displayName: "", registerDate: new Date()}} logout={disconnectUser}></NavBar>
+			<NavBar user={currentUser || {id: 0, username: "", displayName: "", createdAt: new Date(), privateProfile: true}} logout={disconnectUser}></NavBar>
 			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-5 rounded-b-2xl border-black justify-center items-center">
 				<Routes>
 					<Route path="/login" element={loginElement} />
