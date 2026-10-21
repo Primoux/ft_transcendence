@@ -1,4 +1,4 @@
-import { Rarity, type Prisma } from "@prisma/client";
+import { Rarity, type Prisma } from "../../generated/client.ts";
 
 const SUPERTYPES = new Set(["Basic", "Legendary", "Ongoing", "Snow", "World"]);
 

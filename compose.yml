@@ -38,9 +38,6 @@ services:
     command: npm run cards:ingest
     environment:
       - DATABASE_URL=${DATABASE_URL}
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,7 +52,3 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-
-
-volumes:
-  postgres_data:

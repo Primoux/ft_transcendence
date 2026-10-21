@@ -9,7 +9,7 @@ COMPOSE = docker compose
 COMPOSE_FILE = compose.yml
 COMPOSE_DEV_FILE = compose.dev.yml
 
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL=deploy
 
 help:
 	@echo "Usage: make [target]"
@@ -25,6 +25,17 @@ help:
 	@echo "  reset    - Stop the application and delete .env"
 	@echo "  env      - Regenerate .env file"
 
+.PHONY: deploy
+deploy: .env seed
+	$(MAKE) prod
+
+.PHONY: prod
+prod: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
+
+.PHONY: dev
+dev: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --build
 
 .PHONY: ingest
 ingest:
@@ -38,26 +49,12 @@ ci: .env
 	$(COMPOSE) run --rm --no-deps frontend npm run check
 	$(COMPOSE) run --rm --no-deps --entrypoint sh backend -c 'npm run check'
 
-
-.PHONY: up
-up: 
-	@echo "please use 'make dev' or 'make prod'."
-
-.PHONY: dev
-dev: .env
-	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --build
-
-.PHONY: prod
-prod: .env
-	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
-
 # Convenience rule : runs docker compose with the arg provided to make.
 # Exemple : 'make logs' -> 'docker compose logs'
 
 .PHONY: ps logs restart
 ps logs restart: %:
 	$(COMPOSE) $*
-
 
 .PHONY: down
 down:
@@ -66,14 +63,31 @@ down:
 .PHONY: reset
 reset: down
 	rm -rf .env
+
+.PHONY: seed
+seed:
+	docker compose run --rm card-updater
+
+.PHONY: restart
+restart:
+	docker compose restart
+
+.PHONY: reset
+reset: down
+	rm .env
+
+.PHONY: down
+down:
+	docker compose down -v
+
 .PHONY: env
 env: down
 	./make_env.sh
 
 .PHONY: npm_install
 npm_install:
-	cd frontend && npm install
-	cd backend && npm install
+	cd frontend && npm ci
+	cd backend && npm ci
 
 # Internal. Should not be used.
 # Used only on first startup to automatically create the env file.
