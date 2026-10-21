@@ -90,6 +90,7 @@ router.post("/register", async (req, res) => {
         username,
         displayName,
         passwordHash: hashedPassword,
+        privateProfile: true
       },
     });
     const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET!, {

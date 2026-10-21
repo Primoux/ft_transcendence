@@ -18,7 +18,7 @@ app.use(cookieParser());
 
 // Public endpoints
 
-app.use("/", gameRoutes)
+app.use("/dle", gameRoutes)
 app.use("/auth", authRoutes)
 app.use("/health", healthRoutes)
 
