@@ -47,16 +47,16 @@ function App() {
 	if (currentUser) {
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
-		profileElement = <ProfilePage />
+		profileElement = <ProfilePage currentUser={currentUser}/>
 	} else {
 		loginElement = <LoginPage onLogin={connectUser} />
 		registerElement = <RegisterPage onLogin={connectUser} />
 		profileElement = <Navigate to="/login" replace />
 	}
 	return (
-		<div className="min-h-dvh flex flex-col">
-			<NavBar user={currentUser} logout={disconnectUser} />
-			<main className="flex-1 flex flex-col items-center justify-center">
+		<div className="App h-dvh w-dvw flex flex-col">
+			<NavBar user={currentUser} logout={disconnectUser}></NavBar>
+			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-5 rounded-b-2xl border-black justify-center items-center">
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
@@ -64,7 +64,7 @@ function App() {
 					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
-			</main>
+			</div>
 		</div>
 	)
 }
