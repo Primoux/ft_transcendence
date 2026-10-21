@@ -3,8 +3,8 @@ services:
     container_name: postgres
     image: postgres:16
     environment:
-      POSTGRES_USER: ${DB_USER} 
-      POSTGRES_PASSWORD: ${DB_PASSWORD} 
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -34,6 +34,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  card-updater:
+    build: ./backend/
+    container_name: card-updater
+    command: npm run card:update
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
   frontend:
     build: ./frontend
     container_name: frontend
@@ -45,7 +54,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    
+
 
 volumes:
   postgres_data:

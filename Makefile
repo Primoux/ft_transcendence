@@ -5,9 +5,16 @@
 
 NAME=transcendence
 
-.PHONY: all
-all: .env
+.DEFAULT_GOAL=deploy
+
+
+.PHONY: deploy
+deploy: .env seed
 	docker compose up -d
+
+.PHONY: seed
+seed:
+	docker compose run --rm card-updater
 
 .PHONY: restart
 restart:
@@ -17,6 +24,7 @@ restart:
 reset: down
 	rm .env
 
+.PHONY: down
 down:
 	docker compose down -v
 
@@ -31,6 +39,14 @@ env: down
 npm_install:
 	cd frontend && npm install
 	cd backend && npm install
+
+.PHONY: status
+status:
+	docker compose ps
+
+.PHONY: logs
+logs:
+	docker compose logs -f
 
 .env:
 	./make_env.sh

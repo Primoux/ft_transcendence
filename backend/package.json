@@ -5,7 +5,8 @@
   "main": "src/server.ts",
   "scripts": {
     "start": "tsx src/server.ts",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "cards:update": "tsx src/scripts/scryfallFetcher.ts"
   },
   "keywords": [],
   "author": "",
