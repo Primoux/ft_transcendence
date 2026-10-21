@@ -6,6 +6,7 @@ import { Routes, Route, useNavigate, Navigate } from 'react-router';
 import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import ProfilePage from './pages/ProfilePage'
+import DlePage from './pages/DlePage'
 
 function App() {
 	const goTo = useNavigate();
@@ -53,6 +54,8 @@ function App() {
 		registerElement = <RegisterPage onLogin={connectUser} />
 		profileElement = <Navigate to="/login" replace />
 	}
+	let dleElement;
+	dleElement = <DlePage />
 	return (
 		<div className="App h-dvh w-dvw flex flex-col">
 			<NavBar user={currentUser} logout={disconnectUser}></NavBar>
@@ -63,6 +66,7 @@ function App() {
 					<Route path="/users/:username" element={profileElement} />
 					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
+					<Route path="/dle" element={dleElement} />
 				</Routes>
 			</div>
 		</div>
