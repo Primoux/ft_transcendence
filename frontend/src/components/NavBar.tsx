@@ -18,20 +18,41 @@ function NavBar( {user, logout} : NavBarProps) {
     }
     let loginElement;
     if (user) {
-        loginElement = <button onClick={disconnectUser} className="px-4 hover:cursor-pointer" > Logout </button>
+        loginElement =
+		<li>
+		    <details>
+		      <summary>{user?.username || <Link to="/login" className="btn btn-ghost">Login</Link>}</summary>
+		      <ul className="bg-base-80 rounded-t-none p-2">
+		        <li><Link to={user ? `/users/${user.username}` : "/login" } className="btn btn-ghost">Profile</Link></li>
+		        <li><button onClick={disconnectUser} className="btn btn-ghost">Logout</button></li>
+		      </ul>
+		    </details>
+		</li>
     } else if (location.pathname === "/login" ){
-        loginElement = <Link to="/register" className="px-4"> Register </Link>
+        loginElement =
+		<li>
+			<Link to="/register" className="btn btn-ghost"> Register </Link>
+		</li>
     } else {
-        loginElement = <Link to="/login" className="px-4"> Login </Link>
+        loginElement =
+		<li>
+			<Link to="/login" className="btn btn-ghost w-full"> Login </Link>
+		</li>
     }
     return (
-        <nav className="sticky border-1 border-black w-full flex flex-row items-center justify-between rounded-t-sm bg-white">
-            <h1 className="px-3 text-5xl text-black py-4"><Link to="/">MtgDle</Link></h1>
-            <div className="flex items-center divide-x-2 pr-4">
-                {user && <Link to={`/users/${user.username}`} className="px-4">Profile</Link>}
-                {loginElement}
-            </div>
-        </nav>
+			<div className="navbar bg-base-100 shadow-lg rounded-sm">
+			  <div className="navbar-start">
+			    <Link to="/" className="btn btn-ghost text-xl">MtgDle</Link>
+			  </div>
+			  <div className="navbar-center">
+			    <Link to="/dle" className="btn btn-ghost">Play</Link>
+			  </div>
+			  <div className="navbar-end">
+			    <ul className="menu menu-horizontal">
+			      {loginElement}
+			    </ul>
+			  </div>
+			</div>
     )
 }
 
