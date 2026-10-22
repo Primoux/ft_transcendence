@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import ProfilePage from './pages/ProfilePage'
 import DlePage from './pages/DlePage'
+import EditProfilePage from './pages/EditProfilePage';
 
 function App() {
 	const goTo = useNavigate();
@@ -44,15 +45,17 @@ function App() {
 		return (<p>loading</p>)
 	}
 
-	let loginElement, registerElement, profileElement;
+	let loginElement, registerElement, profileElement, editProfileElement;
 	if (currentUser) {
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
 		profileElement = <ProfilePage currentUser={currentUser}/>
+		editProfileElement= <EditProfilePage user={currentUser} />
 	} else {
 		loginElement = <LoginPage onLogin={connectUser} />
 		registerElement = <RegisterPage onLogin={connectUser} />
 		profileElement = <Navigate to="/login" replace />
+		editProfileElement= <Navigate to="/login" replace />
 	}
 	let dleElement;
 	dleElement = <DlePage />
@@ -63,6 +66,7 @@ function App() {
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
+					<Route path="/users/:username/editProfile" element={editProfileElement} />
 					<Route path="/users/:username" element={profileElement} />
 					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />

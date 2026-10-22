@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router'
 import type {User} from '../types/user'
 import { useState, useEffect} from "react"
 import UserStats from '../components/UserStats.tsx'
+import { Link } from 'react-router'
 
 type profilePageProps = {
     currentUser: User
@@ -63,6 +64,8 @@ function ProfilePage({currentUser}: profilePageProps) {
         console.log(`${userToView.username}`)
         console.log(`date: ${registerDate} from ${userToView.createdAt}`)
         const dateStr = registerDate.toLocaleDateString('fr-FR', {timeZone: 'Europe/Paris'})
+        const currentUserEditProfileLink = `/users/${currentUser.username}/editProfile`
+        const editProfileElement = <Link to={currentUserEditProfileLink}> Edit profile </Link>;
         return (
                 <section className="flex flex-col justify-center items-center rounded-md border-2 bg-white shadow-2xl h-2/3 w-2/3">
                     <div>
@@ -72,6 +75,7 @@ function ProfilePage({currentUser}: profilePageProps) {
                     member since : {dateStr}
                     <h2> Game Stats </h2>
                     <UserStats username={userToView.username} privateProfile={userToView.privateProfile} currentUser={currentUser}/>
+                    {userToView.id == currentUser.id ? editProfileElement : null}
                 </section>
         )
     }
