@@ -11,7 +11,7 @@ function HomePage() {
     return (
         <div className="pt-12 grid place-items-center rounded-sm">
 			<div className="flex flex-col items-center gap-4">
-            	<h1 className="title">MtgDle</h1>
+            	<h1 className="font-beleren-sc text-4xl">MtgDle</h1>
 			</div>
             <section className="shadow-lg p-10 bg-base-200 rounded-sm">
             <h2 className="m-4 text-3xl">Today Dle games :</h2>

@@ -3,6 +3,42 @@
   themes: false;
 }
 
+@font-face {
+  font-family: "Beleren";
+  src: url("../assets/font/Beleren2016-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Beleren Small Caps";
+  src: url("../assets/font/Beleren2016SmallCaps-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Beleren Small Caps";
+  src: url("../assets/font/Beleren2016SmallCaps-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Matrix";
+  src: url("../assets/font/Matrix-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Matrix", sans-serif;
+  --font-beleren: "Beleren", serif;
+  --font-beleren-sc: "Beleren Small Caps", serif;
+  --font-matrix: "Matrix", serif;
+}
+
 
 
 
