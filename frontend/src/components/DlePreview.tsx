@@ -1,3 +1,4 @@
+import { Link } from 'react-router/internal/react-server-client'
 import type { Dle } from '../types/dle'
 
 const statusColor = {
@@ -6,13 +7,15 @@ const statusColor = {
     "completed": "bg-success text-success-content",
 }
 
-function DlePreview({ name, players, status } : Dle) {
+function DlePreview({ name, players, status, link } : Dle) {
     return (
-		<article className={`card shadow-xl ${statusColor[status]}`}>
-	        <h3>{name}</h3>
-            <p>Players: {players}</p>
-            <p>Status: {status}</p>
-        </article>
+            <p><Link to={link}>
+				<article className={`card shadow-xl ${statusColor[status]}`}>
+	        	<h3>{name}</h3>
+            	<p>Players: {players}</p>
+            	<p>Status: {status}</p>
+      			</article>
+			</Link></p>
     )
 }
 
