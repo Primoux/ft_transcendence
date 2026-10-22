@@ -42,7 +42,7 @@ function NavBar( {user, logout} : NavBarProps) {
     return (
 			<div className="navbar bg-base-100 shadow-lg rounded-sm">
 			  <div className="navbar-start">
-			    <Link to="/" className="btn btn-ghost text-xl">MtgDle</Link>
+			    <Link to="/" className="font-beleren-sc btn btn-ghost text-4xl">MtgDle</Link>
 			  </div>
 			  <div className="navbar-center">
 			    <Link to="/dle" className="btn btn-ghost">Play</Link>

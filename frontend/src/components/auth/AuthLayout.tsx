@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import Card3D from '../Card3D'
 // import authImage from '../../assets/images.webp' #for now i use a place holder image
 
 type AuthLayoutProps = {
@@ -23,15 +23,15 @@ function AuthLayout({ title, subtitle, onSubmit, children }: AuthLayoutProps) {
 				</button>
                 <form onSubmit={onSubmit} className="mt-6 flex flex-1 flex-col justify-center gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold">{title}</h1>
-                        <p>{subtitle}</p>
+                        <h1 className="font-beleren-sc text-2xl font-bold">{title}</h1>
+                        <p className="font-matrix">{subtitle}</p>
                     </div>
                     {children}
                 </form>
             </div>
 			<div className="flex items-center justify-center p-6">
             	<Card3D front={img1} back={img2} />
-            </div>
+			</div>
         </div>
     )
 }
