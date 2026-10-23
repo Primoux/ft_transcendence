@@ -17,7 +17,19 @@ function App() {
 		goTo("/", {replace: true})
 	}
 
-	function disconnectUser() {
+	async function disconnectUser() {
+		try {
+			const response = await fetch("/api/auth/logout", {
+				method: "POST"
+			})
+			if (!response.ok) {
+				console.error("logout failed :(")
+				return
+			}
+		} catch (error) {
+			console.error(error)
+			return
+		}
 		setCurrentUser(null)
 	}
 
