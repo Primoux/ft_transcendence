@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
-    "cards:update": "tsx src/scripts/scryfallFetcher.ts",
+    "cards:ingest": "tsx src/scripts/ingest-cards.ts",
     "check": "prisma generate && tsc --noEmit"
   },
   "keywords": [],
@@ -35,3 +35,5 @@
     "typescript": "^7.0.2"
   }
 }
+
+card-processor.ts backend/package.json scryfall-client.ts update-cards.ts

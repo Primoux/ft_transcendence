@@ -11,7 +11,7 @@ help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
 	@echo "  all      - Build and start the application"
-	@echo "  seed     - Run card updater and seed the database"
+	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
 	@echo "  down     - Stop the application and remove volumes"
@@ -22,12 +22,12 @@ help:
 	@echo "  .env     - Generate .env file"
 
 .PHONY: all
-deploy: .env seed
+deploy: .env ingest
 	docker compose up -d
 
-.PHONY: seed
-seed:
-	docker compose run --rm card-updater
+.PHONY: ingest
+ingest:
+	docker compose run --rm card-ingestion
 
 # Runs the same checks as .github/workflows/ci.yml, in the containers.
 # Each check list lives in its own package.json, so both run the same thing.
@@ -70,7 +70,7 @@ env: down
 npm_install:
 	cd frontend && npm install
 	cd backend && npm install
-	
+
 # Internal. Should not be used.
 # Used only on first startup to automatically create the env file.
 # If you messed up your .env, use `make env` instead.

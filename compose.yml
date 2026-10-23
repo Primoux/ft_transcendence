@@ -34,10 +34,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-  card-updater:
+  card-ingestion:
     build: ./backend/
-    container_name: card-updater
-    command: npm run card:update
+    container_name: card-ingestion
+    command: npm run card:ingest
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:

@@ -16,3 +16,7 @@ export const userRepository = {
     return prisma.user.findMany();
   },
 };
+
+caca : userRepository;
+
+caca.createUser(5);
