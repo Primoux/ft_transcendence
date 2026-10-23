@@ -17,7 +17,7 @@ help:
 	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  dev	  - Build and start the application in dev mode (with hot reload)"
 	@echo "  prod	  - Build and start the application in production mode"
-	@echo "  all      - Equivalent to prod"
+	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
 	@echo "  down     - Stop the application and remove volumes"
@@ -63,10 +63,13 @@ down:
 .PHONY: reset
 reset: down
 	rm -rf .env
+.PHONY: all
+deploy: .env ingest
+	docker compose up -d
 
-.PHONY: seed
-seed:
-	docker compose run --rm card-updater
+.PHONY: ingest
+ingest:
+	docker compose run --rm card-ingestion
 
 .PHONY: restart
 restart:

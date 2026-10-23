@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Rarity, type Prisma } from "../../generated/client.ts";
+=======
+import { Rarity, type Prisma } from "@prisma/client";
+>>>>>>> 6c310d9 (!feat(backend/scripts/): finish the ingestion script)
 
 const SUPERTYPES = new Set(["Basic", "Legendary", "Ongoing", "Snow", "World"]);
 
@@ -75,7 +79,11 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
     for (const type of unfilteredTypes) {
       if (SUPERTYPES.has(type)) {
         supertypes.push(type);
+<<<<<<< HEAD
       } else {
+=======
+      } else if (type.length > 0) {
+>>>>>>> 6c310d9 (!feat(backend/scripts/): finish the ingestion script)
         types.push(type);
       }
     }
@@ -86,8 +94,12 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
 
 export function shouldKeepCard(rawCard: any): boolean {
   return (
+<<<<<<< HEAD
     !EXCLUDED_LAYOUTS.has(rawCard.layout) &&
     rawCard.set_type !== "funny" &&
     !rawCard.reprint
+=======
+    !EXCLUDED_LAYOUTS.has(rawCard.layout) && !(rawCard.set_type === "funny")
+>>>>>>> 6c310d9 (!feat(backend/scripts/): finish the ingestion script)
   );
 }

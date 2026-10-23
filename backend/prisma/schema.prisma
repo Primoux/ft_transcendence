@@ -114,6 +114,11 @@ model CardSync {
   lastSyncAt DateTime
 }
 
+model CardSync {
+  key        String   @id
+  lastSyncAt DateTime
+}
+
 // schema for multiple dle
 // enum GameStatus {
 //     IN_PROGRESS

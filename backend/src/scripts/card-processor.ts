@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "../../generated/client.ts";
 import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -8,7 +8,7 @@ import { shouldKeepCard, toPrismaCard } from "../mappers/card.mapper";
 
 const BATCH_SIZE = 500;
 
-export async function processCardStream(rawStream: Readable): Promise<void> {
+export async function processCardStream(rawStream: Readable) {
   console.log("Starting card stream processing...");
 
   const gz = createGunzip();
@@ -18,12 +18,11 @@ export async function processCardStream(rawStream: Readable): Promise<void> {
   console.log("Card stream processing completed successfully.");
 }
 
-async function processCardLines(decompressed: Readable): Promise<void> {
+async function processCardLines(decompressed: Readable) {
   const rl = createInterface(decompressed);
   let counter = 0;
   let batch: Prisma.MagicCardCreateManyInput[] = [];
 
-  const cardNames = new Set<string>();
   for await (const line of rl) {
     if (!line.trim()) {
       continue;
@@ -33,11 +32,6 @@ async function processCardLines(decompressed: Readable): Promise<void> {
     if (!shouldKeepCard(card)) {
       continue;
     }
-
-    if (cardNames.has(card.name)) {
-      continue;
-    }
-    cardNames.add(card.name);
 
     batch.push(toPrismaCard(card));
     counter++;
