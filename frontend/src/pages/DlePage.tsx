@@ -129,7 +129,7 @@ function DlePage() {
 													(
 															<DelayedDiv key={guess.name} delay={400 * i }>
 														
-																<SwapRes key={guess.name} delay={600 * i} onMsg={
+																<SwapRes key={guess.name} delay={(400 * i) + (300)} onMsg={
 																	<div className={`rounded-md p-3 text-sm ${color}`}>
 																	{Array.isArray(value) ? value.join(", ") : value}
 																	{
