@@ -1,12 +1,12 @@
-import LoginForm from './LoginForm'
-import './App.css'
-import RegisterForm from './RegisterForm'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import { useState, useEffect } from "react"
 import type { User } from './types/user'
 import { Routes, Route, useNavigate, Navigate } from 'react-router';
-import HomePage from './HomePage'
-import DlePage from './DlePage'
-import NavBar from './NavBar'
+import HomePage from './pages/HomePage'
+import NavBar from './components/NavBar'
+import ProfilePage from './pages/ProfilePage'
+import DlePage from './pages/DlePage'
 
 function App() {
 	const goTo = useNavigate();
@@ -22,7 +22,7 @@ function App() {
 	}
 
 	useEffect( () => {
-		async function loadProfile() {
+		async function loadUser() {
 			try {
 				const response = await fetch("/api/users/me")
 				if (response.ok) {
@@ -37,40 +37,39 @@ function App() {
 				setLoading(false)
 			}
 		}
-		loadProfile()
+		loadUser()
 	}, [])
 
 	if (isLoading) {
 		return (<p>loading</p>)
 	}
 
-	let rootElement, loginElement, registerElement;
+	let loginElement, registerElement, profileElement;
 	if (currentUser) {
-		rootElement = <HomePage />
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
+		profileElement = <ProfilePage currentUser={currentUser}/>
 	} else {
-		rootElement = <Navigate to="/login" replace />
-		loginElement = <LoginForm onLogin={connectUser} />
-		registerElement = <RegisterForm onLogin={connectUser} />
+		loginElement = <LoginPage onLogin={connectUser} />
+		registerElement = <RegisterPage onLogin={connectUser} />
+		profileElement = <Navigate to="/login" replace />
 	}
 	let dleElement;
 	dleElement = <DlePage />
 	return (
-		<>
 		<div className="App h-dvh w-dvw flex flex-col">
-			<NavBar user={currentUser || {id: 0, username: "", displayName: ""}} logout={disconnectUser}></NavBar>
-			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-2 rounded-b-2xl border-black">
+			<NavBar user={currentUser} logout={disconnectUser}></NavBar>
+			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-5 rounded-b-2xl border-black justify-center items-center">
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
-					<Route path="/" element={rootElement} />
+					<Route path="/users/:username" element={profileElement} />
+					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 					<Route path="/dle" element={dleElement} />
 				</Routes>
 			</div>
 		</div>
-		</>
 	)
 }
 

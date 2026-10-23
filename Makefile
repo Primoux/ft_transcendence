@@ -11,6 +11,7 @@ help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
 	@echo "  all      - Build and start the application"
+	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
 	@echo "  down     - Stop the application and remove volumes"
 	@echo "  up       - Start the application"
@@ -23,6 +24,15 @@ help:
 all: .env
 	docker compose up -d
 
+# Runs the same checks as .github/workflows/ci.yml, in the containers.
+# Each check list lives in its own package.json, so both run the same thing.
+# Deps come from the images: after changing a package.json, docker compose build.
+# `--entrypoint sh` on backend skips entrypoint.sh, which would need the database.
+.PHONY: ci
+ci: .env
+	docker compose run --rm --no-deps frontend npm run check
+	docker compose run --rm --no-deps --entrypoint sh backend -c 'npm run check'
+
 .PHONY: restart
 restart:
 	docker compose restart
@@ -30,6 +40,10 @@ restart:
 .PHONY: up
 up:
 	docker compose up -d
+
+.PHONy: ps
+ps:
+	docker compose ps
 
 .PHONY: logs
 logs:

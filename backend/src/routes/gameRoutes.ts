@@ -1,5 +1,5 @@
 import express from 'express';
-import { testCards, testAnswer, comparisonGame } from "../services/game/modes/gameModes.ts";
+import { testCards, testAnswer, comparisonGame } from "../services/game/modes/gameModes";
 
 const router = express.Router()
 
