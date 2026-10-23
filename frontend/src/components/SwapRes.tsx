@@ -1,14 +1,14 @@
 import {useState, useEffect} from "react";
 
-function SwapRes({onMsg="Front", offMsg="Back"}) {
+function SwapRes({onMsg="Front", offMsg="Back", delay=400}) {
 	const [flipped, setFlipped] = useState(false);
 	
 	useEffect(() => {
 		const timeout = setTimeout(() => {
 			setFlipped(true);
-		}, 400);
+		}, delay);
 		return () => clearTimeout(timeout);
-	}, []);
+	}, [delay]);
 
   return (
     <label className="swap swap-flip text-6xl">

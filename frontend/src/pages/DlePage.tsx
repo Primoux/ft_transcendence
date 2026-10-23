@@ -13,7 +13,7 @@ const testEnt: GuessEntity[] = [
 	{id: 1, name: "Card1"},
 	{id: 2, name: "Card2"},
 	{id: 3, name: "Card3"},
-	{id: 4, name: "Card4"},
+	{id: 4, name: "Card4"}
 ];
 
 function DlePage() {
@@ -84,7 +84,7 @@ function DlePage() {
 			{guesses.length !== 0 && (
 			<div>
 				<div>
-					{guesses.at(-1).win 
+					{guesses[guesses.length - 1].win 
 					? (<p>GG!<br/>You've won in {guesses.length} guesses!</p>)
 					: (<div>
 							<form onSubmit={handleSubmit}>
@@ -92,6 +92,7 @@ function DlePage() {
 									value={input}
 									onChange={(e) => setInput(e.target.value)}
 									placeholder="Enter card name..."
+									autoFocus
 								/>
 								<button type="submit">Guess</button>
 							</form>
@@ -111,7 +112,7 @@ function DlePage() {
 								return (
 								<tr key={guess.name}>
 									<td className="p-2">{guess.name}</td>
-									{Object.entries(guess.attributes).map(([name, value]) => {
+									{Object.entries(guess.attributes).map(([name, value], i) => {
 									const feedback = guess.comparison[name];
 									const color = 
 										feedback === "correct"
@@ -121,25 +122,27 @@ function DlePage() {
 											: "bg-yellow-100 text-yellow-900"
 
 									return (
-										<td key={name} className="p-2" delay-400>
+										<td key={name} className="p-2">
 											{
 												isLastGuess
-												? (
-											<DelayedDiv key={guess.name} delay={200}>
+												? 
+													(
+															<DelayedDiv key={guess.name} delay={400 * i }>
+														
+																<SwapRes key={guess.name} delay={600 * i} onMsg={
+																	<div className={`rounded-md p-3 text-sm ${color}`}>
+																	{Array.isArray(value) ? value.join(", ") : value}
+																	{
+																		feedback === "higher"
+																		? "↑"
+																		: feedback === "lower"
+																			? "↓"
+																			: ""
+																	}
+																	</div>} offMsg="idk" />
+															</DelayedDiv>
+														)
 												
-											<SwapRes key={guess.name} onMsg={
-												<div className={`rounded-md p-3 text-sm ${color}`}>
-													{Array.isArray(value) ? value.join(", ") : value}
-													{
-														feedback === "higher"
-														? "↑"
-														: feedback === "lower"
-															? "↓"
-															: ""
-													}
-												</div>} offMsg="idk" />
-											</DelayedDiv>
-												)
 											: (<div className={`rounded-md p-3 text-sm ${color}`}>
 													{Array.isArray(value) ? value.join(", ") : value}
 													{
