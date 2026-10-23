@@ -44,7 +44,7 @@ function PasswordField({ id, label, value, onChange, placeholder, autoComplete, 
                     {visible ? <EyeOff className="h-[1em]" /> : <Eye className="h-[1em]" />}
                 </button>
             </label>
-            {hint && <p className="validator-hint hidden">{hint}</p>}
+            {hint && <p className="text-xs opacity-60">{hint}</p>}
         </div>
     )
 }

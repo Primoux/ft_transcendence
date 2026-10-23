@@ -33,7 +33,7 @@ function TextField({ id, label, value, onChange, placeholder, autoComplete, icon
 
             </label>
 
-            {hint && <p className="validator-hint hidden">{hint}</p>}
+            {hint && <p className="text-xs opacity-60">{hint}</p>}
         </div>
     )
 }
