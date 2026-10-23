@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 
-function DelayedDiv({delay=1000, children}) {
+function DelayedDiv({delay=1000, children} : {delay?: number, children: React.ReactNode}) {
 	const [visible, setVisible] = useState(false);
 	
 	useEffect(() => {

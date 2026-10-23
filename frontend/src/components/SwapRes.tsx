@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 
-function SwapRes({onMsg="Front", offMsg="Back", delay=400}) {
+function SwapRes({onMsg="Front", offMsg="Back", delay=400} : {onMsg: React.ReactNode, offMsg: React.ReactNode, delay?: number}) {
 	const [flipped, setFlipped] = useState(false);
 	
 	useEffect(() => {
