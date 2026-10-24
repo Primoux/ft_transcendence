@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
+    "cards:ingest": "tsx src/scripts/ingest-cards.ts",
     "check": "prisma generate && tsc --noEmit"
   },
   "keywords": [],

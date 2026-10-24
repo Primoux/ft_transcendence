@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 
 export const cardRepository = {
@@ -12,5 +13,18 @@ export const cardRepository = {
       orderBy: { name: "asc" },
       take: limit,
     });
+  },
+
+  async upsertMany(cards: Prisma.MagicCardCreateManyInput[]) {
+    const operations = cards.map((card) => {
+      const { id, ...updateFields } = card;
+      return prisma.magicCard.upsert({
+        where: { id },
+        update: updateFields,
+        create: card,
+      });
+    });
+
+    return prisma.$transaction(operations);
   },
 };
