@@ -35,5 +35,3 @@
     "typescript": "^7.0.2"
   }
 }
-
-card-processor.ts backend/package.json scryfall-client.ts update-cards.ts

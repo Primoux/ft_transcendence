@@ -75,7 +75,7 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
     for (const type of unfilteredTypes) {
       if (SUPERTYPES.has(type)) {
         supertypes.push(type);
-      } else if (type.length > 0) {
+      } else {
         types.push(type);
       }
     }
@@ -86,6 +86,8 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
 
 export function shouldKeepCard(rawCard: any): boolean {
   return (
-    !EXCLUDED_LAYOUTS.has(rawCard.layout) && !(rawCard.set_type === "funny")
+    !EXCLUDED_LAYOUTS.has(rawCard.layout) &&
+    rawCard.set_type !== "funny" &&
+    !rawCard.reprint
   );
 }

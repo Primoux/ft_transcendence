@@ -22,7 +22,7 @@ help:
 	@echo "  .env     - Generate .env file"
 
 .PHONY: all
-deploy: .env ingest
+all: .env ingest
 	docker compose up -d
 
 .PHONY: ingest
