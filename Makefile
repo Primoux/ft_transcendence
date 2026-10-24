@@ -64,7 +64,7 @@ down:
 reset: down
 	rm -rf .env
 .PHONY: all
-deploy: .env ingest
+all: .env ingest
 	docker compose up -d
 
 .PHONY: ingest

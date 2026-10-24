@@ -16,8 +16,8 @@ interface ScryfallResponse {
 
 interface ScryfallBulkRaw {
   type: string;
-  downloadUri: string;
-  updatedAt: string;
+  jsonl_download_uri: string;
+  updated_at: string;
 }
 
 interface BulkMetadata {
@@ -54,12 +54,12 @@ export async function fetchBulkMetadata(
 
   return {
     type: targetBulk.type,
-    downloadUri: targetBulk.downloadUri,
-    updatedAt: new Date(targetBulk.updatedAt),
+    downloadUri: targetBulk.jsonl_download_uri,
+    updatedAt: new Date(targetBulk.updated_at),
   };
 }
 
-export async function fetchBulkStream(downloadUri: string) {
+export async function fetchBulkStream(downloadUri: string): Promise<Readable> {
   console.log("Fetching raw card bulk stream...");
   const response = await fetch(downloadUri, { headers: HTTP_HEADERS });
 

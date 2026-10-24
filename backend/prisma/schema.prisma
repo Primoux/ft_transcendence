@@ -109,11 +109,14 @@ model Guess {
     guessedCard   MagicCard @relation(fields: [guessedCardId], references: [id])
 }
 
+<<<<<<< HEAD
 model CardSync {
   key        String   @id
   lastSyncAt DateTime
 }
 
+=======
+>>>>>>> 939a4f4 (!feat: update data layer and migration scripts;  a a set of used name for the ingestion, the reprint check does not ensure the uniqueness of the name :()
 model CardSync {
   key        String   @id
   lastSyncAt DateTime
