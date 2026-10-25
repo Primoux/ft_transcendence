@@ -1,5 +1,5 @@
 import {useState} from 'react'
-import { useAuth } from '../../AuthProvider'
+import { useAuth } from '../../useAuth'
 
 export function TogglePrivateProfile() {
     const auth = useAuth()

@@ -1,58 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { User } from "./types/user";
-type AuthProviderProps = {
-    children: React.ReactNode
-}
+import type { AuthProviderProps, LoggedIn, LoggedOut, RegisterData, LoginData, AuthSuccess, AuthFail } from './AuthContext'
 
-type LoggedIn = {
-    user: User
-    authStatus: "logged-in"
-}
+import { AuthContext } from './AuthContext'
 
-type LoggedOut = {
-    user: null
-    authStatus: "logged-out" | "loading" | "error"
-}
 
-type AuthSuccess = {
-    user: User
-    error : null
-}
-
-type AuthFail = {
-    user: null
-    error : string
-}
-
-type LoginData = {
-    username: string
-    password: string
-}
-
-type RegisterData = {
-    username: string
-    displayName: string
-    password: string
-    passwordConfirmation: string
-}
-
-type AuthContextValueType = {
-    authState : LoggedIn | LoggedOut
-    login: (loginData: LoginData) => (Promise<AuthSuccess | AuthFail>)
-    register: (registerData: RegisterData) => (Promise<AuthSuccess | AuthFail>)
-    refreshUser: () => (Promise<void>)
-    logout: () => (Promise<void>)
-}
-
-const AuthContext = createContext<AuthContextValueType | null>(null)
-
-export function useAuth() {
-    const context = useContext(AuthContext)
-    if (context === null)
-        throw new Error("use of useAuth with no auth context")
-
-        return (context)
-    }
 
 export function AuthProvider({children} : AuthProviderProps) {
     const [authState, setAuthState] = useState<LoggedIn | LoggedOut>({user: null, authStatus: "loading"})
@@ -74,7 +26,8 @@ export function AuthProvider({children} : AuthProviderProps) {
                 return ({user: data, error: null})
             }
         }
-        catch (err) {
+        catch (error) {
+            console.error(error)
             return ({user: null, error: "fetch failed"})
         }
     }
@@ -130,6 +83,9 @@ export function AuthProvider({children} : AuthProviderProps) {
     }
 
     useEffect(() => {
+        /*in refreshUser, every call to stateSetters are made *after* an async `fetch()` call, which does not trigger cascading renders like a synchronous call would. */
+
+        /* eslint-disable-next-line */
         refreshUser()
 	}, [refreshUser])
 

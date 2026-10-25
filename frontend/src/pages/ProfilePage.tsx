@@ -3,7 +3,7 @@ import UserStats from '../components/UserStats.tsx'
 import { Link } from 'react-router'
 import { ProfileDetails} from '../components/profile/ProfileDetails.tsx'
 import { useUser } from '../components/hooks/useUser.tsx'
-import { useAuth } from '../AuthProvider.tsx'
+import { useAuth } from '../useAuth.ts'
 
 function ProfilePage() {
     const params = useParams();

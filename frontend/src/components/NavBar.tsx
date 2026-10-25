@@ -1,4 +1,4 @@
-import { useAuth } from '../AuthProvider';
+import { useAuth } from '../useAuth';
 import {Link, useLocation } from 'react-router'
 
 function NavBar() {

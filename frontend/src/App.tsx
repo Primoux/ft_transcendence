@@ -6,7 +6,7 @@ import NavBar from './components/NavBar'
 import ProfilePage from './pages/ProfilePage'
 import DlePage from './pages/DlePage'
 import EditProfilePage from './pages/EditProfilePage';
-import { useAuth } from './AuthProvider';
+import { useAuth } from './useAuth';
 
 function App() {
 	const auth = useAuth()

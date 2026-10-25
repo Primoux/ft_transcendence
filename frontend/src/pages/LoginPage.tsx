@@ -6,7 +6,7 @@ import PasswordField from '../components/auth/PasswordField'
 import SubmitButton from '../components/auth/SubmitButton'
 import FormError from '../components/auth/FormError'
 import { User as UserIcon, KeyRound } from 'lucide-react'
-import {useAuth} from '../AuthProvider'
+import {useAuth} from '../useAuth'
 
 function LoginPage() {
     const [username, setUsername] = useState("")
