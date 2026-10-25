@@ -1,6 +1,6 @@
 import express from 'express'
 import { prisma } from '../data/prisma'
-import { Prisma } from "../../generated/prisma/client";
+import { Prisma } from "@prisma/client";
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'
 import { changeDisplayNameSchema, changePasswordSchema } from '../utils/validation/zodSchema';
