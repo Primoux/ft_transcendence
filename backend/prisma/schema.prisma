@@ -24,13 +24,12 @@ enum GameMode {
 }
 
 enum Rarity{
-  LOW
-  HIGH
   COMMON
   UNCOMMON
   RARE
   MYTHIC
-  TIMESHIFTED
+  SPECIAL
+  BONUS
 }
 
 model User {
@@ -42,7 +41,6 @@ model User {
     privateProfile  Boolean @default(false)
 
     sessions GameSession[]
-    comments Comment[]
 }
 
 model GameSession {
@@ -70,7 +68,6 @@ model DailyGame {
     targetCard  MagicCard @relation(fields: [targetCardId], references: [id])
 
     sessions GameSession[]
-    comments Comment[]
 
     @@unique([date, mode])
 }
@@ -108,21 +105,9 @@ model Guess {
     guessedCard   MagicCard @relation(fields: [guessedCardId], references: [id])
 }
 
-model Comment {
-    id        String   @id @default(cuid(2))
-    content   String   @db.Text
-    createdAt DateTime @default(now())
-    isEdited  Boolean  @default(false)
-
-    authorId String
-    author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-    dailyGameId String
-    dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
-
-    parentId String?
-    parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-    replies  Comment[] @relation("CommentReplies")
+model CardSync {
+  key        String   @id
+  lastSyncAt DateTime
 }
 
 // schema for multiple dle
