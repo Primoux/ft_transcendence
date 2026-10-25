@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { GuessResult } from "../types/game.ts";
-import SwapRes from "../components/SwapRes.tsx";
-import DelayedDiv from "../components/DelayedDiv.tsx";
+import SwapRes from "../components/game/SwapRes.tsx";
+import DelayedDiv from "../components/game/DelayedDiv.tsx";
+import GuessInput from "../components/game/GuessInput.tsx";
 
 type GuessEntity = {
 	id: number;
@@ -19,6 +20,12 @@ const testEnt: GuessEntity[] = [
 function DlePage() {
 	const [input, setInput] = useState("");
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
+	const [summary, setSummary] = useState<GuessResult>({
+		name: "summary",
+		win: false,
+		attributes: {},
+		comparison: {}
+	});
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -43,21 +50,45 @@ function DlePage() {
 
 			setGuesses((guess) => [...guess, result]);
 
+			setSummary((guess) => updateSummary(guess, result));
+
 			setInput("");
 			console.log("Comparison result:", result);
 		} catch (error) {
 			console.error("Error in handleSubmit", error);
 		}
 	}
-	
-	
-/** TODO:
- * issues
- * 	2nd guess -> input not onFocus
- * 	flip on the first card guessed, not the last
- * 	delay categories 
- * 
- *  */
+
+	function updateSummary(summary: GuessResult, guess: GuessResult): GuessResult {
+		const updatedSummary: GuessResult = {
+			...summary, attributes: {...summary.attributes}, comparison: {...summary.comparison}
+		};
+		for (const [name, value] of Object.entries(guess.attributes)) {
+			if (summary.comparison[name] === "correct") {
+				continue ;
+			}
+			updatedSummary.comparison[name] = guess.comparison[name];
+			if (guess.comparison[name] === "correct") {
+				updatedSummary.attributes[name] = value;
+			} else {
+				if (typeof value === "string") {
+					updatedSummary.attributes[name] = "";
+				} else if (typeof value === "number") {
+					updatedSummary.attributes[name] = -1;
+				} else if (Array.isArray(value)) {
+					updatedSummary.attributes[name] = [""];
+				}
+			}
+		}
+		return updatedSummary;
+	}
+
+	// const summary: GuessResult = {
+	// 	name:"summary", win:false, attributes:{}, comparison:{}
+	// };
+	// if (guesses.length !== 0) {
+			
+	// }
 
 	return (
 	<main>
@@ -67,35 +98,51 @@ function DlePage() {
 		<section>
 			{guesses.length === 0 && (
 				<div>
-					<form onSubmit={handleSubmit}>
-						<input
-							value={input}
-							onChange={(e) => setInput(e.target.value)}
-							placeholder="Enter card name..."
-							autoFocus
-						/>
-						<button type="submit">Guess</button>
-					</form>
+					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
 				</div>
 			)}
 		</section>
 
 		<section>
-			{guesses.length !== 0 && (
+			{guesses.length > 0 && (
 			<div>
 				<div>
-					{guesses[guesses.length - 1].win 
+					{guesses.at(-1)!.win 
 					? (<p>GG!<br/>You've won in {guesses.length} guesses!</p>)
 					: (<div>
-							<form onSubmit={handleSubmit}>
-								<input
-									value={input}
-									onChange={(e) => setInput(e.target.value)}
-									placeholder="Enter card name..."
-									autoFocus
-								/>
-								<button type="submit">Guess</button>
-							</form>
+							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
+							
+									<table className="table-auto"><tbody>
+										<td>Summary</td>
+										{Object.entries(summary.attributes).map(([name, value], i) =>
+								{
+									const feedback = summary.comparison[name];
+									const color = 
+										feedback === "correct"
+										? "bg-green-100 text-green-900"
+										: feedback === "incorrect"
+											? "bg-red-100 text-red-900"
+											: "bg-yellow-100 text-yellow-900"
+								return (
+										<td key={name} className="p-2">
+								<DelayedDiv key={summary.name} delay={400 * i }>
+															
+									<SwapRes key={summary.name} delay={(400 * i) + (300)} onMsg={
+									<div className={`rounded-md p-3 text-sm ${color}`}>
+									{Array.isArray(value) ? value.join(", ") : value}
+									{
+										feedback === "higher"
+										? "↑"
+										: feedback === "lower"
+											? "↓"
+											: ""
+									}
+									</div>} offMsg="idk" />
+								</DelayedDiv></td>
+								)}
+							)}
+						</tbody>
+									</table>
 						</div>)
 					}
 
