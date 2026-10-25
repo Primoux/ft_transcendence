@@ -22,6 +22,7 @@ export function ChangeDisplayNameForm({user}: ChangeDisplayNameFormProps) {
                 else {setDisplayNameErrorMsg("display name changed")}
             }
             catch (err) {
+                console.error(err)
                 setDisplayNameErrorMsg ("Could not reach the server")
             } finally {
                 setLoading(false)

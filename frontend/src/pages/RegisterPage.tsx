@@ -1,6 +1,4 @@
 import { useState} from "react"
-import type { User } from '../types/user'
-type RegisterPageProps = {onLogin: (user : User) => void}
 import { Link } from 'react-router';
 import AuthLayout from '../components/auth/AuthLayout'
 import TextField from '../components/auth/TextField'
@@ -8,39 +6,26 @@ import PasswordField from '../components/auth/PasswordField'
 import SubmitButton from '../components/auth/SubmitButton'
 import FormError from '../components/auth/FormError'
 import { User as UserIcon, KeyRound, IdCard } from 'lucide-react'
+import { useAuth } from "../AuthProvider";
 
-export default function RegisterPage({onLogin} : RegisterPageProps) {
+export default function RegisterPage() {
 	const [username, setUsername] = useState('');
 	const [displayName, setDisplayName] = useState('');
 	const [password, setPassword] = useState('');
-	const [confirmPassword, setConfirmPassword] = useState('');
+	const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
+	const auth = useAuth()
 
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-		console.log("registering user : " + username + "\n display name: " + displayName)
         e.preventDefault()
         setErrorMsg(null)
         setLoading(true)
-        try{
-            const response = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({username: username, password: password, displayName: displayName}),
-            })
-			const data = await response.json()
-            if (!response.ok) {
-				setErrorMsg(data.error)
-			}
-			else {onLogin(data)}
-        }
-        catch (err) {
-			console.error(err)
-            setErrorMsg ("Could not reach the server")
-        } finally {
-            setLoading(false)
-        }
+        const response = await auth.register({username, displayName, password, passwordConfirmation})
+
+		if (response.user === null) {setErrorMsg(response.error)}
+        setLoading(false)
     }
 
 	const subtitle = (
@@ -93,8 +78,8 @@ export default function RegisterPage({onLogin} : RegisterPageProps) {
 				<PasswordField
 					id="confirmPassword"
 					label="Confirm password"
-					value={confirmPassword}
-					onChange={setConfirmPassword}
+					value={passwordConfirmation}
+					onChange={setPasswordConfirmation}
 					placeholder="Confirm password"
 					autoComplete="new-password"
 					icon={<KeyRound className="h-[1em] opacity-50" />}

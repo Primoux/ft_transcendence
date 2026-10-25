@@ -1,9 +1,7 @@
 import {useState} from 'react'
-import type { User } from '../../types/user'
 import PasswordField from '../auth/PasswordField'
-type ChangeDisplayNameFormProps = {user: User}
 
-export function ChangePasswordForm({user}: ChangeDisplayNameFormProps) {
+export function ChangePasswordForm() {
     const [newPassword, setNewPassword] = useState<string>("")
     const [currentPassword, setCurrentPassword] = useState<string>("")
     const [newPasswordConfirmation, setNewPasswordConfirmation] = useState<string>("")
@@ -25,6 +23,7 @@ export function ChangePasswordForm({user}: ChangeDisplayNameFormProps) {
         }
         catch (err) {
             setPasswordErrorMsg ("Could not reach the server")
+            console.error(err)
         } finally {
             setLoading(false)
         }

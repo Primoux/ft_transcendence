@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 router.post("/login", async (req, res) => {
   const parsedData = zod.safeParse(loginSchema, req.body)
   if (!parsedData.success)
-    return res.status(400).send(zod.treeifyError(parsedData.error))
+    return res.status(400).send(zod.flattenError(parsedData.error))
   const { username, password } = parsedData.data;
   try {
     let user = await prisma.user.findUnique({
@@ -58,11 +58,10 @@ router.post("/login", async (req, res) => {
 router.post("/register", async (req, res) => {
   const parsedData = zod.safeParse(registerSchema, req.body)
   if (!parsedData.success) {
-    return res.status(400).send(zod.treeifyError(parsedData.error))
+    return res.status(400).send(zod.flattenError(parsedData.error))
   }
-  const {username, displayName, password, confirmPassword} = parsedData.data
-  if (password !== confirmPassword)
-    return res.status(400).json({error: "password and confirmation don't match"})
+  const {username, displayName, password} = parsedData.data
+  console.log(parsedData.data)
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);

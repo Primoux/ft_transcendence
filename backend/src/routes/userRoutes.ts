@@ -49,18 +49,7 @@ router.get("/", async (req, res) => {
 router.get("/me", async (req, res) => {
     if (!req.userId) { return res.status(401).json({error: "No token provided"}) }
 
-    const me = await prisma.user.findUnique({
-        where: {
-            id: req.userId
-        },
-        select: {
-            id: true,
-            username: true,
-            displayName: true,
-            createdAt: true
-        }
-    })
-
+    const me = await userRepository.findById(req.userId)
     if (!me) { return res.status(404).json({error: "no such user"})}
 
     return res.status(200).json(me)
@@ -71,7 +60,7 @@ router.patch("/me/displayName", async (req, res) => {
     if (!req.userId) { return res.status(401).json({error: "No token provided"}) }
     const parsedData = zod.safeParse(changeDisplayNameSchema, req.body)
     if (!parsedData.success)
-        return res.status(400).send(zod.treeifyError(parsedData.error))
+        return res.status(400).send(zod.flattenError(parsedData.error))
 
     const { newDisplayName } = parsedData.data
 
@@ -122,7 +111,7 @@ router.post("/me/changePassword", async (req, res) => {
         return res.status(401).json({error: "no user provided"})
     const parsedData = zod.safeParse(changePasswordSchema, req.body)
     if (!parsedData.success)
-        return res.status(400).send(zod.treeifyError(parsedData.error))
+        return res.status(400).send(zod.flattenError(parsedData.error))
 
     const response = await prisma.user.findUnique({
         where: {
@@ -154,18 +143,8 @@ router.post("/me/changePassword", async (req, res) => {
  * @returns the public profile data of specified user
  */
 router.get("/:username", async (req, res) => {
-    const user = await prisma.user.findUnique({
-        where: {
-            username: req.params.username
-        },
-        select: {
-            id: true,
-            username: true,
-            displayName: true,
-            createdAt: true,
-            privateProfile: true
-        }
-    });
+    const user = await userRepository.findByUsername(req.params.username)
+
     if (user === null) {
         res.status(404).json({error: "User not found"});
     } else {
@@ -174,18 +153,8 @@ router.get("/:username", async (req, res) => {
 })
 
 router.get("/:username/stats", async (req, res) =>{
-    const user = await prisma.user.findUnique({
-        where: {
-            username: req.params.username
-        },
-        select: {
-            id: true,
-            username: true,
-            displayName: true,
-            createdAt: true,
-            privateProfile: true
-        }
-    });
+    const user = await userRepository.findByUsername(req.params.username)
+    
     if (user === null) {
         return res.status(404).json({error: "User not found"});
     }

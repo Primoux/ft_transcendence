@@ -1,84 +1,38 @@
-import { useNavigate, useParams } from 'react-router'
-import type {User} from '../types/user'
-import { useState, useEffect} from "react"
+import { useParams } from 'react-router'
 import UserStats from '../components/UserStats.tsx'
 import { Link } from 'react-router'
+import { ProfileDetails} from '../components/profile/ProfileDetails.tsx'
+import { useUser } from '../components/hooks/useUser.tsx'
+import { useAuth } from '../AuthProvider.tsx'
 
-type profilePageProps = {
-    currentUser: User
-}
-
-function ProfilePage({currentUser}: profilePageProps) {
-    const [userToView, setUserToView] = useState<User | null>(null)
-    const [isLoading, setLoading] = useState<Boolean>(true)
+function ProfilePage() {
     const params = useParams();
-    const goTo = useNavigate();
+    const auth = useAuth();
+    const user = useUser(params.username);
 
-    useEffect ( () => {
-        async function fetchUser(username: string) {
-            try {
-                const response = await fetch(`/api/users/${username}`)
-                if (!response.ok) {
-                    console.log('server response was not OK')
-                    goTo("/");
-                } else {
-                    const userConst = await response.json();
-                    setUserToView(userConst)
-                }
-            } catch (error) {
-                console.error(error)
-                goTo("/");
-            }
-            finally {
-                setLoading(false)
-            }
-        }
-
-        if (params.username)
-            fetchUser(params.username)
-        else {console.log("incorrect parameter")}
-    }, [])
-
-    if(isLoading)
+    if (user.status !== "loaded")
     {
-        return (
-                <section className="flex flex-col justify-center items-center rounded-md border-2 bg-white shadow-2xl h-2/3 w-2/3">
-                    <div>
-                    <h2>loading</h2>
-                    </div>
-                </section>
-        )
+        if (user.status === "notFound")
+        {
+            if (user.status === "notFound")
+                return (<p> this user does not exist </p>)
+            return (<p>error loading user</p>)
+        }
+        else if (user.status === "loading")
+            return (<p> loading </p>)
+
+        return (<p> error </p>)
     }
 
-    if (userToView === null) {
-        return (
+    return (
                 <section className="flex flex-col justify-center items-center rounded-md border-2 bg-white shadow-2xl h-2/3 w-2/3">
                     <div>
-                    	<h2>No such user : {params.username}</h2>
+                        <ProfileDetails userToView={user.user}/>
+                        <UserStats username={user.user.username} />
+                        {auth.authState.authStatus!== "logged-in" || auth.authState.user.username !== user.user.username? null : <Link to="/editProfile"> edit profile </Link>}
                     </div>
                 </section>
-
         )
-    } else {
-        const registerDate = new Date(userToView.createdAt)
-        console.log(`${userToView.username}`)
-        console.log(`date: ${registerDate} from ${userToView.createdAt}`)
-        const dateStr = registerDate.toLocaleDateString('fr-FR', {timeZone: 'Europe/Paris'})
-        const currentUserEditProfileLink = `/users/${currentUser.username}/editProfile`
-        const editProfileElement = <Link to={currentUserEditProfileLink}> Edit profile </Link>;
-        return (
-                <section className="flex flex-col justify-center items-center rounded-md border-2 bg-white shadow-2xl h-2/3 w-2/3">
-                    <div>
-                    <h2>{userToView.displayName}</h2>
-                    <h2>{`@${userToView.username}`}</h2>
-                    </div>
-                    member since : {dateStr}
-                    <h2> Game Stats </h2>
-                    <UserStats username={userToView.username} privateProfile={userToView.privateProfile} currentUser={currentUser}/>
-                    {userToView.id == currentUser.id ? editProfileElement : null}
-                </section>
-        )
-    }
 }
 
 export default ProfilePage

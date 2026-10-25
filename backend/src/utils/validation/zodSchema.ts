@@ -14,8 +14,8 @@ let password = ''
 export const registerSchema = zod.object({ 
   username: zod.string().trim().min(minUsernameLength).max(maxUsernameLength),
   displayName: zod.string().trim().min(minDisplayNameLength).max(maxDisplayNameLength),
-  password: zod.string().min(minPasswordLength).max(maxPasswordLength).refine((value) => {password = value}),
-  confirmPassword: zod.string().min(minPasswordLength).max(maxPasswordLength).refine((value) => (value === password), "Passwords do not match")
+  password: zod.string().min(minPasswordLength).max(maxPasswordLength).refine((value) => (password = value)),
+  passwordConfirmation: zod.string().min(minPasswordLength).max(maxPasswordLength).refine((value) => (value === password), "Passwords do not match")
 });
 
 
