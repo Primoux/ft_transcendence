@@ -47,6 +47,7 @@ export function useUserStats(username: string | undefined) : userStatsLoaded | u
                     }
                 }
                 catch (error) {
+                    console.error(error)
                     if (!abortController.signal.aborted)
                         setUserStats({username, userStats: {status: "error"}})
                 }
@@ -109,6 +110,7 @@ export function useUser(username: string | undefined) : UserError | UserNotFound
                 catch (error) {
                     if (!abortController.signal.aborted)
                         setUserState({username, result: {status: "error"}})
+                    console.error(error)
                 }
             }
 

@@ -94,7 +94,7 @@ export function AuthProvider({children} : AuthProviderProps) {
             }
         }
         catch (error){
-            console.error("Auth failed")
+            console.error(error)
             setAuthState({user: null, authStatus: "error"})
         }
     }, [])
@@ -123,7 +123,8 @@ export function AuthProvider({children} : AuthProviderProps) {
                 return {user: body, error: null}
             }
         }
-        catch (err) {
+        catch (error) {
+            console.error(error)
             return ({user: null, error: "fetch failed"})
         }
     }
