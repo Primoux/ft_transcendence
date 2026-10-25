@@ -17,7 +17,7 @@ function EditProfilePage({user}: editProfileProps) {
         goTo("/login")
         return
     }
-    }, [])
+    }, [user, goTo])
     
     return (
         <>
