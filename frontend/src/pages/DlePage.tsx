@@ -29,14 +29,14 @@ function DlePage() {
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		
+
 		const entity = testEnt.find((item) => item.name === input );
 
 		if (!entity) {
 			console.error("Card not found");
 			return;
 		}
-		
+
 		try {
 
 			const response = await fetch("/api/dle/guess", {
@@ -161,7 +161,7 @@ function DlePage() {
 									<td className="p-2">{guess.name}</td>
 									{Object.entries(guess.attributes).map(([name, value], i) => {
 									const feedback = guess.comparison[name];
-									const color = 
+									const color =
 										feedback === "correct"
 										? "bg-green-100 text-green-900"
 										: feedback === "incorrect"

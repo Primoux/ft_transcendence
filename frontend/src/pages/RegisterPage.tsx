@@ -19,8 +19,11 @@ export default function RegisterPage({onLogin} : RegisterPageProps) {
 
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-		console.log("registering user : " + username + "\n display name: " + displayName)
         e.preventDefault()
+        if (password !== confirmPassword) {
+            setErrorMsg("Passwords must match")
+            return
+        }
         setErrorMsg(null)
         setLoading(true)
         try{
@@ -76,7 +79,7 @@ export default function RegisterPage({onLogin} : RegisterPageProps) {
 					autoComplete="nickname"
 					icon={<IdCard className="h-[1em] opacity-50" />}
 					maxLength={30}
-					hint="At most 30 characters"
+					hint="Shown to other players. At most 30 characters."
 				/>
 				<PasswordField
 					id="password"
@@ -100,7 +103,7 @@ export default function RegisterPage({onLogin} : RegisterPageProps) {
 					icon={<KeyRound className="h-[1em] opacity-50" />}
 					minLength={8}
 					maxLength={72}
-					hint="Must be 8 to 72 characters"
+					hint="Passwords must match"
 				/>
 			</div>
 

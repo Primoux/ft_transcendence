@@ -17,7 +17,19 @@ function App() {
 		goTo("/", {replace: true})
 	}
 
-	function disconnectUser() {
+	async function disconnectUser() {
+		try {
+			const response = await fetch("/api/auth/logout", {
+				method: "POST"
+			})
+			if (!response.ok) {
+				console.error("logout failed :(")
+				return
+			}
+		} catch (error) {
+			console.error(error)
+			return
+		}
 		setCurrentUser(null)
 	}
 
@@ -57,9 +69,9 @@ function App() {
 	let dleElement;
 	dleElement = <DlePage />
 	return (
-		<div className="App h-dvh w-dvw flex flex-col">
+		<div className="App min-h-dvh w-full flex flex-col">
 			<NavBar user={currentUser} logout={disconnectUser}></NavBar>
-			<div className="flex flex-col mainContent bg-blue flex-1 border-x-2 border-b-5 rounded-b-2xl border-black justify-center items-center">
+			<div className="flex flex-col flex-1 justify-center items-center p-4">
 				<Routes>
 					<Route path="/login" element={loginElement} />
 					<Route path="/register" element={registerElement} />
