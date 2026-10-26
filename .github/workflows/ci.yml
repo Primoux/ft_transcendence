@@ -52,7 +52,7 @@ jobs:
 
       - name: Wait for containers to be healthy
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 120); do
             if [ -z "$(docker ps --filter 'health=starting' -q)" ]; then
               break
             fi
@@ -68,6 +68,10 @@ jobs:
           fi
           if [ -n "$(docker ps -a --filter 'status=exited' -q)" ]; then
             echo "Some containers have exited"
+            exit 1
+          fi
+          if [ -n "$(docker ps -a --filter 'status=starting' -q)" ]; then
+            echo "Some containers are still starting"
             exit 1
           fi
 
