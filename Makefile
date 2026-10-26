@@ -7,6 +7,9 @@ NAME=transcendence
 
 DEFAULT_GOAL := help
 
+PRISMA_SCHEMA=backend/prisma/schema.prisma
+PRISMA_CLIENT=backend/node_modules/.prisma/client/index.js
+
 help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
@@ -20,6 +23,7 @@ help:
 	@echo "  reset    - Stop the application and delete .env"
 	@echo "  env      - Regenerate .env file"
 	@echo "  .env     - Generate .env file"
+	@echo "  prisma   - Generate Prisma client"
 
 .PHONY: all
 all: .env ingest
@@ -42,11 +46,16 @@ ci: .env
 restart:
 	docker compose restart
 
+.PHONY: prisma
+prisma: $(PRISMA_CLIENT)
+$(PRISMA_CLIENT): $(PRISMA_SCHEMA)
+	cd backend && npx prisma generate
+
 .PHONY: up
 up:
 	docker compose up -d
 
-.PHONy: ps
+.PHONY: ps
 ps:
 	docker compose ps
 
