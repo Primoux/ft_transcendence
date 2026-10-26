@@ -70,16 +70,34 @@ function DlePage() {
 			if (summary.comparison[name] === "correct") {
 				continue ;
 			}
+			if (guess.comparison[name] === "incorrect" && summary.comparison[name] !== undefined && summary.comparison[name] !== "incorrect")
+			{
+				continue ;
+			}
 			updatedSummary.comparison[name] = guess.comparison[name];
 			if (guess.comparison[name] === "correct") {
 				updatedSummary.attributes[name] = value;
 			} else {
 				if (typeof value === "string") {
-					updatedSummary.attributes[name] = "";
+					updatedSummary.attributes[name] = "N/A";
 				} else if (typeof value === "number") {
+					// TODO: create summary type with lowest / highest numbers
 					updatedSummary.attributes[name] = -1;
 				} else if (Array.isArray(value)) {
-					updatedSummary.attributes[name] = [""];
+					if (guess.comparison[name] === "partially" && value.length === 1) {
+						if (updatedSummary.attributes[name] === undefined) {
+							updatedSummary.attributes[name] = [];
+						}
+						if (Array.isArray(updatedSummary.attributes[name])) {
+							if (updatedSummary.attributes[name].includes("N/A")) {
+								updatedSummary.attributes[name] = [];
+							}
+							updatedSummary.attributes[name].push(value[0]);
+						}
+					} 
+					else if (updatedSummary.attributes[name] === undefined) {// || (Array.isArray(updatedSummary.attributes[name]) && updatedSummary.attributes[name].length === 0)) {
+						updatedSummary.attributes[name] = ["N/A"];
+					}
 				}
 			}
 		}
