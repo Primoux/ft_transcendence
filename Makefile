@@ -11,6 +11,7 @@ help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
 	@echo "  all      - Build and start the application"
+	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
 	@echo "  down     - Stop the application and remove volumes"
@@ -21,8 +22,12 @@ help:
 	@echo "  .env     - Generate .env file"
 
 .PHONY: all
-all: .env
+all: .env ingest
 	docker compose up -d
+
+.PHONY: ingest
+ingest:
+	docker compose run --rm card-ingestion
 
 # Runs the same checks as .github/workflows/ci.yml, in the containers.
 # Each check list lives in its own package.json, so both run the same thing.
@@ -61,13 +66,13 @@ down:
 env: down
 	./make_env.sh
 
-# Internal. Should not be used.
-# Used only on first startup to automatically create the env file.
-# If you messed up your .env, use `make env` instead.
 .PHONY: npm_install
 npm_install:
 	cd frontend && npm install
 	cd backend && npm install
 
+# Internal. Should not be used.
+# Used only on first startup to automatically create the env file.
+# If you messed up your .env, use `make env` instead.
 .env:
 	./make_env.sh
