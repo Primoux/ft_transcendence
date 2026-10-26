@@ -92,7 +92,9 @@ function DlePage() {
 							if (updatedSummary.attributes[name].includes("N/A")) {
 								updatedSummary.attributes[name] = [];
 							}
-							updatedSummary.attributes[name].push(value[0]);
+							if (!updatedSummary.attributes[name].includes(value[0])) {
+								updatedSummary.attributes[name].push(value[0]);
+							}
 						}
 					} 
 					else if (updatedSummary.attributes[name] === undefined) {// || (Array.isArray(updatedSummary.attributes[name]) && updatedSummary.attributes[name].length === 0)) {
