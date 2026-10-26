@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   frontend:
@@ -40,3 +40,46 @@ jobs:
       - run: npm ci
 
       - run: npm run check
+
+  docker:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start containers
+        run: make all
+
+      - name: Wait for containers to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            if [ -z "$(docker ps --filter 'health=starting' -q)" ]; then
+              break
+            fi
+            sleep 2
+          done
+          docker ps
+
+      - name: Check containers
+        run: |
+          if [ -n "$(docker ps --filter 'health=unhealthy' -q)" ]; then
+            echo "Some containers are unhealthy"
+            exit 1
+          fi
+          if [ -n "$(docker ps -a --filter 'status=exited' -q)" ]; then
+            echo "Some containers have exited"
+            exit 1
+          fi
+
+      - name: Smoke test
+        run: |
+          curl -f http://localhost:5003/health
+          curl -f http://localhost:5173
+
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Cleanup
+        if: always()
+        run: make down
