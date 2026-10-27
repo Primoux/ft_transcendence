@@ -142,7 +142,10 @@ function DlePage() {
 									<tr>
 										<td key="summary">Summary</td>
 										{Object.entries(summary.attributes).map(([name, value], i) => {
-											const feedback = summary.comparison[name];
+											const nbRangeCheck = (Array.isArray(value) && value.every(item => typeof item === "number") && value[0] === value[1])
+												? "correct"
+												: summary.comparison[name];
+											const feedback = nbRangeCheck;
 											const color = 
 												feedback === "correct"
 												? "bg-green-100 text-green-900"
@@ -154,12 +157,23 @@ function DlePage() {
 													<DelayedDiv key={summary.name} delay={400 * i }>															
 														<SwapRes key={summary.name} delay={(400 * i) + (300)} onMsg={
 															<div className={`rounded-md p-3 text-sm ${color}`}>
-															{Array.isArray(value) ? value.join(", ") : value}
-															{feedback === "higher"
-																? "↑"
-																: feedback === "lower"
-																	? "↓"
-																	: ""
+															{Array.isArray(value) ? 
+																value.every(item => typeof item === "number")
+																	? value[1] === value[0]
+																		? value[0]
+																		: value[0] === -1
+																			? value[1] + 1 + "↓"
+																			: value[1] === -1
+																				? value[0] - 1 + "↑"
+																				: value.join(" - ")
+																	: value.join(", ")
+																: value}
+															{typeof value === "number"
+																? feedback === "higher"
+																	? "↑"
+																	: feedback === "lower"
+																		? "↓"
+																		: "" : ""
 															}
 															</div>} offMsg="idk" />
 													</DelayedDiv>
