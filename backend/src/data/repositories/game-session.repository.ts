@@ -13,7 +13,22 @@ export const gameSessionRepository = {
 			}
 		})
 	},
-	async findByUser(userId: string, dailyGameId: string) {
+	async findByDate(userId: string, date: Date) {
+		// PROBABLY NEED A FUNCTION RETURNING A SESSION GIVEN A USERID AND A DATE
+		// return prisma.gameSession.findUnique({
+		// 	where: {
+		// 		userId_dailyGameId: {
+		// 			userId,
+		// 			dailyGameId.date: date
+		// 		}
+		// 	},
+		// 	include: {
+		// 		status: true,
+		// 		guesses: true
+		// 	}
+		// });
+	},
+	async findByGame(userId: string, dailyGameId: string) {
 		return prisma.gameSession.findUnique({
 			where: {
 				userId_dailyGameId: {
