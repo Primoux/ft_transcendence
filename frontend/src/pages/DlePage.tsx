@@ -62,6 +62,7 @@ function DlePage() {
 		}
 	}
 
+	// TODO: refacto for readability (wip)
 	function updateSummary(summary: GuessResult, guess: GuessResult): GuessResult {
 		const updatedSummary: GuessResult = {
 			...summary, attributes: {...summary.attributes}, comparison: {...summary.comparison}
@@ -81,23 +82,32 @@ function DlePage() {
 				if (typeof value === "string") {
 					updatedSummary.attributes[name] = "N/A";
 				} else if (typeof value === "number") {
-					// TODO: create summary type with lowest / highest numbers
-					updatedSummary.attributes[name] = -1;
+					if (updatedSummary.attributes[name] === undefined) {
+						updatedSummary.attributes[name] = [-1, -1];
+					}
+					if (Array.isArray(updatedSummary.attributes[name]) && typeof updatedSummary.attributes[name][0] === "number" && typeof updatedSummary.attributes[name][1] === "number") {
+						if (guess.comparison[name] === "higher" && updatedSummary.attributes[name][0] < value) {
+							updatedSummary.attributes[name][0] = value + 1;
+						}
+						if (guess.comparison[name] === "lower" && (updatedSummary.attributes[name][1] > value || updatedSummary.attributes[name][1] < 0)) {
+							updatedSummary.attributes[name][1] = value - 1;
+						}
+					}
 				} else if (Array.isArray(value)) {
 					if (guess.comparison[name] === "partially" && value.length === 1) {
 						if (updatedSummary.attributes[name] === undefined) {
 							updatedSummary.attributes[name] = [];
 						}
-						if (Array.isArray(updatedSummary.attributes[name])) {
+						if (Array.isArray(updatedSummary.attributes[name]) && updatedSummary.attributes[name].every(item => typeof item === "string") && typeof value[0] === "string") {
 							if (updatedSummary.attributes[name].includes("N/A")) {
 								updatedSummary.attributes[name] = [];
 							}
-							if (!updatedSummary.attributes[name].includes(value[0])) {
+							if (updatedSummary.attributes[name].every(item => typeof item === "string") && !updatedSummary.attributes[name].includes(value[0])) {
 								updatedSummary.attributes[name].push(value[0]);
 							}
 						}
 					} 
-					else if (updatedSummary.attributes[name] === undefined) {// || (Array.isArray(updatedSummary.attributes[name]) && updatedSummary.attributes[name].length === 0)) {
+					else if (updatedSummary.attributes[name] === undefined) {
 						updatedSummary.attributes[name] = ["N/A"];
 					}
 				}
@@ -105,13 +115,6 @@ function DlePage() {
 		}
 		return updatedSummary;
 	}
-
-	// const summary: GuessResult = {
-	// 	name:"summary", win:false, attributes:{}, comparison:{}
-	// };
-	// if (guesses.length !== 0) {
-			
-	// }
 
 	return (
 	<main>
@@ -152,8 +155,7 @@ function DlePage() {
 														<SwapRes key={summary.name} delay={(400 * i) + (300)} onMsg={
 															<div className={`rounded-md p-3 text-sm ${color}`}>
 															{Array.isArray(value) ? value.join(", ") : value}
-															{
-																feedback === "higher"
+															{feedback === "higher"
 																? "↑"
 																: feedback === "lower"
 																	? "↓"

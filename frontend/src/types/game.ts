@@ -1,4 +1,4 @@
-type AttributeValue = string | number | string[];
+type AttributeValue = string | number | string[] | number[];
 
 export type AttributeResult =
 	"correct" |
