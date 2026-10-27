@@ -13,4 +13,13 @@ export const dailyGameRepository = {
       select: { targetCard: true },
     });
   },
+ 	async create(cardId: string, date: Date, mode: GameMode) {
+		return prisma.dailyGame.create({
+			data: {
+        date,
+        mode,
+				targetCardId: cardId,
+			}
+		})
+	}
 };
