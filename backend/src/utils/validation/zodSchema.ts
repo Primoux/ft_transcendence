@@ -1,6 +1,6 @@
 import * as zod from 'zod'
 
-const minUsernameLength = 0
+const minUsernameLength = 3
 const maxUsernameLength = 15
 
 const minDisplayNameLength = 1
