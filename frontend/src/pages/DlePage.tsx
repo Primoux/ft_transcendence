@@ -14,7 +14,10 @@ const testEnt: GuessEntity[] = [
 	{id: 1, name: "Card1"},
 	{id: 2, name: "Card2"},
 	{id: 3, name: "Card3"},
-	{id: 4, name: "Card4"}
+	{id: 4, name: "Card4"},
+	{id: 5, name: "Card5"},
+	{id: 6, name: "Card6"},
+	{id: 7, name: "Card7"}
 ];
 
 function DlePage() {
@@ -86,10 +89,10 @@ function DlePage() {
 						updatedSummary.attributes[name] = [-1, -1];
 					}
 					if (Array.isArray(updatedSummary.attributes[name]) && typeof updatedSummary.attributes[name][0] === "number" && typeof updatedSummary.attributes[name][1] === "number") {
-						if (guess.comparison[name] === "higher" && updatedSummary.attributes[name][0] < value) {
+						if (guess.comparison[name] === "higher" && updatedSummary.attributes[name][0] <= value) {
 							updatedSummary.attributes[name][0] = value + 1;
 						}
-						if (guess.comparison[name] === "lower" && (updatedSummary.attributes[name][1] > value || updatedSummary.attributes[name][1] < 0)) {
+						if (guess.comparison[name] === "lower" && (updatedSummary.attributes[name][1] >= value || updatedSummary.attributes[name][1] < 0)) {
 							updatedSummary.attributes[name][1] = value - 1;
 						}
 					}
