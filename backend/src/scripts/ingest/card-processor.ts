@@ -3,8 +3,9 @@ import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import { cardRepository } from "../data/repositories";
-import { shouldKeepCard, toPrismaCard } from "../mappers/card.mapper";
+import { cardRepository } from "../../data/repositories";
+import { shouldKeepCard } from "./card-filter";
+import { toPrismaCard } from "./card-mapper";
 
 const BATCH_SIZE = 500;
 
@@ -20,10 +21,8 @@ export async function processCardStream(rawStream: Readable): Promise<void> {
 
 async function processCardLines(decompressed: Readable): Promise<void> {
   const rl = createInterface(decompressed);
-  let counter = 0;
-  let batch: Prisma.MagicCardCreateManyInput[] = [];
+  const oldestCards = new Map<string, any>();
 
-  const cardNames = new Set<string>();
   for await (const line of rl) {
     if (!line.trim()) {
       continue;
@@ -34,13 +33,19 @@ async function processCardLines(decompressed: Readable): Promise<void> {
       continue;
     }
 
-    if (cardNames.has(card.name)) {
+    const key = card.name;
+    const value = oldestCards.get(key);
+
+    if (value && value.released_at < card.released_at) {
       continue;
     }
-    cardNames.add(card.name);
+    oldestCards.set(card.name, card);
+  }
 
+  let batch: Prisma.MagicCardCreateManyInput[] = [];
+
+  for (const card of oldestCards.values()) {
     batch.push(toPrismaCard(card));
-    counter++;
 
     if (batch.length >= BATCH_SIZE) {
       await cardRepository.upsertMany(batch);
@@ -48,9 +53,9 @@ async function processCardLines(decompressed: Readable): Promise<void> {
     }
   }
 
-  if (batch.length !== 0) {
+  if (batch.length > 0) {
     await cardRepository.upsertMany(batch);
   }
 
-  console.log(`${counter} cards upserted.`);
+  console.log(`${oldestCards.size} cards upserted.`);
 }

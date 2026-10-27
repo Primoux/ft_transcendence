@@ -17,26 +17,6 @@ interface ParsedTypeLine {
   subtypes: string[];
 }
 
-const EXCLUDED_LAYOUTS = new Set([
-  // Non-playable accessories and tokens
-  "token",
-  "double_faced_token",
-  "emblem",
-  "art_series",
-  "front_card",
-
-  // Alternative game formats & Un-sets
-  "planar",
-  "scheme",
-  "vanguard",
-  "augment",
-  "host",
-
-  // Double-faced cards
-  "transform",
-  "modal_dfc",
-  "reversible_card",
-]);
 
 export function toPrismaCard(rawCard: any): Prisma.MagicCardCreateManyInput {
   const { supertypes, types, subtypes } = parseTypeLine(rawCard.type_line);
@@ -84,10 +64,3 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
   return { supertypes, types, subtypes };
 }
 
-export function shouldKeepCard(rawCard: any): boolean {
-  return (
-    !EXCLUDED_LAYOUTS.has(rawCard.layout) &&
-    rawCard.set_type !== "funny" &&
-    !rawCard.reprint
-  );
-}
