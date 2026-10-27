@@ -61,7 +61,6 @@ router.post("/register", async (req, res) => {
     return res.status(400).send(zod.flattenError(parsedData.error))
   }
   const {username, displayName, password} = parsedData.data
-  console.log(parsedData.data)
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
