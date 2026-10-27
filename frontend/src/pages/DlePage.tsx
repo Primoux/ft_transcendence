@@ -74,7 +74,7 @@ function DlePage() {
 			{guesses.length !== 0 && (
 			<div>
 				<div>
-					{guesses.at(-1).win === true &&(
+					{guesses.at(-1)!.win === true &&(
 						<p>GG!<br/>You've won in ({guesses.length}) guesses!</p>
 					)}
 

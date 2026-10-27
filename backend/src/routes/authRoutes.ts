@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../data/prisma";
+import * as zod from 'zod'
+import { loginSchema, registerSchema } from '../utils/validation/zodSchema'
 
 const router = express.Router();
 
@@ -11,15 +13,10 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  if (!req.body || !req.body.username || !req.body.password) {
-    return res.status(400).json({ error: "missing required values" });
-  } else if (
-    typeof req.body.username != "string" ||
-    typeof req.body.password != "string"
-  ) {
-    return res.status(400).json({ error: "unsupported data type" });
-  }
-  const { username, password } = req.body;
+  const parsedData = zod.safeParse(loginSchema, req.body)
+  if (!parsedData.success)
+    return res.status(400).send(zod.flattenError(parsedData.error))
+  const { username, password } = parsedData.data;
   try {
     let user = await prisma.user.findUnique({
       where: {
@@ -59,29 +56,11 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  if (
-    !req.body ||
-    !req.body.username ||
-    !req.body.password ||
-    !req.body.displayName
-  ) {
-    return res.status(400).json({ error: "missing required values" });
-  } else if (
-    typeof req.body.username != "string" ||
-    typeof req.body.password != "string" ||
-    typeof req.body.displayName != "string"
-  ) {
-    return res.status(400).json({ error: "unsupported data type" });
-  } else if (
-    req.body.username.length < 3 ||
-    req.body.username.length > 15 ||
-    req.body.password.length < 8 ||
-    req.body.password.length > 72 ||
-    req.body.displayName.length > 30
-  ) {
-    return res.status(400).json({ error: "values too long / too short" });
+  const parsedData = zod.safeParse(registerSchema, req.body)
+  if (!parsedData.success) {
+    return res.status(400).send(zod.flattenError(parsedData.error))
   }
-  const { username, displayName, password } = req.body;
+  const {username, displayName, password} = parsedData.data
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -90,8 +69,14 @@ router.post("/register", async (req, res) => {
         username,
         displayName,
         passwordHash: hashedPassword,
-        privateProfile: true
       },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        privateProfile: true,
+        createdAt: true
+      }
     });
     const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET!, {
       expiresIn: "4h",
