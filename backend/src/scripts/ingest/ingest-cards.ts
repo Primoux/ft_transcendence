@@ -1,5 +1,5 @@
-import { prisma } from "../data/prisma.ts";
-import { SyncKey, syncRepository } from "../data/repositories/index.ts";
+import { prisma } from "../../data/prisma.ts";
+import { SyncKey, syncRepository } from "../../data/repositories/index.ts";
 import { processCardStream } from "./card-processor.ts";
 import {
   fetchBulkMetadata,
