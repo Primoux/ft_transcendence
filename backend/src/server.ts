@@ -4,6 +4,7 @@ import gameRoutes from './routes/gameRoutes.ts'
 import authRoutes from './routes/authRoutes.ts'
 import userRoutes from './routes/userRoutes.ts'
 import healthRoutes from './routes/healthRoutes.ts'
+import metricsRoutes from './routes/metricsRoutes.ts'
 
 import requireAuth from './middleware/authMiddleware.ts'
 import errorCatcher from './middleware/errorMiddleware.ts'
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use("/dle", gameRoutes)
 app.use("/auth", authRoutes)
 app.use("/health", healthRoutes)
+app.use("/metrics", metricsRoutes)
 
 app.use(requireAuth);
 
