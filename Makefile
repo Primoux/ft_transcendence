@@ -71,15 +71,6 @@ all: .env ingest
 ingest:
 	docker compose run --rm card-ingestion
 
-<<<<<<< HEAD
-.PHONY: restart
-restart:
-	docker compose restart
-
-.PHONY: reset
-reset: down
-	rm .env
-=======
 # Runs the same checks as .github/workflows/ci.yml, in the containers.
 # Each check list lives in its own package.json, so both run the same thing.
 # `--entrypoint sh` on backend skips entrypoint.sh, which would need the database.
@@ -108,7 +99,6 @@ prod: .env
 ps logs restart: %:
 	$(COMPOSE) $*
 
->>>>>>> 627c523 (refactor: add prod build and overhaul dev workflow)
 
 .PHONY: down
 down:
