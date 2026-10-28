@@ -23,7 +23,6 @@ app.use(cookieParser());
 app.use("/dle", gameRoutes)
 app.use("/auth", authRoutes)
 app.use("/health", healthRoutes)
-app.use("/metrics", metricsRoutes)
 
 app.use(requireAuth);
 
@@ -36,3 +35,8 @@ app.use(errorCatcher);
 app.listen(5003, () => {
     console.log("server running");
 });
+
+// Metrics are served on a separate port, reachable only from the Docker network
+const metricsApp = express()
+metricsApp.use("/metrics", metricsRoutes)
+metricsApp.listen(9100)

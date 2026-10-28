@@ -4,4 +4,4 @@ global:
 scrape_configs:
   - job_name: backend
     static_configs:
-      - targets: ["backend:5003"]
+      - targets: ["backend:9100"]
