@@ -34,7 +34,7 @@ ingest:
 # `--entrypoint sh` on backend skips entrypoint.sh, which would need the database.
 .PHONY: ci
 ci: .env
-	$(COMPOSE) run --rm --no-deps frontend npm run check
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) run --rm --no-deps frontend npm run check
 	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) run --rm --no-deps --entrypoint sh backend -c 'npm run check'
 
 
