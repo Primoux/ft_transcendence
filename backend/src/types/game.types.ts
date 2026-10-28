@@ -1,38 +1,40 @@
 export type GuessEntity = {
 	id: string,
 	name: string,
-	art: string
+	artUrl: string
 };
 
-export type Colors =
+export type ColorIdentity =
 	"White" |
 	"Black" |
 	"Blue" | 
 	"Green" |
 	"Red" |
-	"None"
+	"Colorless"
 ;
 
 export type Rarity = 
 	"Common" |
 	"Uncommon" |
 	"Rare" |
-	"Mythic"
+	"Mythic" |
+	"Special" |
+	"Bonus"
 ;
 
 export type CardEntity = {
 	id: string,
 	name: string,
-	art: string,
-	mana_cost: number,
-	colors: Colors[],
+	artUrl: string,
+	manaValue: number,
+	colorIdentity: ColorIdentity[],
 	types: string[],
 	power?: number,
 	toughness?: number,
-	is_leg: boolean,
+	legStatus: boolean,
 	rarity: Rarity,
 	set: string,
-	year: number
+	releaseYear: number
 }
 
 export type AttributeStatus =
@@ -45,7 +47,7 @@ export type AttributeStatus =
 
 export type GuessResult = {
 	win: boolean;
-	full_card?: string,
+	fullCardUrl?: string,
 	card: CardEntity;
 	comp: Record<string, AttributeStatus>
 };

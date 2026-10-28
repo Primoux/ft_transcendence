@@ -7,11 +7,17 @@ export const dailyGameRepository = {
       where: {
         date_mode: {
           date,
-          mode,
-        },
+          mode
+        }
+      }
+    });
+  },
+  async findTargetCard(dailyId: string) {
+    return prisma.dailyGame.findUnique({
+      where: {
+        id: dailyId
       },
       select: {
-        id: true,
         targetCard: true
       }
     });
@@ -23,6 +29,6 @@ export const dailyGameRepository = {
         mode,
 				targetCardId: cardId,
 			}
-		})
+		});
 	}
 };
