@@ -39,10 +39,6 @@ ci: .env
 	$(COMPOSE) run --rm --no-deps --entrypoint sh backend -c 'npm run check'
 
 
-.PHONY: up
-up: 
-	@echo "please use 'make dev' or 'make prod'."
-
 .PHONY: dev
 dev: .env
 	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --build

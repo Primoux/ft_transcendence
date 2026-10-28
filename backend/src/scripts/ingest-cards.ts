@@ -1,11 +1,11 @@
-import { prisma } from "../data/prisma";
-import { SyncKey, syncRepository } from "../data/repositories";
-import { processCardStream } from "./card-processor";
+import { prisma } from "../data/prisma.ts";
+import { SyncKey, syncRepository } from "../data/repositories/index.ts";
+import { processCardStream } from "./card-processor.ts";
 import {
   fetchBulkMetadata,
   fetchBulkStream,
   type ScryfallBulkType,
-} from "./scryfall-client";
+} from "./scryfall-client.ts";
 
 try {
   console.log("Checking for card updates...");
