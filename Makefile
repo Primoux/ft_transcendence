@@ -40,7 +40,7 @@ ci: .env
 
 .PHONY: dev
 dev: .env
-	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --build
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up --watch --build
 
 .PHONY: prod
 prod: .env
