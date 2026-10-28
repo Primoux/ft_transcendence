@@ -9,6 +9,10 @@ export const dailyGameRepository = {
           date,
           mode,
         },
+      },
+      select: {
+        id: true,
+        targetCard: true
       }
     });
   },
