@@ -4,26 +4,27 @@
 # the app is fully containerized.
 
 NAME=transcendence
+COMPOSE = docker compose
 
-DEFAULT_GOAL := help
+COMPOSE_FILE = compose.yml
+COMPOSE_DEV_FILE = compose.dev.yml
+
+.DEFAULT_GOAL := help
 
 help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
-	@echo "  all      - Build and start the application"
 	@echo "  ingest   - Run the card ingestion pipeline"
+	@echo "  dev	  - Build and start the application in dev mode (with hot reload)"
+	@echo "  prod	  - Build and start the application in production mode"
+	@echo "  all      - Equivalent to prod"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
 	@echo "  down     - Stop the application and remove volumes"
-	@echo "  up       - Start the application"
 	@echo "  logs     - Show application logs"
 	@echo "  reset    - Stop the application and delete .env"
 	@echo "  env      - Regenerate .env file"
-	@echo "  .env     - Generate .env file"
 
-.PHONY: all
-all: .env ingest
-	docker compose up -d
 
 .PHONY: ingest
 ingest:
@@ -31,37 +32,40 @@ ingest:
 
 # Runs the same checks as .github/workflows/ci.yml, in the containers.
 # Each check list lives in its own package.json, so both run the same thing.
-# Deps come from the images: after changing a package.json, docker compose build.
 # `--entrypoint sh` on backend skips entrypoint.sh, which would need the database.
 .PHONY: ci
 ci: .env
-	docker compose run --rm --no-deps frontend npm run check
-	docker compose run --rm --no-deps --entrypoint sh backend -c 'npm run check'
+	$(COMPOSE) run --rm --no-deps frontend npm run check
+	$(COMPOSE) run --rm --no-deps --entrypoint sh backend -c 'npm run check'
 
-.PHONY: restart
-restart:
-	docker compose restart
 
 .PHONY: up
-up:
-	docker compose up -d
+up: 
+	@echo "please use 'make dev' or 'make prod'."
 
-.PHONy: ps
-ps:
-	docker compose ps
+.PHONY: dev
+dev: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --build
 
-.PHONY: logs
-logs:
-	docker compose logs -f
+.PHONY: prod
+prod: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
 
-.PHONY: reset
-reset: down
-	rm .env
+# Convenience rule : runs docker compose with the arg provided to make.
+# Exemple : 'make logs' -> 'docker compose logs'
+
+.PHONY: ps logs restart
+ps logs restart: %:
+	$(COMPOSE) $*
+
 
 .PHONY: down
 down:
-	docker compose down -v
+	$(COMPOSE) down -v
 
+.PHONY: reset
+reset: down
+	rm -rf .env
 .PHONY: env
 env: down
 	./make_env.sh

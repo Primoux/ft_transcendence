@@ -1,8 +1,10 @@
 import express from 'express';
-import { testCards, testAnswer, comparisonGame } from "../services/game/modes/gameModes";
+import { testCards, testAnswer, comparisonGame } from "../services/game/modes/gameModes.ts";
+
 
 const router = express.Router()
 
+console.log(testAnswer)
 router.get("/", (req, res) => {
     res.json({msg: "hw"});
 })

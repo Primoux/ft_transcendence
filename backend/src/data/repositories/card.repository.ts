@@ -1,5 +1,5 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "../prisma";
+import type { Prisma } from "../../../generated/client.ts";
+import { prisma } from "../prisma.ts";
 
 export const cardRepository = {
   async searchByName(query: string, limit = 5) {

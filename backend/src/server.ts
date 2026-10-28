@@ -1,12 +1,12 @@
 import express from 'express';
 
-import gameRoutes from './routes/gameRoutes'
-import authRoutes from './routes/authRoutes'
-import userRoutes from './routes/userRoutes'
-import healthRoutes from './routes/healthRoutes'
+import gameRoutes from './routes/gameRoutes.ts'
+import authRoutes from './routes/authRoutes.ts'
+import userRoutes from './routes/userRoutes.ts'
+import healthRoutes from './routes/healthRoutes.ts'
 
-import requireAuth from './middleware/authMiddleware'
-import errorCatcher from './middleware/errorMiddleware'
+import requireAuth from './middleware/authMiddleware.ts'
+import errorCatcher from './middleware/errorMiddleware.ts'
 
 import cookieParser from 'cookie-parser'
 

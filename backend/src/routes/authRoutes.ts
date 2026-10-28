@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/client.ts";
 import bcrypt from "bcryptjs";
 import express from "express";
 import jwt from "jsonwebtoken";
-import { prisma } from "../data/prisma";
+import { prisma } from "../data/prisma.ts";
 import * as zod from 'zod'
-import { loginSchema, registerSchema } from '../utils/validation/zodSchema'
+import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
 
 const router = express.Router();
 
