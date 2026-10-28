@@ -2,19 +2,16 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 
 export const cardRepository = {
-  async searchByName(query: string, limit = 5) {
-    const searchFilter =
-      query.length === 1
-        ? { startsWith: query, mode: "insensitive" as const }
-        : { contains: query, mode: "insensitive" as const };
-
-    return prisma.magicCard.findMany({
-      where: { name: searchFilter },
-      orderBy: { name: "asc" },
-      take: limit,
+  async findAllPlayable(maxRank: number = 5000) {
+    return prisma.magicCard.findMany(); // todo: filter by edhrec rank < maxRank
+  },
+  async findById(cardId: string) {
+    return prisma.magicCard.findUnique({
+      where: {
+        id: cardId
+      }
     });
   },
-
   async upsertMany(cards: Prisma.MagicCardCreateManyInput[]) {
     const operations = cards.map((card) => {
       const { id, ...updateFields } = card;
@@ -24,7 +21,6 @@ export const cardRepository = {
         create: card,
       });
     });
-
     return prisma.$transaction(operations);
   },
 };
