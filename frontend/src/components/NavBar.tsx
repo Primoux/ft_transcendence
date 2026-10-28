@@ -21,33 +21,7 @@ function NavBar() {
                 {auth.authState.user && <Link to={`/users/${auth.authState.user.username}`} className="px-4">Profile</Link>}
                 {loginElement}
             </div>
-            <ul tabIndex={0} className="menu dropdown-content bg-base-100 border border-base-300 rounded-box mt-2 w-44 p-2 shadow-xl">
-                <li><Link to={`/users/${user.username}`} onClick={closeMenu}>Profile</Link></li>
-                <li><button onClick={() => {closeMenu(); logout()}} className="text-error">Log out</button></li>
-            </ul>
-        </div>
-    } else if (location.pathname === "/login") {
-        accountElement = <Link to="/register" className={authButtonClass}>Register</Link>
-    } else {
-        accountElement = <Link to="/login" className={authButtonClass}>Log in</Link>
-    }
-
-    return (
-        <div className="navbar bg-base-100 shadow-lg rounded-sm px-4">
-            <div className="navbar-start">
-                <Link to="/" className="font-beleren-sc btn btn-ghost px-0 text-3xl">MtgDle</Link>
-            </div>
-            <div className="navbar-center">
-                <ul className="menu menu-horizontal gap-1">
-                    <li>
-                        <Link to="/dle" className={`font-matrix text-base ${location.pathname === "/dle" ? "menu-active" : ""}`}>Play</Link>
-                    </li>
-                </ul>
-            </div>
-            <div className="navbar-end">
-                {accountElement}
-            </div>
-        </div>
+        </nav>
     )
 }
 
