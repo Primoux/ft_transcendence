@@ -3,7 +3,7 @@
 # this makefile should be used only after
 # the app is fully containerized.
 
-NAME=transcendence
+NAME = transcendence
 COMPOSE = docker compose
 
 COMPOSE_FILE = compose.yml
@@ -65,12 +65,13 @@ reset: down
 	rm -rf .env
 .PHONY: all
 all: .env ingest
-	docker compose up -d
+	$(MAKE) prod
 
 .PHONY: ingest
 ingest:
 	docker compose run --rm card-ingestion
 
+<<<<<<< HEAD
 .PHONY: restart
 restart:
 	docker compose restart
@@ -78,11 +79,44 @@ restart:
 .PHONY: reset
 reset: down
 	rm .env
+=======
+# Runs the same checks as .github/workflows/ci.yml, in the containers.
+# Each check list lives in its own package.json, so both run the same thing.
+# `--entrypoint sh` on backend skips entrypoint.sh, which would need the database.
+.PHONY: ci
+ci: .env
+	$(COMPOSE) run --rm --no-deps frontend npm run check
+	$(COMPOSE) run --rm --no-deps --entrypoint sh backend -c 'npm run check'
+
+
+.PHONY: up
+up: 
+	@echo "please use 'make dev' or 'make prod'."
+
+.PHONY: dev
+dev: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --build
+
+.PHONY: prod
+prod: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
+
+# Convenience rule : runs docker compose with the arg provided to make.
+# Exemple : 'make logs' -> 'docker compose logs'
+
+.PHONY: ps logs restart
+ps logs restart: %:
+	$(COMPOSE) $*
+
+>>>>>>> 627c523 (refactor: add prod build and overhaul dev workflow)
 
 .PHONY: down
 down:
-	docker compose down -v
+	$(COMPOSE) down -v
 
+.PHONY: reset
+reset: down
+	rm -rf .env
 .PHONY: env
 env: down
 	./make_env.sh
