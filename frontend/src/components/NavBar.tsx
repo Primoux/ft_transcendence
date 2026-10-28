@@ -1,28 +1,25 @@
-import type { User } from '../types/user'
-import { Link, useLocation } from 'react-router'
-import { ChevronDown } from 'lucide-react'
-type NavBarProps = {user: User | null, logout: () => (void)}
+import { useAuth } from '../useAuth';
+import {Link, useLocation } from 'react-router'
 
-// the dropdown is CSS-only and stays open as long as focus is inside it,
-// so every item has to drop the focus on its way out
-function closeMenu() {
-    if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur()
-    }
-}
-
-function NavBar( {user, logout} : NavBarProps) {
+function NavBar() {
+    const auth = useAuth()
     const location = useLocation();
 
-    const authButtonClass = "btn btn-primary min-w-28"
 
-    let accountElement;
-    if (user) {
-        accountElement =
-        <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" className="btn btn-ghost gap-2">
-                <span>{user.username}</span>
-                <ChevronDown className="size-3 opacity-60" />
+    let loginElement;
+    if (auth.authState.authStatus == "logged-in") {
+        loginElement = <button onClick={auth.logout} className="px-4 hover:cursor-pointer" > Logout </button>
+    } else if (location.pathname === "/login" ){
+        loginElement = <Link to="/register" className="px-4"> Register </Link>
+    } else {
+        loginElement = <Link to="/login" className="px-4"> Login </Link>
+    }
+    return (
+        <nav className="sticky border-1 border-black w-full flex flex-row items-center justify-between rounded-t-sm bg-white">
+            <h1 className="px-3 text-5xl text-black py-4"><Link to="/">MtgDle</Link></h1>
+            <div className="flex items-center divide-x-2 pr-4">
+                {auth.authState.user && <Link to={`/users/${auth.authState.user.username}`} className="px-4">Profile</Link>}
+                {loginElement}
             </div>
             <ul tabIndex={0} className="menu dropdown-content bg-base-100 border border-base-300 rounded-box mt-2 w-44 p-2 shadow-xl">
                 <li><Link to={`/users/${user.username}`} onClick={closeMenu}>Profile</Link></li>
