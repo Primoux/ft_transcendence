@@ -4,7 +4,6 @@ import { testCards, testAnswer, comparisonGame } from "../services/game/modes/ga
 
 const router = express.Router()
 
-console.log(testAnswer)
 router.get("/", (req, res) => {
     res.json({msg: "hw"});
 })
