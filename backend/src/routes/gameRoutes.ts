@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { raw } from 'express';
 import type { Request, Response } from 'express';
 import { cardRepository, dailyGameRepository } from "../data/repositories";
-import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity } from "../types/game.types"
-import { Prisma, GameMode, DailyGame, MagicCard } from "@prisma/client"
+import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types"
+import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity } from "@prisma/client"
 import { guessSchema } from "../utils/validation/zodSchema"
 
 const router = express.Router();
@@ -42,7 +42,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 	catch (err) {
 		return res.status(500).json({err: "database issue"});
 	}
-	return res.json()
+	return res.json({pool: cardPool});
 })
 
 router.get("/guess", async (req: Request, res: Response) => {
@@ -50,39 +50,40 @@ router.get("/guess", async (req: Request, res: Response) => {
 	if (!parsedInput.success) {
 		return res.status(404).json({err: parsedInput.error.issue});
 	}
-	let guessCard: MagicCard | null;
-	let answer: {targetCard: MagicCard} | null;
+	let rawGuess: MagicCard | null;
+	let rawAnswer: {targetCard: MagicCard} | null;
 	const today: Date = new Date();
 	try {
-		guessCard = await cardRepository.findById(parsedInput.data.card);
-		if (!guessCard) {
+		rawGuess = await cardRepository.findById(parsedInput.data.card);
+		if (!rawGuess) {
 			return res.status(404).json({err: "no card found with id " + parsedInput.data.card});
 		}
 		let daily: DailyGame | null = await dailyGameRepository.find(today, GameMode.CLASSIC);
 		if (!daily) {
 			throw Error;
 		}
-		answer = await dailyGameRepository.findTargetCard(daily.id);
-		if (!answer) {
+		rawAnswer = await dailyGameRepository.findTargetCard(daily.id);
+		if (!rawAnswer) {
 			throw Error;
 		}
 	}
 	catch (err) {
 		return res.status(500).json({err: "database issue"});
 	}
-	let result = {} as GuessResult;
-	if (guessCard.id == answer.targetCard.id) {
-		result.win = true;
-	}
-	let guessEntity = {} as CardEntity;
-	try {
-		buildCardEntity(guessCard, guessEntity);
-		buildGuessComp(guessCard, answer.targetCard, result.comp);
+	try {	
+		var guessEntity: CardEntity = buildCardEntity(rawGuess);
+		var answerEntity: CardEntity = buildCardEntity(rawAnswer.targetCard);
 	}
 	catch (err) {
 		return res.status(500).json({err: "couldn't resolve card properties"});
 	}
-
+	let result: GuessResult = {
+		win: guessEntity.id === answerEntity.id,
+		fullCardUrl: guessEntity.id === answerEntity.id ? rawGuess.imageUrl : undefined,
+		card: guessEntity,
+		comp: buildGuessComp(guessEntity, answerEntity)
+	}
+	return res.status(200).json({result: result});
 });
 
 const COLOR_IDENTITY_RECORD: Record<string, ColorIdentity> = {
@@ -91,15 +92,65 @@ const COLOR_IDENTITY_RECORD: Record<string, ColorIdentity> = {
   U: 'Blue',
   R: 'Red',
   G: 'Green',
-  C: 'Colorless',
+  C: 'Colorless'
 } as const;
 
-function buildCardEntity(rawCard: MagicCard, builtCardEntity: CardEntity) {
+const RARITY_RECORD: Record<DatabaseRarity, FrontRarity> = {
+	COMMON: 'Common',
+	UNCOMMON: 'Uncommon',
+	RARE: 'Rare',
+	MYTHIC: 'Mythic',
+	SPECIAL: 'Special',
+	BONUS: 'Bonus'
+} as const;
 
+function buildCardEntity(rawCard: MagicCard): CardEntity {
+	return {
+		id: rawCard.id,
+		name: rawCard.name,
+		artUrl: rawCard.artUrl,
+		manaValue: rawCard.manaValue,
+		colorIdentity: rawCard.colorIdentity.map(stringColor => {
+			const cardColor: ColorIdentity = COLOR_IDENTITY_RECORD[stringColor];
+			if (cardColor === undefined) {
+				throw Error;
+			}
+			return cardColor;
+		}),
+		legStatus: rawCard.supertypes.includes("Legendary"),
+		types: rawCard.types,
+		subtypes: rawCard.subtypes,
+		// power: rawCard.power
+		// toughness: rawCard.toughness,
+		rarity: RARITY_RECORD[rawCard.rarity] ?? (() => {
+			throw Error;
+		})(),
+		releaseSet: rawCard.releaseSet,
+		releaseYear: rawCard.releaseDate.getFullYear()
+	}
 }
 
-function buildGuessComp(rawGuess: MagicCard, rawAnswer: MagicCard, comp: Record<string, AttributeStatus>){
+function buildGuessComp(guess: CardEntity, answer: CardEntity ): Record<string, AttributeStatus> {
+	return {
+		manaValue: compareNumber(guess.manaValue, answer.manaValue),
+		colorIdentity: compareArray(guess.colorIdentity, answer.colorIdentity),
+		legStatus: guess.legStatus === answer.legStatus ? "correct" : "incorrect",
+		types: compareArray(guess.types, answer.types),
+		subtypes: compareArray(guess.subtypes, answer.subtypes),
+		// power: compareNumber(guess.power, answer.power)
+		// toughness: compareNumber(guess.toughness, answer.toughness)
+		rarity: guess.rarity === answer.rarity ? "correct" : "incorrect",
+		releaseSet: guess.releaseSet === answer.releaseSet ? "correct" : guess.releaseYear === answer.releaseYear ? "partially" : "incorrect",
+		releaseYear: compareNumber(guess.releaseYear, answer.releaseYear)
+	}
+}
 
+const compareNumber = (a: number, b: number): AttributeStatus => {
+	return (a === b ? "correct" : a < b ? "lower" : "higher");
+}
+
+const compareArray = (a: any[], b: any[]): AttributeStatus => {
+	return (a.length === b. length && a.every((elt) => b.includes(elt)) ? "correct" : a.some((elt) => b.includes(elt)) ? "partially" : "incorrect");
 }
 
 export default router

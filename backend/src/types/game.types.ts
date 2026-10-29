@@ -28,12 +28,13 @@ export type CardEntity = {
 	artUrl: string,
 	manaValue: number,
 	colorIdentity: ColorIdentity[],
+	legStatus: boolean,
 	types: string[],
+	subtypes: string[],
 	power?: number,
 	toughness?: number,
-	legStatus: boolean,
 	rarity: Rarity,
-	set: string,
+	releaseSet: string,
 	releaseYear: number
 }
 
