@@ -10,6 +10,10 @@ const IGNORED_PATHS = ['/health']
 const router = express.Router()
 collectDefaultMetrics()
 
+const ACTIVE_WINDOW = (15 * 60 * 1000)
+const lastSeen = new Map<string, number>()
+
+
 // a failing query must not break the whole /metrics endpoint
 async function safe(fn: () => Promise<void>) {
   try {
@@ -43,6 +47,8 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
     const route = req.route ? req.baseUrl + req.route.path : 'unmatched'
     httpRequests.inc({ method: req.method, route, status: res.statusCode })
     end({ method: req.method, route })
+    if (req.userId)
+      lastSeen.set(req.userId, Date.now())
   })
   next()
 }
@@ -56,6 +62,19 @@ new Gauge({
     await safe(async () => {
       this.set(await prisma.user.count())
     })
+  },
+})
+
+new Gauge({
+  name: 'mtgdle_active_users',
+  help: 'Users seen in the last 15 minutes',
+  collect() {
+    const limit = Date.now() - ACTIVE_WINDOW
+    for (const [userId, time] of lastSeen) {
+      if (time < limit)
+        lastSeen.delete(userId)
+    }
+    this.set(lastSeen.size)
   },
 })
 
