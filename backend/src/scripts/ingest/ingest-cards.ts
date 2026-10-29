@@ -1,6 +1,10 @@
 import { prisma } from "../../data/prisma";
 import { SyncKey, syncRepository } from "../../data/repositories";
-import { processCardStream } from "./card-processor";
+import {
+  buildCardHistoriesMap,
+  buildOracleCardsMap,
+  readZippedStream,
+} from "./card-parser";
 import {
   fetchBulkMetadata,
   fetchBulkStream,
@@ -10,23 +14,35 @@ import {
 try {
   console.log("Checking for card updates...");
 
-  const bulkType: ScryfallBulkType = "default_cards";
-  const metadata = await fetchBulkMetadata(bulkType);
+  const oraclebulkType: ScryfallBulkType = "oracle_cards";
+  const [oracleMetadata, defaultMetadata] = await Promise.all([
+    fetchBulkMetadata(oraclebulkType),
+    fetchBulkMetadata("default_cards"),
+  ]);
 
-  const syncKey: SyncKey = `scryfall_${bulkType}`;
+  const syncKey: SyncKey = `scryfall_${oraclebulkType}`;
   const lastSync = await syncRepository.getLastSync(syncKey);
 
-  if (lastSync && lastSync.getDate() === metadata.updatedAt.getDate()) {
+  if (lastSync && lastSync.getDate() === oracleMetadata.updatedAt.getDate()) {
     console.log("Cards are already up to date. Skipping ingestion.");
   } else {
     console.log(
-      `New update found (${metadata.updatedAt}). Starting ingestion...`,
+      `New update found (${oracleMetadata.updatedAt}). Starting ingestion...`,
     );
 
-    const stream = await fetchBulkStream(metadata.downloadUri);
-    await processCardStream(stream);
+    const [oracleStream, defaultStream] = await Promise.all([
+      fetchBulkStream(oracleMetadata.downloadUri),
+      fetchBulkStream(defaultMetadata.downloadUri),
+    ]);
 
-    await syncRepository.saveLastSync(syncKey, metadata.updatedAt);
+    const [oracleCardsMap, cardHistoriesMap] = await Promise.all([
+      readZippedStream(oracleStream, buildOracleCardsMap),
+      readZippedStream(defaultStream, buildCardHistoriesMap),
+    ]);
+
+    await processCardStream(oracleStream);
+
+    await syncRepository.saveLastSync(syncKey, oracleMetadata.updatedAt);
 
     console.log("Card ingestion completed successfully.");
   }

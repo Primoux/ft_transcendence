@@ -23,6 +23,15 @@ enum GameMode {
     ARTWORK
 }
 
+enum Color {
+  WHITE
+  BLUE
+  BLACK
+  RED
+  GREEN
+  COLORLESS
+}
+
 enum Rarity{
   COMMON
   UNCOMMON
@@ -82,13 +91,13 @@ model MagicCard {
     types         String[]
     supertypes    String[] // scryfall catalog endpoints lists existing supertypes
     subtypes      String[] // Split after the dash
-    colorIdentity String[]
+    colorIdentity Color[]
     power         String?
     toughness     String?
-    extension     String
     rarity        Rarity
     releaseDate   DateTime
     releaseSet    String
+    releaseSetName    String
 
     dailyGames  DailyGame[]
     guesses     Guess[]

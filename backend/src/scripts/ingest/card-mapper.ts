@@ -1,6 +1,19 @@
-import { Rarity, type Prisma } from "@prisma/client";
+import { Color, Rarity, type Prisma } from "@prisma/client";
+import type {
+  ScryfallCardHistory,
+  ValidScryfallOracleCard,
+} from "./scryfall-types";
 
 const SUPERTYPES = new Set(["Basic", "Legendary", "Ongoing", "Snow", "World"]);
+
+const COLOR_RECORD: Record<string, Color> = {
+  W: Color.WHITE,
+  U: Color.BLUE,
+  B: Color.BLACK,
+  R: Color.RED,
+  G: Color.GREEN,
+  C: Color.COLORLESS,
+} as const;
 
 const RARITY_RECORD: Record<string, Rarity> = {
   common: Rarity.COMMON,
@@ -17,27 +30,29 @@ interface ParsedTypeLine {
   subtypes: string[];
 }
 
-
-export function toPrismaCard(rawCard: any): Prisma.MagicCardCreateManyInput {
-  const { supertypes, types, subtypes } = parseTypeLine(rawCard.type_line);
+export function toPrismaCard(
+  oracleCard: ValidScryfallOracleCard,
+  cardHistory: ScryfallCardHistory,
+): Prisma.MagicCardCreateManyInput {
+  const { supertypes, types, subtypes } = parseTypeLine(oracleCard.type_line);
 
   return {
-    id: rawCard.id,
-    edhrecRank: rawCard.edhrec_rank ?? null,
-    imageUrl: rawCard.image_uris?.normal ?? "",
-    artUrl: rawCard.image_uris?.art_crop ?? "",
-    name: rawCard.name,
-    manaValue: rawCard.cmc,
+    id: oracleCard.id,
+    edhrecRank: oracleCard.edhrec_rank ?? null,
+    imageUrl: oracleCard.image_uris.normal,
+    artUrl: oracleCard.image_uris.art_crop,
+    name: oracleCard.name,
+    manaValue: oracleCard.cmc,
     types,
     supertypes,
     subtypes,
-    colorIdentity: rawCard.color_identity ?? [],
-    power: rawCard.power ?? null,
-    toughness: rawCard.toughness ?? null,
-    extension: rawCard.set ?? "",
-    rarity: RARITY_RECORD[rawCard.rarity],
-    releaseDate: new Date(rawCard.released_at),
-    releaseSet: rawCard.set_name ?? "",
+    colorIdentity: parseColorIdentity(oracleCard.color_identity),
+    power: oracleCard.power ?? null,
+    toughness: oracleCard.toughness ?? null,
+    rarity: RARITY_RECORD[oracleCard.rarity],
+    releaseDate: new Date(cardHistory.released_at),
+    releaseSet: cardHistory.set,
+    releaseSetName: cardHistory.set_name,
   };
 }
 
@@ -64,3 +79,6 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
   return { supertypes, types, subtypes };
 }
 
+export function parseColorIdentity(rawColors: string[]): Color[] {
+  return rawColors.map((color) => COLOR_RECORD[color]);
+}
