@@ -32,6 +32,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      card-ingestion:
+        condition: service_completed_successfully
   card-ingestion:
     build:
       context: ./backend/
