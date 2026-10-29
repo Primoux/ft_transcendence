@@ -54,4 +54,4 @@ To see the state of the app in production, run `make prod`. This will :
 + Run the backend with `node` instead of `tsx`
 + Run an nginx container serving the compiled static files.
 
-The app will then be accessible through `http://localhost:80`.
+The app will then be accessible through `http://localhost:8080`.
