@@ -12,9 +12,8 @@ router.get("/", (req: Request, res: Response) => {
 })
 
 router.get("/classic/init", async (req: Request, res: Response) => {
-	let cardPool: MagicCard[] = [];
 	try {
-		cardPool = await cardRepository.findAllPlayable();
+		var cardPool = await cardRepository.findAllPlayable();
 		const today: Date = new Date();
 		let dailyClassic: DailyGame | null = await dailyGameRepository.find(today, GameMode.CLASSIC);
 		if (!dailyClassic) {
@@ -42,13 +41,18 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 	catch (err) {
 		return res.status(500).json({err: "database issue"});
 	}
-	return res.json({pool: cardPool});
+	const frontCardPool: GuessEntity[] = cardPool.map(item => ({
+		id: item.id,
+		name: item.name,
+		artUrl: item.artUrl
+	}));
+	return res.json({pool: frontCardPool});
 })
 
 router.get("/guess", async (req: Request, res: Response) => {
 	const parsedInput = guessSchema.safeParse(req.query)
 	if (!parsedInput.success) {
-		return res.status(404).json({err: parsedInput.error.issue});
+		return res.status(404).json({err: parsedInput.error.issues});
 	}
 	let rawGuess: MagicCard | null;
 	let rawAnswer: {targetCard: MagicCard} | null;
