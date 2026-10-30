@@ -150,7 +150,7 @@ function buildGuessComp(guess: CardEntity, answer: CardEntity ): Record<string, 
 }
 
 const compareNumber = (a: number, b: number): AttributeStatus => {
-	return (a === b ? "correct" : a < b ? "lower" : "higher");
+	return (a === b ? "correct" : a > b ? "lower" : "higher");
 }
 
 const compareArray = (a: any[], b: any[]): AttributeStatus => {
