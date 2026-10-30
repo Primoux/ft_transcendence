@@ -1,5 +1,5 @@
-import { GameMode } from "@prisma/client";
-import { prisma } from "../prisma";
+import { GameMode } from "../../../generated/client.ts";
+import { prisma } from "../prisma.ts";
 
 export const dailyGameRepository = {
   async findTargetCard(date: Date, mode: GameMode) {

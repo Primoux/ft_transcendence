@@ -1,10 +1,10 @@
 import express from 'express'
-import { prisma } from '../data/prisma'
-import { Prisma } from "@prisma/client";
+import { prisma } from '../data/prisma.ts'
+import { Prisma } from "../../generated/client.ts"
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'
-import { changeDisplayNameSchema, changePasswordSchema } from '../utils/validation/zodSchema';
-import { userRepository } from '../data/repositories';
+import { changeDisplayNameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
+import { userRepository } from '../data/repositories/index.ts';
 
 const router = express.Router()
 

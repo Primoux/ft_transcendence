@@ -1,0 +1,51 @@
+services:
+  backend:
+    build:
+      target: dev
+    image: backend-dev
+    ports:
+      - "127.0.0.1:5003:5003"
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src/
+          target: /app/src/
+        - action: rebuild
+          path: ./backend/package.json
+        - action: rebuild
+          path: ./backend/package-lock.json
+        - action: rebuild
+          path: ./backend/tsconfig.json
+        - action: rebuild
+          path: ./backend/prisma/migrations
+        - action: rebuild
+          path: ./backend/prisma.config.ts
+  frontend:
+    ports: !override
+      - "127.0.0.1:5173:5173"
+    build:
+      target: dev
+    image: frontend-dev
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: sync
+          path: ./frontend/index.html
+          target: /app/index.html
+        - action: sync
+          path: ./frontend/public/
+          target: /app/public/
+        - action: rebuild
+          path: ./frontend/vite.config.ts
+        - action: rebuild
+          path: ./frontend/tsconfig.json
+        - action: rebuild
+          path: ./frontend/tsconfig.node.json
+        - action: rebuild
+          path: ./frontend/tsconfig.app.json
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/package-lock.json
