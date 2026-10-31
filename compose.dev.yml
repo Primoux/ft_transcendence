@@ -25,6 +25,12 @@ services:
       - "127.0.0.1:5173:5173"
     build:
       target: dev
+    healthcheck: !override
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:5173/"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 10s
     image: frontend-dev
     develop:
       watch:
