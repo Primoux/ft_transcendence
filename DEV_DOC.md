@@ -55,3 +55,23 @@ To see the state of the app in production, run `make prod`. This will :
 + Run an nginx container serving the compiled static files.
 
 The app will then be accessible through `http://localhost:8080`.
+
+
+## Monitoring
+
+Grafana is available at `http://localhost:3000`.
+
+1. Log in with the credentials from the `.env` file (`GF_SECURITY_ADMIN_USER` / `GF_SECURITY_ADMIN_PASSWORD`).
+2. Click `Dashboards` in the left menu.
+3. Two dashboards are available: `Server` and `Game`.
+
+### What you can see
+
+- **Server**: HTTP traffic (requests per second by status, latency p50/p95/p99, successful and failed logins, slowest routes) and backend runtime (memory, CPU, event loop lag).
+- **Game**: game and card statistics read from the database.
+
+### Notes
+
+- Panels based on HTTP traffic stay at "No data" until some requests have been made. Wait ~15-30 s after sending requests (Prometheus scrape interval).
+- The failed-login counter resets to 0 whenever the backend restarts.
+- Panels related to `gameSessions` stay empty for now, because the matching game features are not implemented yet.
