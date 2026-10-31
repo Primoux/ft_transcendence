@@ -173,7 +173,6 @@ new Gauge({
 // ---- Scryfall sync ----
 
 // This metric tracks the last time the Scryfall sync was run for each key (e.g. "default", "custom").
-// but idk i think its borken
 new Gauge({
   name: 'mtgdle_card_sync_last_timestamp_seconds',
   help: 'Unix time of the last Scryfall sync',
