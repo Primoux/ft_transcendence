@@ -1,15 +1,13 @@
 import { prisma } from "../../data/prisma";
 import { SyncKey, syncRepository } from "../../data/repositories";
+import { loadCards } from "./card-loader";
 import {
   buildCardHistoriesMap,
   buildOracleCardsMap,
   readZippedStream,
-} from "./card-parser";
-import {
-  fetchBulkMetadata,
-  fetchBulkStream,
-  type ScryfallBulkType,
-} from "./scryfall-client";
+} from "./scryfall-stream";
+import { fetchBulkMetadata, fetchBulkStream } from "./scryfall-client";
+import type { ScryfallBulkType } from "./scryfall-types";
 
 try {
   console.log("Checking for card updates...");
@@ -23,7 +21,7 @@ try {
   const syncKey: SyncKey = `scryfall_${oraclebulkType}`;
   const lastSync = await syncRepository.getLastSync(syncKey);
 
-  if (lastSync && lastSync.getDate() === oracleMetadata.updatedAt.getDate()) {
+  if (lastSync && lastSync === oracleMetadata.updatedAt) {
     console.log("Cards are already up to date. Skipping ingestion.");
   } else {
     console.log(
@@ -31,16 +29,16 @@ try {
     );
 
     const [oracleStream, defaultStream] = await Promise.all([
-      fetchBulkStream(oracleMetadata.downloadUri),
-      fetchBulkStream(defaultMetadata.downloadUri),
+      fetchBulkStream(oracleMetadata),
+      fetchBulkStream(defaultMetadata),
     ]);
 
     const [oracleCardsMap, cardHistoriesMap] = await Promise.all([
-      readZippedStream(oracleStream, buildOracleCardsMap),
-      readZippedStream(defaultStream, buildCardHistoriesMap),
+      readZippedStream(oracleStream, buildOracleCardsMap, "oracle_cards"),
+      readZippedStream(defaultStream, buildCardHistoriesMap, "default_cards"),
     ]);
 
-    await processCardStream(oracleStream);
+    await loadCards(oracleCardsMap, cardHistoriesMap);
 
     await syncRepository.saveLastSync(syncKey, oracleMetadata.updatedAt);
 

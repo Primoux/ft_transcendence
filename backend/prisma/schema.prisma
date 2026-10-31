@@ -74,7 +74,7 @@ model DailyGame {
     mode GameMode @default(CLASSIC)
 
     targetCardId String
-    targetCard  MagicCard @relation(fields: [targetCardId], references: [id])
+    targetCard  MagicCard @relation(fields: [targetCardId], references: [oracleId])
 
     sessions GameSession[]
 
@@ -82,11 +82,11 @@ model DailyGame {
 }
 
 model MagicCard {
-    id            String @id @default(cuid(2))
+    oracleId      String @id
     edhrecRank    Int?
     imageUrl      String
     artUrl        String
-    name          String @unique
+    name          String
     manaValue     Int
     types         String[]
     supertypes    String[] // scryfall catalog endpoints lists existing supertypes
@@ -111,12 +111,36 @@ model Guess {
     gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
 
     guessedCardId String
-    guessedCard   MagicCard @relation(fields: [guessedCardId], references: [id])
+    guessedCard   MagicCard @relation(fields: [guessedCardId], references: [oracleId])
 }
 
 model CardSync {
   key        String   @id
   lastSyncAt DateTime
+}
+
+model StagingOracleCard {
+    oracleId      String @id
+    edhrecRank    Int?
+    imageUrl      String
+    artUrl        String
+    name          String
+    manaValue     Int
+    types         String[]
+    supertypes    String[]
+    subtypes      String[]
+    colorIdentity Color[]
+    power         String?
+    toughness     String?
+    rarity        Rarity
+}
+
+model StagingCardHistory {
+    id            String @id
+    oracleId      String
+    releaseDate   DateTime
+    releaseSet    String
+    releaseSetName    String
 }
 
 // schema for multiple dle

@@ -29,7 +29,7 @@ interface BulkMetadata {
 export async function fetchBulkMetadata(
   bulkType: ScryfallBulkType,
 ): Promise<BulkMetadata> {
-  console.log(`Fetching bulk metadata for type: ${bulkType}`);
+  console.log(`[${bulkType}] Fetching bulk metadata...`);
 
   const response = await fetch(SCRYFALL_BULK_DATA_URL, {
     headers: HTTP_HEADERS,
@@ -41,7 +41,9 @@ export async function fetchBulkMetadata(
 
   const targetBulk = bulkList.data.find((item) => item.type === bulkType);
   if (!targetBulk)
-    throw new Error(`No bulk file available for type: ${bulkType}`);
+    throw new Error(`[${bulkType}] No bulk file available for type: ${bulkType}`);
+
+  console.log(`[${bulkType}] Metadata fetched successfully.`);
 
   return {
     type: targetBulk.type,
@@ -50,18 +52,22 @@ export async function fetchBulkMetadata(
   };
 }
 
-export async function fetchBulkStream(downloadUri: string): Promise<Readable> {
-  console.log("Fetching raw card bulk stream...");
-  const response = await fetch(downloadUri, { headers: HTTP_HEADERS });
+export async function fetchBulkStream(metadata: BulkMetadata): Promise<Readable> {
+  console.log(`[${metadata.type}] Fetching compressed stream...`);
+
+  const response = await fetch(metadata.downloadUri, { headers: HTTP_HEADERS });
 
   if (!response.ok) {
-    throw new Error(`Scryfall returned an error: ${response.status}`);
+    throw new Error(`[${metadata.type}] Scryfall returned an error: ${response.status}`);
   }
+
   if (!response.body) {
     throw new Error(
-      `Scryfall returned an empty response body. Status: ${response.status}`,
+      `[${metadata.type}] Scryfall returned an empty response body. Status: ${response.status}`,
     );
   }
+
+  console.log(`[${metadata.type}] Compressed stream fetched successfully.`);
 
   return Readable.fromWeb(
     response.body as import("node:stream/web").ReadableStream,
