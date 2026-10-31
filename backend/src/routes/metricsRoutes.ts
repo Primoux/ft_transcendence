@@ -8,10 +8,10 @@ import { prisma } from '../data/prisma'
 const IGNORED_PATHS = ['/health']
 
 const router = express.Router()
-collectDefaultMetrics()
+collectDefaultMetrics() // collect default metrics like process_cpu_user_seconds_total, process_resident_memory_bytes, etc.
 
-const ACTIVE_WINDOW = (15 * 60 * 1000)
-const lastSeen = new Map<string, number>()
+const ACTIVE_WINDOW = (15 * 60 * 1000) // 15 minutes in milliseconds
+const lastSeen = new Map<string, number>() // userId -> last seen timestamp
 
 
 // a failing query must not break the whole /metrics endpoint
@@ -38,7 +38,8 @@ const httpDuration = new Histogram({
 })
 
 // ---- Middleware ----
-
+// This middleware measures the duration of each HTTP request and counts the number of requests per route and status code.
+// It also tracks the last seen timestamp of each user, if the request has a userId property.
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction) {
   if (IGNORED_PATHS.some((path) => req.path.startsWith(path)))
     return next()
@@ -169,6 +170,10 @@ new Gauge({
   },
 })
 
+// ---- Scryfall sync ----
+
+// This metric tracks the last time the Scryfall sync was run for each key (e.g. "default", "custom").
+// but idk i think its borken
 new Gauge({
   name: 'mtgdle_card_sync_last_timestamp_seconds',
   help: 'Unix time of the last Scryfall sync',
