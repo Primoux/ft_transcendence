@@ -30,31 +30,36 @@ interface ParsedTypeLine {
   subtypes: string[];
 }
 
-export function toPrismaCard(
-  oracleCard: ValidScryfallOracleCard,
-  cardHistory: ScryfallCardHistory,
-): Prisma.MagicCardCreateManyInput {
-  const { supertypes, types, subtypes } = parseTypeLine(oracleCard.type_line);
+export const cardMapper = {
+  toStagingOracle(oracleCard: ValidScryfallOracleCard): Prisma.StagingOracleCardCreateManyInput {
+    const { supertypes, types, subtypes } = parseTypeLine(oracleCard.type_line);
 
-  return {
-    id: oracleCard.id,
-    edhrecRank: oracleCard.edhrec_rank ?? null,
-    imageUrl: oracleCard.image_uris.normal,
-    artUrl: oracleCard.image_uris.art_crop,
-    name: oracleCard.name,
-    manaValue: oracleCard.cmc,
-    types,
-    supertypes,
-    subtypes,
-    colorIdentity: parseColorIdentity(oracleCard.color_identity),
-    power: oracleCard.power ?? null,
-    toughness: oracleCard.toughness ?? null,
-    rarity: RARITY_RECORD[oracleCard.rarity],
-    releaseDate: new Date(cardHistory.released_at),
-    releaseSet: cardHistory.set,
-    releaseSetName: cardHistory.set_name,
-  };
-}
+    return {
+      oracleId: oracleCard.oracle_id,
+      edhrecRank: oracleCard.edhrec_rank ?? null,
+      imageUrl: oracleCard.image_uris.normal,
+      artUrl: oracleCard.image_uris.art_crop,
+      name: oracleCard.name,
+      manaValue: oracleCard.cmc,
+      types,
+      supertypes,
+      subtypes,
+      colorIdentity: parseColorIdentity(oracleCard.color_identity),
+      power: oracleCard.power ?? null,
+      toughness: oracleCard.toughness ?? null,
+      rarity: RARITY_RECORD[oracleCard.rarity]
+    };
+  },
+
+  toStagingHistory(cardHistory: ScryfallCardHistory): Prisma.StagingCardHistoryCreateManyInput {
+    return {
+      oracleId: cardHistory.oracle_id,
+      releaseDate: new Date(cardHistory.released_at),
+      releaseSet: cardHistory.set,
+      releaseSetName: cardHistory.set_name,
+    };
+  },
+};
 
 function parseTypeLine(typeLine: string): ParsedTypeLine {
   const [rawMain, rawSub] = typeLine.split("—");

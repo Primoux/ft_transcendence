@@ -3,23 +3,35 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
 import { shouldKeepCard } from "./card-filter";
+import type {
+  ScryfallBulkType,
+  ScryfallCardHistory,
+  ScryfallOracleCard,
+  ValidScryfallOracleCard,
+} from "./scryfall-types";
 
-import type { ScryfallOracleCard, ValidScryfallOracleCard, ScryfallCardHistory} from "./scryfall-types";
-
-const BATCH_SIZE = 500;
-
-export async function readZippedStream<T>(rawStream: Readable, processor: (readable: Readable) => Promise<T>): Promise<T> {
-  console.log("Starting card stream processing...");
+export async function readZippedStream<T>(
+  rawStream: Readable,
+  processor: (readable: Readable) => Promise<T>,
+  bulkType : ScryfallBulkType
+): Promise<T> {
+  console.log(`[${bulkType}] Decompressing and parsing stream...`);
 
   const gz = createGunzip();
 
-  const [, result] = await Promise.all([pipeline(rawStream, gz), processor(gz)]);
+  const [, result] = await Promise.all([
+    pipeline(rawStream, gz),
+    processor(gz),
+  ]);
 
-  console.log("Card stream processing completed successfully.");
+  console.log(`[${bulkType}] Stream parsing completed.`);
+  
   return result;
 }
 
-export async function buildOracleCardsMap(decompressed: Readable): Promise<Map<string, ScryfallOracleCard>> {
+export async function buildOracleCardsMap(
+  decompressed: Readable,
+): Promise<Map<string, ValidScryfallOracleCard>> {
   const rl = createInterface(decompressed);
   const oracleCardsMap = new Map<string, ValidScryfallOracleCard>();
 
@@ -28,7 +40,7 @@ export async function buildOracleCardsMap(decompressed: Readable): Promise<Map<s
       continue;
     }
 
-    const card : ScryfallOracleCard = JSON.parse(line);
+    const card: ScryfallOracleCard = JSON.parse(line);
     if (!shouldKeepCard(card)) {
       continue;
     }
@@ -39,7 +51,9 @@ export async function buildOracleCardsMap(decompressed: Readable): Promise<Map<s
   return oracleCardsMap;
 }
 
-export async function buildCardHistoriesMap(decompressed: Readable): Promise<Map<string, ScryfallCardHistory>> {
+export async function buildCardHistoriesMap(
+  decompressed: Readable,
+): Promise<Map<string, ScryfallCardHistory>> {
   const rl = createInterface(decompressed);
   const cardHistoriesMap = new Map<string, ScryfallCardHistory>();
 
@@ -48,7 +62,7 @@ export async function buildCardHistoriesMap(decompressed: Readable): Promise<Map
       continue;
     }
 
-    const cardHistory : ScryfallCardHistory = JSON.parse(line);
+    const cardHistory: ScryfallCardHistory = JSON.parse(line);
 
     const value = cardHistoriesMap.get(cardHistory.oracle_id);
     if (value && value.released_at < cardHistory.released_at) {
