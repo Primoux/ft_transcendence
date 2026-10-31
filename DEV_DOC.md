@@ -61,7 +61,7 @@ The app will then be accessible through `http://localhost:8080`.
 
 Grafana is available at `http://localhost:3000`.
 
-1. Log in with the credentials from the `.env` file (`GF_SECURITY_ADMIN_USER` / `GF_SECURITY_ADMIN_PASSWORD`).
+1. Log in with the credentials from the `.env` file (`GRAFANA_USER` / `GRAFANA_PASSWORD`).
 2. Click `Dashboards` in the left menu.
 3. Two dashboards are available: `Server` and `Game`.
 
