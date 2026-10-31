@@ -1,7 +1,7 @@
 import express from 'express'
 import type { Request, Response, NextFunction } from 'express'
 import { collectDefaultMetrics, Counter, Gauge, Histogram, register } from "@prometheus-io/client"
-import { GameStatus, GameMode, Rarity } from '@prisma/client'
+import { GameStatus, GameMode, Rarity } from '../../generated/client.ts'
 import { prisma } from '../data/prisma'
 
 // requests on these paths are not measured
