@@ -1,6 +1,6 @@
-import type { Entity, AttributeResult, GuessResult } from "../../../types/game.types";
+import type { CardEntity, AttributeStatus, GuessResult } from "../../../types/game.types";
 
-export const testCards: Entity[] = [
+export const testCards: CardEntity[] = [
 	{
 		id: 1,
 		name: "Card1",
@@ -41,41 +41,41 @@ export const testCards: Entity[] = [
 
 export const testAnswer = testCards[1];
 
-export function comparisonGame(guess: Entity, answer: Entity): GuessResult {	
-	let result: GuessResult = {name: guess.name, win: guess.id === answer.id, attributes: guess.attributes, comparison: {}};
+export function comparisonGame(guess: CardEntity, answer: CardEntity): GuessResult {	
+	let result: GuessResult = {name: guess.name, win: guess.id === answer.id, attributes: {}};
 	
 	for (const [key, valueGuess] of Object.entries(guess.attributes)) {
 		const valueAnswer = answer.attributes[key];
 
 		if (typeof valueGuess === "string") {
 			if (valueGuess === valueAnswer) {
-				result.comparison[key] = "correct";
+				result.attributes[key].status = "correct";
 			} else {
-				result.comparison[key] = "incorrect";
+				result.attributes[key].status = "incorrect";
 			}
 		} else if (typeof valueGuess === "number") {
 			if (typeof valueAnswer !== "number") {
-				result.comparison[key] = "incorrect";
+				result.attributes[key].status = "incorrect";
 			} else if (valueGuess === valueAnswer) {
-				result.comparison[key] = "correct";
+				result.attributes[key].status = "correct";
 			} else if (valueGuess > valueAnswer) {
-				result.comparison[key] = "lower";
+				result.attributes[key].status = "lower";
 			} else if (valueGuess < valueAnswer) {
-				result.comparison[key] = "higher";
+				result.attributes[key].status = "higher";
 			}
 		} else if (Array.isArray(valueGuess)) {
 			if (!Array.isArray(valueAnswer)) {
-				result.comparison[key] = "incorrect";
+				result.attributes[key].status = "incorrect";
 			} else {
 				const sortedGuess = [...valueGuess].sort();
 				const sortedAnswer = [...valueAnswer].sort();
 
 				if (sortedGuess.length === sortedAnswer.length && sortedGuess.every((item, i) => item === sortedAnswer[i])) {
-					result.comparison[key] = "correct";
+					result.attributes[key].status = "correct";
 				} else if (valueGuess.some(item => valueAnswer.includes(item))) {
-					result.comparison[key] = "partially";
+					result.attributes[key].status = "partially";
 				} else {
-					result.comparison[key] = "incorrect";
+					result.attributes[key].status = "incorrect";
 				}
 			}
 		}
@@ -84,22 +84,3 @@ export function comparisonGame(guess: Entity, answer: Entity): GuessResult {
 	return result;
 }
 
-export function imageGame(guess: Entity, answer: Entity) {
-	let result: GuessResult = {name: guess.name, win: guess.id === answer.id, attributes: guess.attributes, comparison: {}};
-
-	if (guess.id === answer.id) {
-		result.win = true;
-	}
-
-	// TODO: add some color, or make image cleaner
-}
-
-export function descriptionGame(guess: Entity, answer: Entity) {
-	let result: GuessResult = {name: guess.name, win: guess.id === answer.id, attributes: guess.attributes, comparison: {}};
-
-	if (guess.id === answer.id) {
-		result.win = true;
-	}
-
-	// TODO: if enough try, unlock clue
-}

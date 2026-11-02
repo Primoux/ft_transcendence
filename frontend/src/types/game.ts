@@ -1,13 +1,43 @@
-/** for searching */
-export interface Entity {
-	id: string;
-	name: string;
+export type GuessEntity = {
+	id: string,
+	name: string,
+	artUrl: string
 };
 
-/** for guesses */
-type AttributeValue = string | number | string[] | number[];
+export type ColorIdentity =
+	"White" |
+	"Black" |
+	"Blue" | 
+	"Green" |
+	"Red" |
+	"Colorless"
+;
 
-export type AttributeResult =
+export type Rarity = 
+	"Common" |
+	"Uncommon" |
+	"Rare" |
+	"Mythic" |
+	"Special" |
+	"Bonus"
+;
+
+export type CardEntity = {
+	id: string,
+	name: string,
+	artUrl: string,
+	manaValue: number,
+	colorIdentity: ColorIdentity[],
+	types: string[],
+	power?: number,
+	toughness?: number,
+	legStatus: boolean,
+	rarity: Rarity,
+	set: string,
+	releaseYear: number
+}
+
+export type AttributeStatus =
 	"correct" |
 	"incorrect" |
 	"partially" |
@@ -16,10 +46,27 @@ export type AttributeResult =
 ;
 
 export type GuessResult = {
-	name: string;
 	win: boolean;
-	attributes: Record<string, AttributeValue>;
-	comparison: Record<string, AttributeResult>;
+	fullCardUrl?: string,
+	card: CardEntity;
+	comp: Record<string, AttributeStatus>
+};
+
+export type SummaryEntity = {
+	manaHigh?: number,
+	manaLow?: number,
+	colorIdentity?: ColorIdentity[],
+	types?: string[],
+	powerHigh?: number,
+	powerLow?: number,
+	toughnessHigh?: number,
+	toughnessLow?: number,
+	legStatus: boolean,
+	rarity?: Rarity,
+	set?: string,
+	releaseYearHigh?: number,
+	releaseYearLow?: number,
+	comp: Record<string, AttributeStatus>
 };
 
 /** for caching */ 

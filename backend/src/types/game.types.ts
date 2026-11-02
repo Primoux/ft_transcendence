@@ -1,12 +1,44 @@
-type AttributeValue = string | number | string[];
-
-export type Entity = {
-	id: number,
-	name: string;
-	attributes: Record<string, AttributeValue>;
+export type GuessEntity = {
+	id: string,
+	name: string,
+	artUrl: string
 };
 
-export type AttributeResult =
+export type ColorIdentity =
+	"White" |
+	"Black" |
+	"Blue" | 
+	"Green" |
+	"Red" |
+	"Colorless"
+;
+
+export type Rarity = 
+	"Common" |
+	"Uncommon" |
+	"Rare" |
+	"Mythic" |
+	"Special" |
+	"Bonus"
+;
+
+export type CardEntity = {
+	id: string,
+	name: string,
+	artUrl: string,
+	manaValue: number,
+	colorIdentity: ColorIdentity[],
+	legStatus: boolean,
+	types: string[],
+	subtypes: string[],
+	power?: string,
+	toughness?: string,
+	rarity: Rarity,
+	releaseSet: string,
+	releaseYear: number
+}
+
+export type AttributeStatus =
 	"correct" |
 	"incorrect" |
 	"partially" |
@@ -15,8 +47,8 @@ export type AttributeResult =
 ;
 
 export type GuessResult = {
-	name: string;
 	win: boolean;
-	attributes: Record<string, AttributeValue>;
-	comparison: Record<string, AttributeResult>;
+	fullCardUrl?: string,
+	card: CardEntity;
+	comp: Record<string, AttributeStatus>
 };
