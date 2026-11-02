@@ -124,8 +124,8 @@ function buildCardEntity(rawCard: MagicCard): CardEntity {
 		legStatus: rawCard.supertypes.includes("Legendary"),
 		types: rawCard.types,
 		subtypes: rawCard.subtypes,
-		// power: rawCard.power
-		// toughness: rawCard.toughness,
+		power: rawCard.power === null ? undefined : rawCard.power.includes("*") ? "Variable" : rawCard.power,
+		toughness: rawCard.toughness === null ? undefined : rawCard.toughness.includes("*") ? "Variable" : rawCard.toughness,
 		rarity: RARITY_RECORD[rawCard.rarity] ?? (() => {
 			throw Error;
 		})(),
@@ -136,25 +136,35 @@ function buildCardEntity(rawCard: MagicCard): CardEntity {
 
 function buildGuessComp(guess: CardEntity, answer: CardEntity ): Record<string, AttributeStatus> {
 	return {
-		manaValue: compareNumber(guess.manaValue, answer.manaValue),
-		colorIdentity: compareArray(guess.colorIdentity, answer.colorIdentity),
+		manaValue: compareNumber(answer.manaValue, guess.manaValue),
+		colorIdentity: compareArray(answer.colorIdentity, guess.colorIdentity),
 		legStatus: guess.legStatus === answer.legStatus ? "correct" : "incorrect",
-		types: compareArray(guess.types, answer.types),
-		subtypes: compareArray(guess.subtypes, answer.subtypes),
-		// power: compareNumber(guess.power, answer.power)
-		// toughness: compareNumber(guess.toughness, answer.toughness)
+		types: compareArray(answer.types, guess.types),
+		subtypes: compareArray(answer.subtypes, guess.subtypes),
+		power: compareStringNumber(answer.power, guess.power),
+		toughness: compareStringNumber(answer.toughness, guess.toughness),
 		rarity: guess.rarity === answer.rarity ? "correct" : "incorrect",
 		releaseSet: guess.releaseSet === answer.releaseSet ? "correct" : guess.releaseYear === answer.releaseYear ? "partially" : "incorrect",
-		releaseYear: compareNumber(guess.releaseYear, answer.releaseYear)
+		releaseYear: compareNumber(answer.releaseYear, guess.releaseYear)
 	}
 }
 
 const compareNumber = (a: number, b: number): AttributeStatus => {
-	return (a === b ? "correct" : a > b ? "lower" : "higher");
+	return (a === b ? "correct" : a < b ? "lower" : "higher");
 }
 
 const compareArray = (a: any[], b: any[]): AttributeStatus => {
 	return (a.length === b. length && a.every((elt) => b.includes(elt)) ? "correct" : a.some((elt) => b.includes(elt)) ? "partially" : "incorrect");
+}
+
+const compareStringNumber = (a: string | undefined, b: string | undefined): AttributeStatus => {
+	if (a === b) {
+		return "correct";
+	}
+	if (a === undefined || b === undefined || a === "Variable" || b === "Variable") {
+		return "incorrect";
+	}
+	return (a.localeCompare(b, "undefined", {numeric: true}) < 0 ? "lower" : "higher");
 }
 
 export default router

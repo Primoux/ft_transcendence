@@ -31,8 +31,8 @@ export type CardEntity = {
 	legStatus: boolean,
 	types: string[],
 	subtypes: string[],
-	power?: number,
-	toughness?: number,
+	power?: string,
+	toughness?: string,
 	rarity: Rarity,
 	releaseSet: string,
 	releaseYear: number
