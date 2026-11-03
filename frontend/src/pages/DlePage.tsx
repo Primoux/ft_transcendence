@@ -26,20 +26,20 @@ function DlePage() {
 	}
 
 	useEffect(() => {
-		async function initialize() {
-			try {
-				await initGameSession();
-				const cards = await getGuessEntities();
-				setSearch(cards);
-			} catch (err) {
-				console.error("init failed", err);
-			} finally {
-				setLoading(false);
-			}
-		}
+		// async function initialize() {
+		// 	try {
+		// 		await initGameSession();
+		// 		const cards = await getGuessEntities();
+		// 		setSearch(cards);
+		// 	} catch (err) {
+		// 		console.error("init failed", err);
+		// 	} finally {
+		// 		setLoading(false);
+		// 	}
+		// }
 
-		initialize();
-		// getGuessEntities().then(setSearch).finally(() => setLoading(false));
+		// initialize();
+		getGuessEntities().then(setSearch).finally(() => setLoading(false));
 	}, []);
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -55,6 +55,7 @@ function DlePage() {
 		}
 
 		const params = new URLSearchParams({
+			session: "banana",
 			card: entity.id
 		})
 
