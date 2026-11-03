@@ -20,7 +20,7 @@ interface ScryfallBulkRaw {
   updated_at: string;
 }
 
-interface BulkMetadata {
+interface ScryfallBulkMetadata {
   type: string;
   downloadUri: string;
   updatedAt: Date;
@@ -28,7 +28,7 @@ interface BulkMetadata {
 
 export async function fetchBulkMetadata(
   bulkType: ScryfallBulkType,
-): Promise<BulkMetadata> {
+): Promise<ScryfallBulkMetadata> {
   console.log(`[${bulkType}] Fetching bulk metadata...`);
 
   const response = await fetch(SCRYFALL_BULK_DATA_URL, {
@@ -52,7 +52,7 @@ export async function fetchBulkMetadata(
   };
 }
 
-export async function fetchBulkStream(metadata: BulkMetadata): Promise<Readable> {
+export async function fetchBulkStream(metadata: ScryfallBulkMetadata): Promise<Readable> {
   console.log(`[${metadata.type}] Fetching compressed stream...`);
 
   const response = await fetch(metadata.downloadUri, { headers: HTTP_HEADERS });
