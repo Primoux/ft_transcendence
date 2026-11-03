@@ -17,12 +17,14 @@ help:
 	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  dev	  - Build and start the application in dev mode (with hot reload)"
 	@echo "  prod	  - Build and start the application in production mode"
+	@echo "  prisma	  - Regenerate prisma client and run migrations"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
 	@echo "  down     - Stop the application and remove volumes"
 	@echo "  logs     - Show application logs"
 	@echo "  reset    - Stop the application and delete .env"
 	@echo "  env      - Regenerate .env file"
+	@echo "  prisma   - Create a migration from schema.prisma and regenerate the Prisma client"
 
 
 .PHONY: ingest
@@ -64,6 +66,13 @@ reset: down
 .PHONY: env
 env: down
 	./make_env.sh
+
+# Runs on the host, against the dev database published on localhost:5432: prisma needs
+# a live database to diff the schema against, so the postgres container is started first.
+.PHONY: prisma
+prisma: .env
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up -d --wait postgres
+	cd backend && npx prisma migrate dev && npx prisma generate
 
 .PHONY: npm_install
 npm_install:

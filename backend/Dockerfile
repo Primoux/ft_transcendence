@@ -36,5 +36,6 @@ RUN chmod +x ./entrypoint.sh
 
 COPY --from=build /app/dist .
 
+USER node
 CMD ["node", "src/server.js"]
 ENTRYPOINT ["./entrypoint.sh"]

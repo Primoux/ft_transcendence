@@ -1,5 +1,44 @@
 services:
+  vault:
+    profiles: [vault]
+  vault-init:
+    profiles: [vault]
+  vault-agent-postgres:
+    profiles: [vault]
+  vault-agent-backend:
+    profiles: [vault]
+  vault-agent-grafana:
+    profiles: [vault]
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?missing from .env, run make env}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: !reset null
+    volumes: !override
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on: !override
+      prometheus:
+        condition: service_healthy
+  postgres:
+    depends_on: !reset {}
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD_FILE: !reset null
+    volumes: !override
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
   backend:
+    environment: !override
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+    volumes: !reset []
+    depends_on: !override
+      postgres:
+        condition: service_healthy
+      card-ingestion:
+        condition: service_completed_successfully
     build:
       target: dev
     image: backend-dev
@@ -20,17 +59,24 @@ services:
           path: ./backend/prisma/migrations
         - action: rebuild
           path: ./backend/prisma.config.ts
+  card-ingestion:
+    environment: !override
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+    volumes: !reset []
+    depends_on: !override
+      postgres:
+        condition: service_healthy
   frontend:
-    ports: !override
-      - "127.0.0.1:5173:5173"
-    build:
-      target: dev
     healthcheck: !override
-      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:5173/"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5173/"]
       interval: 2s
       timeout: 2s
       retries: 15
       start_period: 10s
+    ports: !override
+      - "127.0.0.1:5173:5173"
+    build:
+      target: dev
     image: frontend-dev
     develop:
       watch:

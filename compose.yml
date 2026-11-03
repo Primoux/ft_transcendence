@@ -1,13 +1,90 @@
+x-vault-agent: &vault-agent
+  image: hashicorp/vault:2.2.1@sha256:962a92876e168d68eaaa24b0b8b49bbce1cb63024060a67bba95cd158a366fc2
+  environment:
+    SKIP_SETCAP: "true"
+  depends_on:
+    vault-init:
+      condition: service_completed_successfully
+  restart: unless-stopped
+
 services:
+  vault:
+    image: hashicorp/vault:2.2.1@sha256:962a92876e168d68eaaa24b0b8b49bbce1cb63024060a67bba95cd158a366fc2
+    container_name: vault
+    command: server
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_LOCAL_CONFIG: '{"storage":{"file":{"path":"/vault/file"}},"listener":[{"tcp":{"address":"0.0.0.0:8200","tls_disable":true}}],"disable_mlock":true}'
+    volumes:
+      - vault_data:/vault/file
+  vault-init:
+    build:
+      context: vault-init/
+    container_name: vault-init
+    environment:
+      - VAULT_ADDR=http://vault:8200
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+    volumes:
+      - ./vault-init-data/:/data
+      - backend_creds:/backend-creds
+      - postgres_creds:/postgres-creds
+      - grafana_creds:/grafana-creds
+    depends_on:
+      vault:
+        condition: service_started
+  vault-agent-postgres:
+    <<: *vault-agent
+    container_name: vault-agent-postgres
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/postgres.hcl:/vault-agent.hcl:ro
+      - postgres_creds:/creds:ro
+      - postgres_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/db_password"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  vault-agent-backend:
+    <<: *vault-agent
+    container_name: vault-agent-backend
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/backend.hcl:/vault-agent.hcl:ro
+      - backend_creds:/creds:ro
+      - backend_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/backend.env"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  vault-agent-grafana:
+    <<: *vault-agent
+    container_name: vault-agent-grafana
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/grafana.hcl:/vault-agent.hcl:ro
+      - grafana_creds:/creds:ro
+      - grafana_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/grafana_password"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
   postgres:
+    depends_on:
+      vault-agent-postgres:
+        condition: service_healthy
     container_name: postgres
     image: postgres:16-alpine3.24@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
     environment:
       POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD_FILE: /secrets/db_password
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - postgres_secrets:/secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 1s
@@ -22,9 +99,10 @@ services:
     image: backend-prod
     container_name: backend
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
       - TZ=Europe/Paris
+      - SECRETS_FILE=/secrets/backend.env
+    volumes:
+      - backend_secrets:/secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
@@ -36,7 +114,8 @@ services:
         condition: service_healthy
       card-ingestion:
         condition: service_completed_successfully
-
+      vault-agent-backend:
+        condition: service_healthy
   card-ingestion:
     build:
       context: ./backend/
@@ -45,11 +124,14 @@ services:
     container_name: card-ingestion
     command: npm run cards:ingest
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - SECRETS_FILE=/secrets/backend.env
+    volumes:
+      - backend_secrets:/secrets:ro
     depends_on:
       postgres:
         condition: service_healthy
-
+      vault-agent-backend:
+        condition: service_healthy
   frontend:
     build:
       context: ./frontend
@@ -87,22 +169,40 @@ services:
         condition: service_healthy
 
   grafana:
+    group_add: ["1000"]
     container_name: grafana
     image: grafana/grafana:13.3.0
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /secrets/grafana_password
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_secrets:/secrets:ro
     depends_on:
       prometheus:
+        condition: service_healthy
+      vault-agent-grafana:
         condition: service_healthy
 
 volumes:
   postgres_data:
   grafana_data:
   prometheus_data:
+  vault_data:
+  backend_creds:
+  postgres_creds:
+  grafana_creds:
+  # Memory-backed: rendered secrets never reach the disk, and vanish once no container mounts them.
+  postgres_secrets:
+    driver_opts: &secrets-volume
+      type: tmpfs
+      device: tmpfs
+      o: size=1m,uid=100,gid=1000,mode=0750
+  backend_secrets:
+    driver_opts: *secrets-volume
+  grafana_secrets:
+    driver_opts: *secrets-volume
