@@ -1,15 +1,18 @@
+export const SCRYFALL_BULK_TYPES = {
+  ORACLE: "oracle_cards",
+  DEFAULT: "default_cards",
+  ALL_CARDS: "all_cards",
+  UNIQUE_ARTWORK: "unique_artwork",
+  ORACLE_TAGS: "oracle_tags",
+  RULINGS: "rulings",
+  ART_TAGS: "art_tags",
+} as const;
+
 export type ScryfallBulkType =
-  | "default_cards"
-  | "all_cards"
-  | "unique_artwork"
-  | "oracle_cards"
-  | "oracle_tags"
-  | "rulings"
-  | "art_tags";
+  (typeof SCRYFALL_BULK_TYPES)[keyof typeof SCRYFALL_BULK_TYPES];
 
 export interface ScryfallOracleCard {
   oracle_id: string;
-  id: string;
   edhrec_rank?: number;
   image_uris?: {
     normal?: string;
@@ -36,8 +39,13 @@ export type ValidScryfallOracleCard = ScryfallOracleCard & {
 };
 
 export interface ScryfallCardHistory {
-  oracle_id: string;
+  id: string;
+  oracle_id?: string;
   released_at: Date;
   set: string;
   set_name: string;
 }
+
+export type ValidScryfallCardHistory = ScryfallCardHistory & {
+  oracle_id: string;
+};

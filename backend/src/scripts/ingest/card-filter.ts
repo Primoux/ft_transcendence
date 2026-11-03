@@ -1,4 +1,9 @@
-import type { ScryfallOracleCard, ValidScryfallOracleCard } from "./scryfall-types";
+import type {
+  ScryfallCardHistory,
+  ScryfallOracleCard,
+  ValidScryfallCardHistory,
+  ValidScryfallOracleCard,
+} from "./scryfall-types";
 
 const EXCLUDED_LAYOUTS = new Set([
   // Non-playable accessories and tokens
@@ -21,7 +26,7 @@ const EXCLUDED_LAYOUTS = new Set([
   "reversible_card",
 ]);
 
-export function shouldKeepCard(
+export function isValidOracleCard(
   oracleCard: ScryfallOracleCard,
 ): oracleCard is ValidScryfallOracleCard {
   return (
@@ -32,4 +37,10 @@ export function shouldKeepCard(
     oracleCard.set_type !== "funny" &&
     !oracleCard.digital
   );
+}
+
+export function isValidCardHistory(
+  cardHistory: ScryfallCardHistory,
+): cardHistory is ValidScryfallCardHistory {
+  return cardHistory.oracle_id !== undefined;
 }

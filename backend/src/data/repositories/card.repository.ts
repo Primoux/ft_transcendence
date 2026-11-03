@@ -75,7 +75,7 @@ export const cardRepository = {
       och."releaseSet",
       och."releaseSetName"
     FROM "StagingOracleCard" soc
-    JOIN OldestCardHistory och ON soc."oracleId" = och."oracleId" AND och.rn = 1;
+    JOIN OldestCardHistory och ON soc."oracleId" = och."oracleId" AND och.rn = 1
     ON CONFLICT ("oracleId") DO UPDATE SET
       "edhrecRank" = EXCLUDED."edhrecRank",
       "imageUrl" = EXCLUDED."imageUrl",

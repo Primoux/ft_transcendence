@@ -1,95 +1,93 @@
-import type { Prisma } from "@prisma/client";
-import { cardRepository, stagingRepository } from "../../data/repositories";
-import { cardMapper } from "./scryfall-to-prisma-mapper";
-import type {
-  ScryfallCardHistory,
-  ScryfallOracleCard,
-  ValidScryfallOracleCard,
-} from "./scryfall-types";
 import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
-import { shouldKeepCard } from "./card-filter";
-import {sta} from
+import { stagingRepository } from "../../data/repositories";
+import { isValidCardHistory, isValidOracleCard } from "./card-filter";
+import { cardMapper } from "./scryfall-to-prisma-mapper";
+import {
+  SCRYFALL_BULK_TYPES,
+  ScryfallBulkType,
+  ScryfallCardHistory,
+  ScryfallOracleCard,
+} from "./scryfall-types";
 
 const BATCH_SIZE = 500;
 
-export async function promoteCards(
-  oracleCardsMap: Map<string, ValidScryfallOracleCard>,
-  cardHistoriesMap: Map<string, ScryfallCardHistory>,
-): Promise<void> {
-  console.log(`Starting to load cards into the database...`);
+interface StagingOptions<TValid, TStaged> {
+  bulkType: ScryfallBulkType;
+  batchSize?: number;
 
-  const batch: Prisma.MagicCardCreateManyInput[] = [];
+  parseAndFilter: (line: string) => TValid | null;
 
-  for (const [oracleId, oracleCard] of oracleCardsMap) {
-    const cardHistory = cardHistoriesMap.get(oracleId)!;
-
-    batch.push(toPrismaCard(oracleCard, cardHistory));
-
-    if (batch.length >= BATCH_SIZE) {
-      await cardRepository.upsertMany(batch);
-      batch.length = 0;
-    }
-  }
-
-  if (batch.length > 0) {
-    await cardRepository.upsertMany(batch);
-  }
-
-  console.log(`Successfully loaded ${oracleCardsMap.size} cards.`);
+  map: (item: TValid) => TStaged;
+  stageBatch: (batch: TStaged[]) => Promise<{ count: number }>;
 }
 
-export async function stageOracleCards(
+export async function processStream<TValid, TStaged>(
   decompressed: Readable,
+  options: StagingOptions<TValid, TStaged>,
 ): Promise<void> {
+  console.log(`[${options.bulkType}] Starting stream processing...`);
+
   const rl = createInterface(decompressed);
-  const batch: Prisma.StagingOracleCardCreateManyInput[] = [];
+  const batchSize = options.batchSize ?? BATCH_SIZE;
+  const batch: TStaged[] = [];
+
+  let totalProcessed = 0;
+  let totalStaged = 0;
 
   for await (const line of rl) {
     if (!line.trim()) {
       continue;
     }
 
-    const card: ScryfallOracleCard = JSON.parse(line);
-    if (!shouldKeepCard(card)) {
+    totalProcessed++;
+
+    const rawItem = options.parseAndFilter(line);
+    if (!rawItem) {
       continue;
     }
 
-    batch.push(cardMapper.toStagingOracle(card));
+    batch.push(options.map(rawItem));
 
-    if (batch.length >= BATCH_SIZE) {
-      await stagingRepository.createManyOracleCard(batch);
+    if (batch.length >= batchSize) {
+      const result = await options.stageBatch(batch);
+      totalStaged += result.count;
       batch.length = 0;
     }
   }
 
   if (batch.length > 0) {
-    await stagingRepository.createManyOracleCard(batch);
+    const result = await options.stageBatch(batch);
+    totalStaged += result.count;
   }
+
+  console.log(
+    `[${options.bulkType}] Finished! ${totalStaged} items loaded out of ${totalProcessed} processed.`,
+  );
+}
+
+export async function stageOracleCards(decompressed: Readable): Promise<void> {
+  return await processStream(decompressed, {
+    bulkType: SCRYFALL_BULK_TYPES.ORACLE,
+    parseAndFilter: (line) => {
+      const card: ScryfallOracleCard = JSON.parse(line);
+      return isValidOracleCard(card) ? card : null;
+    },
+    map: cardMapper.toStagingOracle,
+    stageBatch: stagingRepository.createManyOracleCard,
+  });
 }
 
 export async function stageCardHistories(
   decompressed: Readable,
 ): Promise<void> {
-  const rl = createInterface(decompressed);
-  const batch: Prisma.StagingCardHistoryCreateManyInput[] = [];
-
-  for await (const line of rl) {
-    if (!line.trim()) {
-      continue;
-    }
-
-    const cardHistory: ScryfallCardHistory = JSON.parse(line);
-
-    batch.push(cardMapper.toStagingHistory(cardHistory));
-    if (batch.length >= BATCH_SIZE) {
-      await stagingRepository.createManyCardHistory(batch);
-      batch.length = 0;
-    }
-  }
-
-  if (batch.length > 0) {
-    await stagingRepository.createManyCardHistory(batch);
-  }
+  return await processStream(decompressed, {
+    bulkType: SCRYFALL_BULK_TYPES.DEFAULT,
+    parseAndFilter: (line) => {
+      const cardHistory: ScryfallCardHistory = JSON.parse(line);
+      return isValidCardHistory(cardHistory) ? cardHistory : null;
+    },
+    map: cardMapper.toStagingHistory,
+    stageBatch: stagingRepository.createManyCardHistory
+  });
 }
-

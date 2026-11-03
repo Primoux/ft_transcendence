@@ -1,6 +1,6 @@
 import { Color, Rarity, type Prisma } from "../../../generated/client.ts";
 import type {
-  ScryfallCardHistory,
+  ValidScryfallCardHistory,
   ValidScryfallOracleCard,
 } from "./scryfall-types.ts";
 
@@ -31,7 +31,9 @@ interface ParsedTypeLine {
 }
 
 export const cardMapper = {
-  toStagingOracle(oracleCard: ValidScryfallOracleCard): Prisma.StagingOracleCardCreateManyInput {
+  toStagingOracle(
+    oracleCard: ValidScryfallOracleCard,
+  ): Prisma.StagingOracleCardCreateManyInput {
     const { supertypes, types, subtypes } = parseTypeLine(oracleCard.type_line);
 
     return {
@@ -47,12 +49,15 @@ export const cardMapper = {
       colorIdentity: parseColorIdentity(oracleCard.color_identity),
       power: oracleCard.power ?? null,
       toughness: oracleCard.toughness ?? null,
-      rarity: RARITY_RECORD[oracleCard.rarity]
+      rarity: RARITY_RECORD[oracleCard.rarity],
     };
   },
 
-  toStagingHistory(cardHistory: ScryfallCardHistory): Prisma.StagingCardHistoryCreateManyInput {
+  toStagingHistory(
+    cardHistory: ValidScryfallCardHistory,
+  ): Prisma.StagingCardHistoryCreateManyInput {
     return {
+      id: cardHistory.id,
       oracleId: cardHistory.oracle_id,
       releaseDate: new Date(cardHistory.released_at),
       releaseSet: cardHistory.set,
@@ -84,6 +89,6 @@ function parseTypeLine(typeLine: string): ParsedTypeLine {
   return { supertypes, types, subtypes };
 }
 
-export function parseColorIdentity(rawColors: string[]): Color[] {
+function parseColorIdentity(rawColors: string[]): Color[] {
   return rawColors.map((color) => COLOR_RECORD[color]);
 }
