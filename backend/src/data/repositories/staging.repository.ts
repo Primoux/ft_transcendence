@@ -5,6 +5,7 @@ export const stagingRepository = {
   async createManyOracleCard(data: Prisma.StagingOracleCardCreateManyInput[]) {
     return prisma.stagingOracleCard.createMany({
       data,
+      skipDuplicates: true,
     });
   },
   async createManyCardHistory(
@@ -12,6 +13,7 @@ export const stagingRepository = {
   ) {
     return prisma.stagingCardHistory.createMany({
       data,
+      skipDuplicates: true,
     });
   },
   async clear() {

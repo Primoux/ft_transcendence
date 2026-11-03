@@ -28,8 +28,12 @@ try {
     await syncRepository.getLastSync(defaultSyncKey),
   ]);
 
-  const isOracleNew = lastOracleSync !== oracleMetadata.updatedAt;
-  const isDefaultNew = lastDefaultSync !== defaultMetadata.updatedAt;
+  const isOracleNew =
+    !lastOracleSync ||
+    lastOracleSync.getTime() !== oracleMetadata.updatedAt.getTime();
+  const isDefaultNew =
+    !lastDefaultSync ||
+    lastDefaultSync.getTime() !== defaultMetadata.updatedAt.getTime();
 
   if (!isOracleNew && !isDefaultNew) {
     console.log("Cards are already up to date. Skipping ingestion.");
@@ -46,14 +50,25 @@ try {
       `New update(s) detected for: ${updatedBulks.join(", ")}. Starting full ingestion pipeline...`,
     );
 
+    console.log("Cleaning staging tables.");
+    await stagingRepository.clear();
+
     const [oracleStream, defaultStream] = await Promise.all([
       fetchBulkStream(oracleMetadata),
       fetchBulkStream(defaultMetadata),
     ]);
 
     await Promise.all([
-      readZippedStream(oracleStream, stageOracleCards, "oracle_cards"),
-      readZippedStream(defaultStream, stageCardHistories, "default_cards"),
+      readZippedStream(
+        oracleStream,
+        stageOracleCards,
+        SCRYFALL_BULK_TYPES.ORACLE,
+      ),
+      readZippedStream(
+        defaultStream,
+        stageCardHistories,
+        SCRYFALL_BULK_TYPES.DEFAULT,
+      ),
     ]);
 
     console.log("Consolidating into production database...");
