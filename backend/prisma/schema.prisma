@@ -48,8 +48,8 @@ model GameSession {
     createdAt DateTime   @default(now())
     status    GameStatus @default(IN_PROGRESS)
 
-    userId String
-    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String?
+    user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     dailyGameId String
     dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)

@@ -49,5 +49,12 @@ export const gameSessionRepository = {
 				dailyGameId
 			}
 		})
+	},
+	async createAnon(dailyGameId: string) {
+		return prisma.gameSession.create({
+			data: {
+				dailyGameId
+			}
+		})
 	}
 };

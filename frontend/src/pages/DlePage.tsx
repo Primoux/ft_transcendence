@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus } from "../types/game.ts";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
 
+import {getGuessEntities} from "../cardSearchCache.ts";
+
 function DlePage() {
 	const [input, setInput] = useState("");
 	const [search, setSearch] = useState<GuessEntity[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 	const [summary, setSummary] = useState<SummaryEntity>({
 		legStatus: false,
@@ -14,22 +17,52 @@ function DlePage() {
 	});
 	const [refreshKey, setRefreshKey] = useState(0);
 
+
+	async function initGameSession(): Promise<void> {
+		const response = await fetch(`/api/dle/classic/session`, {method: "POST"});
+		if (!response.ok) {
+			throw new Error("error: no game sesh");
+		}
+	}
+
+	useEffect(() => {
+		async function initialize() {
+			try {
+				await initGameSession();
+				const cards = await getGuessEntities();
+				setSearch(cards);
+			} catch (err) {
+				console.error("init failed", err);
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		initialize();
+		// getGuessEntities().then(setSearch).finally(() => setLoading(false));
+	}, []);
+
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		// TODO: ask db and load in cache
-		const entity = testEnt.find((item) => item.name === input );
+
+		const entity = search.find((item: GuessEntity) => item.name === input );
 
 		if (!entity) {
 			console.error("Card not found");
 			return;
 		}
 
+		const params = new URLSearchParams({
+			card: entity.id
+		})
+
 		try {
 			// const params = new URLSearchParams({guess: input});
 
 			// const response = await fetch(`/api/dle/guess?${params.toString()}`);
-			const response = await fetch(`/api/dle/guess?card=${entity.id}}`);
+			const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const result: GuessResult = await response.json();
 
 			setGuesses((guess) => [...guess, result]);
@@ -159,11 +192,12 @@ function DlePage() {
 		<h1>MagicDLE</h1>
 		<h2>Classic mode</h2>
 		<section>
-			{guesses.length === 0 && (
+			{loading ? (<p>Loading cards...</p>) :
+			guesses.length === 0 ? (
 				<div>
 					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
 				</div>
-			)}
+			) : null}
 		</section>
 
 		<section>

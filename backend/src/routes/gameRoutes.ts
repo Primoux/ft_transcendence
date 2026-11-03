@@ -1,8 +1,9 @@
 import express, { raw } from 'express';
 import type { Request, Response } from 'express';
 import { cardRepository, dailyGameRepository } from "../data/repositories";
+import { gameSessionRepository } from '../data/repositories/game-session.repository';
 import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types"
-import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity } from "@prisma/client"
+import { Prisma, GameMode, DailyGame, GameSession, MagicCard, Rarity as DatabaseRarity } from "@prisma/client"
 import { guessSchema } from "../utils/validation/zodSchema"
 
 const router = express.Router();
@@ -88,6 +89,28 @@ router.get("/guess", async (req: Request, res: Response) => {
 		comp: buildGuessComp(guessEntity, answerEntity)
 	}
 	return res.status(200).json({result: result});
+});
+
+router.post("/classic/session", async (req: Request, res: Response) => {
+	try {
+		// const userId = req.user.id;
+		const dailyClassic: DailyGame = await dailyGameRepository.find(new Date(), GameMode.CLASSIC);
+		if (!dailyClassic) {
+			return res.status(404).json({error: "daily game not found"});
+		}
+		let sessionClassic: GameSession | null = await gameSessionRepository.findByGame("null", dailyClassic.id);
+		if (!sessionClassic) {
+			sessionClassic = await gameSessionRepository.createAnon( dailyClassic.id);
+		}
+		res.cookie("gameSession", sessionClassic.id, {
+			httpOnly: true,
+			sameSite: "strict",
+			maxAge: 30 * 24 * 60 * 60 * 1000,
+		});
+		return res.status(200).json({success: true});
+	} catch (err) {
+		return res.status(500).json({success: false, error: "error init session"});
+	}
 });
 
 const COLOR_IDENTITY_RECORD: Record<string, ColorIdentity> = {
