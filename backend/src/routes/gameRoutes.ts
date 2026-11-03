@@ -15,7 +15,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 	try {
 		var cardPool = await cardRepository.findAllPlayable();
 		const today: Date = new Date();
-		let dailyClassic: DailyGame | null = await dailyGameRepository.find(today, GameMode.CLASSIC);
+		var dailyClassic: DailyGame | null = await dailyGameRepository.find(today, GameMode.CLASSIC);
 		if (!dailyClassic) {
 			try {
 				dailyClassic = await dailyGameRepository.create(cardPool[Math.floor(Math.random() * cardPool.length)].id, today, GameMode.CLASSIC);
@@ -46,7 +46,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		name: item.name,
 		artUrl: item.artUrl
 	}));
-	return res.json({pool: frontCardPool});
+	return res.json({dailyCard: dailyClassic.targetCardId, pool: frontCardPool});
 })
 
 router.get("/guess", async (req: Request, res: Response) => {
@@ -87,6 +87,7 @@ router.get("/guess", async (req: Request, res: Response) => {
 		card: guessEntity,
 		comp: buildGuessComp(guessEntity, answerEntity)
 	}
+	// return res.status(200).json({msg: "OK"});
 	return res.status(200).json({result: result});
 });
 
@@ -164,7 +165,7 @@ const compareStringNumber = (a: string | undefined, b: string | undefined): Attr
 	if (a === undefined || b === undefined || a === "Variable" || b === "Variable") {
 		return "incorrect";
 	}
-	return (a.localeCompare(b, "undefined", {numeric: true}) < 0 ? "lower" : "higher");
+	return (a.localeCompare(b, undefined, {numeric: true}) < 0 ? "lower" : "higher");
 }
 
 export default router
