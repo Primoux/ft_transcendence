@@ -66,9 +66,15 @@ function DlePage() {
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const result: GuessResult = await response.json();
 
-			setGuesses((guess) => [...guess, result]);
+			// setGuesses((guess) => [...guess, result]);
+			// setGuesses((prev) => [...prev, result]);
+			guesses.push(result.result);
 
-			setSummary((guess) => updateSummary(guess, result));
+			console.log("result: ", result);
+			console.log("guesses length: ", guesses.length);
+			console.log("guess: ", guesses[guesses.length - 1]);
+
+			setSummary((guess) => updateSummary(guess, result.result));
 
 			setRefreshKey(guess => guess + 1);
 
@@ -161,11 +167,36 @@ function DlePage() {
 		}
 	}
 
+	function initSummary(guess: GuessResult): SummaryEntity {
+		const summary: SummaryEntity = {
+			legStatus: guess.card.legStatus,
+			comp: {...guess.comp}
+		};
+
+		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
+		for (const key of keys) {
+			summary.comp[key] = guess.comp[key];
+			if (key === "legStatus" && summary.legStatus === false) {
+				summary.legStatus = true;
+				summary.comp[key] = "correct";
+				continue ;
+			}
+			if (summary.comp[key] !== "incorrect")	{
+				updateAttribute(summary, guess.card, key);
+			}
+		}
+		return summary;
+	}
+
 	function updateSummary(summary: SummaryEntity, guess: GuessResult): SummaryEntity {
+		if (summary === undefined) {
+			return initSummary(guess); 
+		}
 		const updatedSummary: SummaryEntity = {
 			...summary, comp: {...summary.comp}
 		};
 
+		// console.log("gc===", guess.result.card);
 		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
 		for (const key of keys) {
 			if (summary.comp[key] === "correct") {

@@ -3,7 +3,7 @@ import { prisma } from "../prisma";
 
 export const cardRepository = {
   async findAllPlayable(maxRank: number = 5000) {
-    return prisma.magicCard.findMany({take: 5}); // todo: filter by edhrec rank < maxRank
+    return prisma.magicCard.findMany({take: 5000}); // todo: filter by edhrec rank < maxRank
   },
   async findById(cardId: string) {
     return prisma.magicCard.findUnique({

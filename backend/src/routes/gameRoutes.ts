@@ -164,8 +164,8 @@ function buildGuessComp(guess: CardEntity, answer: CardEntity ): Record<string, 
 		legStatus: guess.legStatus === answer.legStatus ? "correct" : "incorrect",
 		types: compareArray(answer.types, guess.types),
 		subtypes: compareArray(answer.subtypes, guess.subtypes),
-		// power: compareStringNumber(answer.power, guess.power),
-		// toughness: compareStringNumber(answer.toughness, guess.toughness),
+		power: compareStringNumber(answer.power, guess.power),
+		toughness: compareStringNumber(answer.toughness, guess.toughness),
 		rarity: guess.rarity === answer.rarity ? "correct" : "incorrect",
 		releaseSet: guess.releaseSet === answer.releaseSet ? "correct" : guess.releaseYear === answer.releaseYear ? "partially" : "incorrect",
 		releaseYear: compareNumber(answer.releaseYear, guess.releaseYear)
@@ -187,7 +187,7 @@ const compareStringNumber = (a: string | undefined, b: string | undefined): Attr
 	if (a === undefined || b === undefined || a === "Variable" || b === "Variable") {
 		return "incorrect";
 	}
-	return (a.localeCompare(b, "undefined", {numeric: true}) < 0 ? "lower" : "higher");
+	return (a.localeCompare(b, undefined, {numeric: true}) < 0 ? "lower" : "higher");
 }
 
 export default router
