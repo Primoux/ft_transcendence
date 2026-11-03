@@ -7,3 +7,5 @@ backend/generated
 .DS_Store
 vault-keys.json
 .vscode/
+.DS_Store
+vault-keys.json
