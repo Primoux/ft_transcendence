@@ -3,7 +3,7 @@ import type {
   ScryfallOracleCard,
   ValidScryfallCardHistory,
   ValidScryfallOracleCard,
-} from "./scryfall-types";
+} from "./scryfall-types.ts";
 
 const EXCLUDED_LAYOUTS = new Set([
   // Non-playable accessories and tokens

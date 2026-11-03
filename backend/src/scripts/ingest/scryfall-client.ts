@@ -1,5 +1,5 @@
 import { Readable } from "node:stream";
-import type { ScryfallBulkType } from "./scryfall-types";
+import type { ScryfallBulkType } from "./scryfall-types.ts";
 
 const USER_AGENT = "42Lyon-ARA-MTGDle/0.1";
 const HTTP_ACCEPT = "application/json;q=0.9,*/*;q=0.8";

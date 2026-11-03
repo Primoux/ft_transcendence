@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import type { ScryfallBulkType } from "./scryfall-types";
+import type { ScryfallBulkType } from "./scryfall-types.ts";
 
 export async function readZippedStream(
   rawStream: Readable,

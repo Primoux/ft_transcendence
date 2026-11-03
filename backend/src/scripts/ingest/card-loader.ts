@@ -1,14 +1,14 @@
 import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
-import { stagingRepository } from "../../data/repositories";
-import { isValidCardHistory, isValidOracleCard } from "./card-filter";
-import { cardMapper } from "./scryfall-to-prisma-mapper";
+import { stagingRepository } from "../../data/repositories/index.ts";
+import { isValidCardHistory, isValidOracleCard } from "./card-filter.ts";
+import { cardMapper } from "./scryfall-to-prisma-mapper.ts";
 import {
   SCRYFALL_BULK_TYPES,
   ScryfallBulkType,
   ScryfallCardHistory,
   ScryfallOracleCard,
-} from "./scryfall-types";
+} from "./scryfall-types.ts";
 
 const BATCH_SIZE = 500;
 

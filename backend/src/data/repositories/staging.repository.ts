@@ -1,5 +1,5 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "../prisma";
+import type { Prisma } from "../../../generated/client.ts";
+import { prisma } from "../prisma.ts";
 
 export const stagingRepository = {
   async createManyOracleCard(data: Prisma.StagingOracleCardCreateManyInput[]) {

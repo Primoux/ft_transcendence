@@ -1,4 +1,4 @@
-import { prisma } from "../../data/prisma";
+import { prisma } from "../../data/prisma.ts";
 import {
   cardRepository,
   stagingRepository,
