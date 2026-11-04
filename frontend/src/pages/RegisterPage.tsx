@@ -20,7 +20,7 @@ export default function RegisterPage() {
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault()
-        if (password !== confirmPassword) {
+        if (password !== passwordConfirmation) {
             setErrorMsg("Passwords must match")
             return
         }
