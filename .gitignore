@@ -3,3 +3,4 @@
 */.env
 backend/generated
 .env
+.vscode/
