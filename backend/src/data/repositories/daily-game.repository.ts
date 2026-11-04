@@ -2,7 +2,7 @@ import { GameMode } from "@prisma/client";
 import { prisma } from "../prisma";
 
 export const dailyGameRepository = {
-  async find(date: Date, mode: GameMode) {
+  async findByDateAndMode(date: Date, mode: GameMode) {
     return prisma.dailyGame.findUnique({
       where: {
         date_mode: {
@@ -10,19 +10,16 @@ export const dailyGameRepository = {
           mode,
         },
       },
-      select: {
-        id: true,
-        targetCard: true
-      }
+      include: { targetCard: true },
     });
   },
- 	async create(cardId: string, date: Date, mode: GameMode) {
-		return prisma.dailyGame.create({
-			data: {
+  async create(targetCardId: string, date: Date, mode: GameMode) {
+    return prisma.dailyGame.create({
+      data: {
         date,
         mode,
-				targetCardId: cardId,
-			}
-		})
-	}
+        targetCardId,
+      },
+    });
+  },
 };
