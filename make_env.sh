@@ -20,3 +20,6 @@ fi
 
     echo "DATABASE_URL=\"postgresql://$DB_USER:$DB_PASSWORD@postgres:5432/$DB_NAME\"" >> .env
     echo "JWT_SECRET=`openssl rand -hex 32`" >> .env
+
+    echo "GRAFANA_USER=admin" >> .env
+    echo "GRAFANA_PASSWORD=`openssl rand -hex 12`" >> .env

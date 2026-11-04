@@ -2,7 +2,14 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   frontend:
@@ -12,15 +19,12 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
       - run: npm ci
-
       - run: npm run check
 
   backend:
@@ -30,13 +34,59 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
-
       - run: npm ci
-
       - run: npm run check
+
+  docker:
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start containers
+        run: make prod
+
+      - name: Wait for containers to be healthy (max 4 minutes)
+        run: |
+          for i in $(seq 1 120); do
+            if [ -z "$(docker ps --filter 'health=starting' -q)" ]; then
+              break
+            fi
+            sleep 2
+          done
+          docker ps
+
+      - name: Check containers
+        run: |
+          if [ -n "$(docker ps --filter 'health=starting' -q)" ]; then
+            echo "Some containers are still starting"
+            exit 1
+          fi
+          if [ -n "$(docker ps --filter 'health=unhealthy' -q)" ]; then
+            echo "Some containers are unhealthy"
+            exit 1
+          fi
+          # card-ingestion is a one-shot job: exiting with code 0 is fine
+          if docker ps -a --filter 'status=exited' --format '{{.Names}} {{.Status}}' \
+              | grep -v 'Exited (0)' | grep -q .; then
+            echo "Some containers exited with an error"
+            exit 1
+          fi
+
+      - name: Smoke test
+        run: |
+          docker exec backend wget -q -O- http://127.0.0.1:5003/health
+          curl -f http://localhost:8080
+
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Cleanup
+        if: always()
+        run: make down

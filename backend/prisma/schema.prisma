@@ -4,7 +4,11 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-    provider = "prisma-client-js"
+    provider = "prisma-client"
+    output = "../generated"
+
+    generatedFileExtension = "ts"
+    importFileExtension    = "ts"
 }
 
 datasource db {
@@ -109,110 +113,3 @@ model CardSync {
   key        String   @id
   lastSyncAt DateTime
 }
-
-// schema for multiple dle
-// enum GameStatus {
-//     IN_PROGRESS
-//     WON
-//     LOST
-// }
-
-// model User {
-//     id       String @id @default(uuid())
-//     username String @unique
-//     email    String @unique
-
-//     createdDles Dle[]
-//     sessions    GameSession[]
-//     comments    Comment[]
-// }
-
-// model GameSession {
-//     id        String     @id @default(cuid(2))
-//     status    GameStatus @default(IN_PROGRESS)
-//     createdAt DateTime   @default(now())
-
-//     userId      String
-//     user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-//     dailyGameId String
-//     dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
-
-//     guesses Guess[]
-
-//     @@unique([userId, dailyGameId])
-// }
-
-// model DailyGame {
-//     id   String   @id @default(cuid(2))
-//     date DateTime @db.Date
-
-//     dleId        String
-//     dle          Dle         @relation(fields: [dleId], references: [id], onDelete: Cascade)
-//     targetItemId String
-//     targetItem   CatalogItem @relation(fields: [targetItemId], references: [id])
-
-//     sessions GameSession[]
-//     comments Comment[]
-
-//     @@unique([date, dleId])
-// }
-
-// model Dle {
-//     id   String @id @default(cuid(2))
-//     slug String @unique
-//     name String
-
-//     creatorId String?
-//     // SetNull prevents game deletion if the creator deletes their account, preserving popular dle
-//     creator   User?   @relation(fields: [creatorId], references: [id], onDelete: SetNull)
-
-//     items      DleCatalogItem[]
-//     dailyGames DailyGame[]
-// }
-
-// model CatalogItem {
-//     id         String @id @default(cuid(2))
-//     name       String
-//     attributes Json
-
-//     dleCatalogItems DleCatalogItem[]
-//     dailyTargets    DailyGame[]
-//     guesses         Guess[]
-// }
-
-// model DleCatalogItem {
-//     dleId         String
-//     dle           Dle         @relation(fields: [dleId], references: [id], onDelete: Cascade)
-//     catalogItemId String
-//     catalogItem   CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
-
-//     @@id([dleId, catalogItemId])
-// }
-
-// model Guess {
-//     id            String @id @default(cuid(2))
-//     attemptNumber Int
-
-//     gameSessionId String
-//     gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-//     guessedItemId String
-//     guessedItem   CatalogItem @relation(fields: [guessedItemId], references: [id])
-// }
-
-// model Comment {
-//     id        String   @id @default(cuid(2))
-//     content   String   @db.Text
-//     createdAt DateTime @default(now())
-//     isEdited  Boolean  @default(false)
-
-//     authorId String
-//     author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-//     dailyGameId String
-//     dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
-
-//     parentId String?
-//     parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-//     replies  Comment[] @relation("CommentReplies")
-// }
-

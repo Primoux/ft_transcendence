@@ -1,7 +1,6 @@
-import type { User } from '../types/user'
 import { Link, useLocation } from 'react-router'
 import { ChevronDown } from 'lucide-react'
-type NavBarProps = {user: User | null, logout: () => (void)}
+import { useAuth } from '../useAuth'
 
 // the dropdown is CSS-only and stays open as long as focus is inside it,
 // so every item has to drop the focus on its way out
@@ -11,8 +10,11 @@ function closeMenu() {
     }
 }
 
-function NavBar( {user, logout} : NavBarProps) {
+function NavBar() {
+    const auth = useAuth()
     const location = useLocation();
+    const user = auth.authState.user
+    const logout = auth.logout
 
     const authButtonClass = "btn btn-primary min-w-28"
 

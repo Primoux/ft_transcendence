@@ -1,10 +1,10 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "../../generated/client.ts";
 import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import { cardRepository } from "../data/repositories";
-import { shouldKeepCard, toPrismaCard } from "../mappers/card.mapper";
+import { cardRepository } from "../data/repositories/index.ts";
+import { shouldKeepCard, toPrismaCard } from "../mappers/card.mapper.ts";
 
 const BATCH_SIZE = 500;
 
