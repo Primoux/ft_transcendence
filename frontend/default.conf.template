@@ -2,13 +2,9 @@
 # ModSecurity is still enabled for every server by the image's own conf.d/modsecurity.conf.
 # ${VAR} is filled in from the environment at startup: see the frontend service in compose.yml.
 # The hardening below is the image's, as replacing its template would otherwise drop it.
+# HTTPS only: no plain HTTP server to redirect from.
 
 server_tokens off;
-
-server {
-    listen ${PORT} default_server;
-    return 301 https://$host:${SSL_PORT}$request_uri;
-}
 
 server {
     listen ${SSL_PORT} ssl;

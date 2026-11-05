@@ -176,13 +176,11 @@ services:
     # Read by frontend/default.conf.template.
     environment:
       BACKEND: http://backend:5003/
-      # The HTTP server redirects to SSL_PORT: the published ports below must match these.
-      PORT: 8080
       SSL_PORT: 8443
       SSL_CERT_FILE: /secrets/cert.pem
       SSL_CERT_KEY_FILE: /secrets/key.pem
+    # HTTPS only: with no HTTP port, browsers that guess the scheme can only pick the right one.
     ports:
-      - "8080:8080"
       - "8443:8443"
     # Reads the certificate rendered by vault-agent-frontend, as a member of group 1000.
     group_add: ["1000"]

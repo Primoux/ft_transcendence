@@ -54,7 +54,7 @@ To see the state of the app in production, run `make prod`. This will :
 + Run the backend with `node` instead of `tsx`
 + Run an nginx container serving the compiled static files.
 
-The app will then be accessible through `https://localhost:8443` (`http://localhost:8080` redirects there).
+The app will then be accessible through `https://localhost:8443`.
 
 In production, secrets come from Vault, which starts sealed every time its container restarts. On first run, `make prod` initializes and unseals it automatically. On every later start:
 
