@@ -96,10 +96,10 @@ function DlePage() {
 				low = comp;
 			}
 		}
-		else if (low === undefined || low >= comp) {
+		else if (low === undefined || (low < comp && status === "higher")) {
 			low = comp;
 		}
-		else if (high === undefined || high <= comp) {
+		else if (high === undefined || (high > comp && status === "lower")) {
 			high = comp;
 		}
 		return {high, low};
@@ -167,31 +167,31 @@ function DlePage() {
 		}
 	}
 
-	function initSummary(guess: GuessResult): SummaryEntity {
-		const summary: SummaryEntity = {
-			legStatus: guess.card.legStatus,
-			comp: {...guess.comp}
-		};
+	// function initSummary(guess: GuessResult): SummaryEntity {
+	// 	const summary: SummaryEntity = {
+	// 		legStatus: guess.card.legStatus,
+	// 		comp: {...guess.comp}
+	// 	};
 
-		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
-		for (const key of keys) {
-			summary.comp[key] = guess.comp[key];
-			if (key === "legStatus" && summary.legStatus === false) {
-				summary.legStatus = true;
-				summary.comp[key] = "correct";
-				continue ;
-			}
-			if (summary.comp[key] !== "incorrect")	{
-				updateAttribute(summary, guess.card, key);
-			}
-		}
-		return summary;
-	}
+	// 	const keys = Object.keys(guess.card) as (keyof CardEntity)[];
+	// 	for (const key of keys) {
+	// 		summary.comp[key] = guess.comp[key];
+	// 		if (key === "legStatus" && summary.comp["legStatus"] !== "correct") {
+	// 			summary.legStatus = !summary.legStatus;
+	// 			summary.comp[key] = "correct";
+	// 			continue ;
+	// 		}
+	// 		if (summary.comp[key] !== "incorrect")	{
+	// 			updateAttribute(summary, guess.card, key);
+	// 		}
+	// 	}
+	// 	return summary;
+	// }
 
 	function updateSummary(summary: SummaryEntity, guess: GuessResult): SummaryEntity {
-		if (summary === undefined) {
-			return initSummary(guess); 
-		}
+		// if (summary === undefined) {
+		// 	return initSummary(guess); 
+		// }
 		const updatedSummary: SummaryEntity = {
 			...summary, comp: {...summary.comp}
 		};
@@ -206,8 +206,8 @@ function DlePage() {
 				continue ;
 			}
 			updatedSummary.comp[key] = guess.comp[key];
-			if (key === "legStatus" && updatedSummary.legStatus === false) {
-				updatedSummary.legStatus = true;
+			if (key === "legStatus" && updatedSummary.comp[key] !== "correct") {
+				updatedSummary.legStatus = !updatedSummary.legStatus;
 				updatedSummary.comp[key] = "correct";
 				continue ;
 			}
