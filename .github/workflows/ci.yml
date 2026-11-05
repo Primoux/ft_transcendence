@@ -81,7 +81,7 @@ jobs:
       - name: Smoke test
         run: |
           docker exec backend wget -q -O- http://127.0.0.1:5003/health
-          curl -f http://localhost:8080
+          curl -f http://localhost:8443
 
       - name: Logs
         if: failure()
