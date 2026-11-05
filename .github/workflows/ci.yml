@@ -81,7 +81,10 @@ jobs:
       - name: Smoke test
         run: |
           docker exec backend wget -q -O- http://127.0.0.1:5003/health
-          curl -f http://localhost:8443
+          # The frontend's certificate is signed by Vault's internal CA: trusting it checks the whole chain, unlike -k.
+          docker exec vault wget -q -O- http://127.0.0.1:8200/v1/pki/ca/pem > "$RUNNER_TEMP/transcendence-ca.pem"
+          curl -f --cacert "$RUNNER_TEMP/transcendence-ca.pem" https://localhost:8443
+          curl -f --cacert "$RUNNER_TEMP/transcendence-ca.pem" https://localhost:8443/api/health
 
       - name: Logs
         if: failure()
