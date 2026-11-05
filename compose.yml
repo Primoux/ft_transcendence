@@ -179,6 +179,7 @@ services:
       SSL_PORT: 8443
       SSL_CERT_FILE: /secrets/cert.pem
       SSL_CERT_KEY_FILE: /secrets/key.pem
+      ALLOWED_METHODS: "GET HEAD POST OPTIONS PATCH"
     # HTTPS only: with no HTTP port, browsers that guess the scheme can only pick the right one.
     ports:
       - "8443:8443"
