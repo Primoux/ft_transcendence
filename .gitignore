@@ -6,3 +6,4 @@ backend/generated
 .env
 .DS_Store
 vault-keys.json
+.vscode/
