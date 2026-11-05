@@ -9,6 +9,20 @@ services:
     profiles: [vault]
   vault-agent-grafana:
     profiles: [vault]
+  vault-agent-frontend:
+    profiles: [vault]
+  vault-agent-postgres-exporter:
+    profiles: [vault]
+  postgres-exporter:
+    environment:
+      DATA_SOURCE_USER: ${DB_USER}
+      DATA_SOURCE_PASS: ${DB_PASSWORD}
+      DATA_SOURCE_PASS_FILE: !reset null
+    group_add: !reset []
+    volumes: !reset []
+    depends_on: !override
+      postgres:
+        condition: service_healthy
   grafana:
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?missing from .env, run make env}
@@ -75,6 +89,13 @@ services:
       start_period: 10s
     ports: !override
       - "127.0.0.1:5173:5173"
+    # Vite serves plain HTTP in dev: no certificate, so no Vault Agent to wait for.
+    environment: !reset {}
+    group_add: !reset []
+    volumes: !reset []
+    depends_on: !override
+      backend:
+        condition: service_healthy
     build:
       target: dev
     image: frontend-dev

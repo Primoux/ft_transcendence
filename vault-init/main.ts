@@ -9,10 +9,26 @@ const keysFilePath = process.env.VAULT_KEYS_FILE ?? "/data/vault-keys.json"
 const secretShares = 5
 const secretThreshold = 3
 const kvMountPath = "secret"
-// Each consumer's Vault Agent logs in with its own AppRole, and can only read its own secrets.
-const secretConsumers = ["backend", "postgres", "grafana"]
+// Each consumer's Vault Agent logs in with its own AppRole, whose policy grants only what that consumer needs.
+const kvReadPolicy = (path: string) => `path "${kvMountPath}/data/${path}" {
+  capabilities = ["read"]
+}
+`
+const consumerPolicies: Record<string, string> = {
+    "backend": kvReadPolicy("backend/*"),
+    "postgres": kvReadPolicy("postgres/*"),
+    "grafana": kvReadPolicy("grafana/*"),
+    // Logs in to Postgres with its own read-only role: see postgres/exporter-role.sh.
+    "postgres-exporter": kvReadPolicy("postgres-exporter/*"),
+    // Gets its TLS certificate from the PKI engine.
+    "frontend": `path "pki/issue/frontend" {
+  capabilities = ["update"]
+}
+`,
+}
 const backendSecretPath = `/${kvMountPath}/data/backend/config`
 const postgresSecretPath = `/${kvMountPath}/data/postgres/config`
+const postgresExporterSecretPath = `/${kvMountPath}/data/postgres-exporter/config`
 const grafanaSecretPath = `/${kvMountPath}/data/grafana/config`
 // Checked before anything is written, as they end up in the seeded DATABASE_URL.
 const dbUser = process.env.DB_USER
@@ -146,16 +162,26 @@ async function configureVault(token: string) {
         console.log("Enabled AppRole auth.")
     }
 
-    for (const consumer of secretConsumers) {
-        await configureConsumer(consumer, token)
+    for (const [consumer, policy] of Object.entries(consumerPolicies)) {
+        await configureConsumer(consumer, policy, token)
     }
+
+    // Internal CA: issues the TLS certificate nginx serves.
+    if (mounts.data["pki/"] === undefined) {
+        await vaultRequest("/sys/mounts/pki", "POST", { type: "pki", config: { max_lease_ttl: "87600h" } }, token)
+        await vaultRequest("/pki/root/generate/internal", "POST", { common_name: "transcendence CA", ttl: "87600h" }, token)
+        console.log("Enabled PKI at pki/ and generated the root CA.")
+    }
+
+    await vaultRequest("/pki/roles/frontend", "POST", {
+        allowed_domains: ["localhost"],
+        allow_bare_domains: true,
+        allow_ip_sans: true,
+        max_ttl: "720h",
+    }, token)
 }
 
-async function configureConsumer(consumer: string, token: string) {
-    const policy = `path "${kvMountPath}/data/${consumer}/*" {
-  capabilities = ["read"]
-}
-`
+async function configureConsumer(consumer: string, policy: string, token: string) {
     await vaultRequest(`/sys/policies/acl/${consumer}`, "PUT", { policy }, token)
 
     const rolePath = `/auth/approle/role/${consumer}`
@@ -189,6 +215,7 @@ async function secretExists(path: string, token: string): Promise<boolean> {
 async function seedSecrets(token: string) {
     await seedDatabaseSecrets(token)
     await seedGrafanaSecrets(token)
+    await seedPostgresExporterSecrets(token)
 }
 
 // The backend's secret is written last and marks seeding as done: after a crash between the two
@@ -204,6 +231,8 @@ async function seedDatabaseSecrets(token: string) {
             JWT_SECRET: randomBytes(32).toString("hex"),
         },
     }, token)
+
+    
     console.log("Seeded backend secrets.")
 }
 
@@ -212,6 +241,14 @@ async function seedGrafanaSecrets(token: string) {
 
     await vaultRequest(grafanaSecretPath, "POST", { data: { GRAFANA_PASSWORD: randomBytes(24).toString("hex") } }, token)
     console.log("Seeded Grafana secrets.")
+}
+
+// Postgres sets this password on the exporter's role when the database is first created.
+async function seedPostgresExporterSecrets(token: string) {
+    if (await secretExists(postgresExporterSecretPath, token)) { return }
+
+    await vaultRequest(postgresExporterSecretPath, "POST", { data: { EXPORTER_PASSWORD: randomBytes(32).toString("hex") } }, token)
+    console.log("Seeded Postgres exporter secrets.")
 }
 
 await waitFor("Vault to respond", async () => (await fetch(`${vaultApiPrefix}/sys/seal-status`)).ok)
