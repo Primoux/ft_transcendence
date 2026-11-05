@@ -59,6 +59,7 @@ ps logs restart: %:
 .PHONY: down
 down:
 	$(COMPOSE) down -v
+	rm -rf ./vault-init-data/vault-keys.json
 
 .PHONY: reset
 reset: down
