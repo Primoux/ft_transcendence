@@ -16,8 +16,9 @@ FROM base AS build
 RUN npm run build
 
 
-# copies the static files and serves them with nginx
-FROM nginx:stable-alpine3.24-slim@sha256:dede8895648b461178c3bc604f7eed4423efe5220b2c4d839f5eb3d34ac3f8f7 AS prod
+# copies the static files and serves them with nginx, behind ModSecurity and the OWASP CRS.
+# Configured through environment variables: see default.conf.template and compose.yml.
+FROM owasp/modsecurity-crs:nginx-alpine@sha256:873ce68a658d2e3b61484a8a24d215f7d15456e7ce5aec5e7114bf000d743365 AS prod
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY default.conf.template /etc/nginx/templates/conf.d/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
