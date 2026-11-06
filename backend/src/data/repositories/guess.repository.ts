@@ -1,4 +1,4 @@
-import { prisma } from "../prisma";
+import { prisma } from "../prisma.ts";
 
 export const guessRepository = {
 	async findBySession(sessionId: string) {
