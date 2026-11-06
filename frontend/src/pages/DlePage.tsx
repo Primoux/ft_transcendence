@@ -6,24 +6,40 @@ import AttributeCell from "../components/game/AttributeCell.tsx";
 
 import {getGuessEntities} from "../cardSearchCache.ts";
 
+	type CardSearchCache = {
+		version: number;
+		cards: GuessEntity[];
+		session: string;
+		history: GuessResult[];
+	};
 function DlePage() {
 	const [input, setInput] = useState("");
 	const [search, setSearch] = useState<GuessEntity[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
+	const [game_info, setGameInfo] = useState<CardSearchCache>({
+		version: 0,
+		cards: [],
+		session: "",
+		history: []
+	});
 	const [summary, setSummary] = useState<SummaryEntity>({
 		legStatus: false,
 		comp: {}
 	});
 	const [refreshKey, setRefreshKey] = useState(0);
 
+	const [sessionId, setSession] = useState("");
 
 	async function initGameSession(): Promise<void> {
-		const response = await fetch(`/api/dle/classic/session`, {method: "POST"});
+		const response = await fetch(`/api/dle/classic/init`);
+		// setSession(response.json())
 		if (!response.ok) {
 			throw new Error("error: no game sesh");
 		}
 	}
+
+
 
 	useEffect(() => {
 		// async function initialize() {
@@ -39,23 +55,28 @@ function DlePage() {
 		// }
 
 		// initialize();
-		getGuessEntities().then(setSearch).finally(() => setLoading(false));
+		getGuessEntities().then(setGameInfo).finally(() => setLoading(false));
+		console.log("GI=", game_info);
+
 	}, []);
+
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		// TODO: ask db and load in cache
 
-		const entity = search.find((item: GuessEntity) => item.name === input );
+
+		const entity = game_info.cards.find((item: GuessEntity) => item.name === input );
 
 		if (!entity) {
 			console.error("Card not found");
 			return;
 		}
 
+
 		const params = new URLSearchParams({
-			session: "banana",
+			session: game_info.session,
 			card: entity.id
 		})
 
@@ -135,6 +156,9 @@ function DlePage() {
 				break;
 			case "types":
 				dst.types = updateArray(src.types, dst.types);
+				break;
+			case "subtypes":
+				dst.subtypes = updateArray(src.subtypes, dst.subtypes);
 				break;
 			case "power":
 				if (src.power) {
@@ -269,34 +293,40 @@ function DlePage() {
 									</td>
 									<td className="p-2">
 									<AttributeCell
+										value={summary.subtypes}
+										comp={summary.comp["subtypes"]}
+										delay={400 * 3} />
+									</td>
+									<td className="p-2">
+									<AttributeCell
 										value={summary.powerLow} value2={summary.powerHigh}
 										comp={summary.comp["power"]}
-										delay={400 * 3} />
+										delay={400 * 4} />
 									</td>
 									<td className="p-2">
 									<AttributeCell
 										value={summary.toughnessLow} value2={summary.toughnessHigh}
 										comp={summary.comp["toughness"]}
-										delay={400 * 4} />
+										delay={400 * 5} />
 									</td>
 									<td className="p-2">
 									<AttributeCell
 										value={summary.legStatus}
 										comp={summary.comp["legStatus"]}
-										delay={400 * 5} />
+										delay={400 * 6} />
 									</td>
 									<td className="p-2">
 									<AttributeCell
 										value={summary.rarity}
 										comp={summary.comp["rarity"]}
-										delay={400 * 6} />
+										delay={400 * 7} />
 									</td>
 									<td className="p-2">
 									<AttributeCell
 										value={summary.releaseYearLow} value2={summary.releaseYearHigh}
 										value3={summary.set}
 										comp={summary.comp["releaseYear"]} comp2={summary.comp["set"]}
-										delay={400 * 7} />
+										delay={400 * 8} />
 									</td>
 									</tr>
 								</tbody>
@@ -311,6 +341,7 @@ function DlePage() {
 								<th key="mana" className="p-3">Mana</th>
 								<th key="color" className="p-3">Color</th>
 								<th key="types" className="p-3">Types</th>
+								<th key="subtypes" className="p-3">Sub-types</th>
 								<th key="power" className="p-3">Power</th>
 								<th key="toughness" className="p-3">Toughness</th>
 								<th key="legendary" className="p-3">Legendary</th>
@@ -325,6 +356,7 @@ function DlePage() {
 										manaValue: guess.card.manaValue,
 										colorIdentity: guess.card.colorIdentity,
 										types: guess.card.types,
+										subtypes: guess.card.subtypes,
 										power: guess.card.power,
 										toughness: guess.card.toughness,
 										legStatus: guess.card.legStatus,
