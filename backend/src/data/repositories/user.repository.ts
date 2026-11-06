@@ -1,5 +1,5 @@
-import type { Prisma, User } from "@prisma/client";
-import { prisma } from "../prisma";
+import type { Prisma } from "../../../generated/client.ts";
+import { prisma } from "../prisma.ts";
 
 export const userRepository = {
   async createUser(data: Prisma.UserCreateInput) {

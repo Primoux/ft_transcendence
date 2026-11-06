@@ -1,0 +1,26 @@
+# Replaces the ModSecurity image's /etc/nginx/templates/conf.d/default.conf.template.
+# ModSecurity is still enabled for every server by the image's own conf.d/modsecurity.conf.
+# ${VAR} is filled in from the environment at startup: see the frontend service in compose.yml.
+# The hardening below is the image's, as replacing its template would otherwise drop it.
+# HTTPS only: no plain HTTP server to redirect from.
+
+server_tokens off;
+
+server {
+    listen ${SSL_PORT} ssl;
+
+    ssl_certificate     ${SSL_CERT_FILE};
+    ssl_certificate_key ${SSL_CERT_KEY_FILE};
+    # Forward-secret AEAD ciphers only, from the image's SSL_CIPHERS.
+    ssl_ciphers         ${SSL_CIPHERS};
+    ssl_session_tickets off;
+
+    root /usr/share/nginx/html;
+    location /         { try_files $uri $uri/ /index.html; }
+    location /assets/  { try_files $uri $uri/ =404; }
+    # BACKEND ends with a slash, so nginx strips the /api prefix.
+    location /api/     { proxy_pass ${BACKEND}; }
+
+    # The image's /healthz, used by its healthcheck.
+    include includes/location_common.conf;
+}

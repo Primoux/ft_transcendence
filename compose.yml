@@ -1,63 +1,280 @@
+x-vault-agent: &vault-agent
+  image: hashicorp/vault:2.2.1@sha256:962a92876e168d68eaaa24b0b8b49bbce1cb63024060a67bba95cd158a366fc2
+  environment:
+    SKIP_SETCAP: "true"
+  depends_on:
+    vault-init:
+      condition: service_completed_successfully
+  restart: unless-stopped
+
 services:
+  vault:
+    image: hashicorp/vault:2.2.1@sha256:962a92876e168d68eaaa24b0b8b49bbce1cb63024060a67bba95cd158a366fc2
+    container_name: vault
+    command: server
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_LOCAL_CONFIG: '{"storage":{"file":{"path":"/vault/file"}},"listener":[{"tcp":{"address":"0.0.0.0:8200","tls_disable":true}}],"disable_mlock":true}'
+    volumes:
+      - vault_data:/vault/file
+  vault-init:
+    build:
+      context: vault-init/
+    container_name: vault-init
+    environment:
+      - VAULT_ADDR=http://vault:8200
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+    volumes:
+      - ./vault-init-data/:/data
+      - backend_creds:/backend-creds
+      - frontend_creds:/frontend-creds
+      - postgres_creds:/postgres-creds
+      - grafana_creds:/grafana-creds
+      - postgres_exporter_creds:/postgres-exporter-creds
+    depends_on:
+      vault:
+        condition: service_started
+  vault-agent-postgres:
+    <<: *vault-agent
+    container_name: vault-agent-postgres
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/postgres.hcl:/vault-agent.hcl:ro
+      - postgres_creds:/creds:ro
+      - postgres_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/db_password"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  vault-agent-backend:
+    <<: *vault-agent
+    container_name: vault-agent-backend
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/backend.hcl:/vault-agent.hcl:ro
+      - backend_creds:/creds:ro
+      - backend_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/backend.env"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  vault-agent-grafana:
+    <<: *vault-agent
+    container_name: vault-agent-grafana
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/grafana.hcl:/vault-agent.hcl:ro
+      - grafana_creds:/creds:ro
+      - grafana_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/grafana_password"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  vault-agent-frontend:
+    <<: *vault-agent
+    container_name: vault-agent-frontend
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/frontend.hcl:/vault-agent.hcl:ro
+      - frontend_creds:/creds:ro
+      - frontend_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/key.pem"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  vault-agent-postgres-exporter:
+    <<: *vault-agent
+    container_name: vault-agent-postgres-exporter
+    command: vault agent -config=/vault-agent.hcl
+    volumes:
+      - ./vault-agent/postgres-exporter.hcl:/vault-agent.hcl:ro
+      - postgres_exporter_creds:/creds:ro
+      - postgres_exporter_secrets:/secrets
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /secrets/password"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
   postgres:
+    depends_on:
+      vault-agent-postgres:
+        condition: service_healthy
+      vault-agent-postgres-exporter:
+        condition: service_healthy
     container_name: postgres
-    image: postgres:16
+    # Creates the exporter's read-only role on first start: see postgres/exporter-role.sh.
+    build:
+      context: ./postgres/
+    image: postgres-prod
     environment:
       POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD_FILE: /secrets/db_password
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - postgres_secrets:/secrets:ro
+      - postgres_exporter_secrets:/exporter-secrets:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      # Over TCP: the temporary server that runs the init scripts only listens on the Unix socket,
+      # so Postgres isn't reported healthy before the exporter's role exists.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER} -d ${DB_NAME}"]
       interval: 1s
       timeout: 2s
       retries: 10
-      start_period: 2s
+      start_period: 10s
   backend:
-    build: ./backend/
+    build:
+      context: ./backend/
+      target: prod
+    image: backend-prod
     container_name: backend
-    ports:
-      - "127.0.0.1:5003:5003"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
+      - TZ=Europe/Paris
+      - SECRETS_FILE=/secrets/backend.env
+    volumes:
+      - backend_secrets:/secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
       timeout: 2s
       retries: 10
       start_period: 10s
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
+      card-ingestion:
+        condition: service_completed_successfully
+      vault-agent-backend:
+        condition: service_healthy
   card-ingestion:
-    build: ./backend/
+    build:
+      context: ./backend/
+      target: prod
+    image: card-ingestion
     container_name: card-ingestion
     command: npm run cards:ingest
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - SECRETS_FILE=/secrets/backend.env
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - backend_secrets:/secrets:ro
     depends_on:
       postgres:
         condition: service_healthy
+      vault-agent-backend:
+        condition: service_healthy
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: prod
+    image: frontend-prod
     container_name: frontend
+    # Read by frontend/default.conf.template.
+    environment:
+      BACKEND: http://backend:5003/
+      SSL_PORT: 8443
+      SSL_CERT_FILE: /secrets/cert.pem
+      SSL_CERT_KEY_FILE: /secrets/key.pem
+      ALLOWED_METHODS: "GET HEAD POST OPTIONS PATCH"
+    # HTTPS only: with no HTTP port, browsers that guess the scheme can only pick the right one.
     ports:
-      - "127.0.0.1:5173:5173"
+      - "8443:8443"
+    # Reads the certificate rendered by vault-agent-frontend, as a member of group 1000.
+    group_add: ["1000"]
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - frontend_secrets:/secrets:ro
     depends_on:
       backend:
         condition: service_healthy
+      vault-agent-frontend:
+        condition: service_healthy
+    healthcheck:
+      # The image's own check: curls /healthz over HTTPS.
+      test: ["CMD-SHELL", "/usr/local/bin/healthcheck"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+      start_period: 10s
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.15.1@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:9090/-/healthy"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      backend:
+        condition: service_healthy
+  grafana:
+    group_add: ["1000"]
+    container_name: grafana
+    image: grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /secrets/grafana_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_secrets:/secrets:ro
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      vault-agent-grafana:
+        condition: service_healthy
 
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_URI: postgres:5432/${DB_NAME}?sslmode=disable
+      DATA_SOURCE_USER: postgres_exporter
+      DATA_SOURCE_PASS_FILE: /secrets/password
+    # Reads the password rendered by vault-agent-postgres-exporter, as a member of group 1000.
+    group_add: ["1000"]
+    volumes:
+      - postgres_exporter_secrets:/secrets:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault-agent-postgres-exporter:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  grafana_data:
+  prometheus_data:
+  vault_data:
+  frontend_creds:
+  backend_creds:
+  postgres_creds:
+  grafana_creds:
+  postgres_exporter_creds:
+  # Memory-backed: rendered secrets never reach the disk, and vanish once no container mounts them.
+  postgres_secrets:
+    driver_opts: &secrets-volume
+      type: tmpfs
+      device: tmpfs
+      o: size=1m,uid=100,gid=1000,mode=0750
+  backend_secrets:
+    driver_opts: *secrets-volume
+  grafana_secrets:
+    driver_opts: *secrets-volume
+  frontend_secrets:
+    driver_opts: *secrets-volume
+  postgres_exporter_secrets:
+    driver_opts: *secrets-volume

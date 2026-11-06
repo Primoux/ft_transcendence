@@ -1,5 +1,5 @@
-import { prisma } from "../prisma";
-import type { ScryfallBulkType } from "../../scripts/scryfall-client";
+import type { ScryfallBulkType } from "../../scripts/ingest/scryfall-types.ts";
+import { prisma } from "../prisma.ts";
 
 export type SyncKey = `scryfall_${ScryfallBulkType}`;
 

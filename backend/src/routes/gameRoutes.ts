@@ -1,11 +1,11 @@
 import express, { raw } from 'express';
 import type { Request, Response } from 'express';
 import { cardRepository, dailyGameRepository } from "../data/repositories";
-import { gameSessionRepository } from '../data/repositories/game-session.repository';
-import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types"
-import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity, GameSession, Guess } from "@prisma/client"
+import { gameSessionRepository } from '../data/repositories/game-session.repository.ts';
+import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types.ts"
+import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity, GameSession, Guess } from "../../generated/client.ts"
 import { guessSchema } from "../utils/validation/zodSchema"
-import { guessRepository } from '../data/repositories/guess.repository';
+import { guessRepository } from '../data/repositories/guess.repository.ts';
 
 const router = express.Router();
 
@@ -26,7 +26,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 			let daily = await dailyGameRepository.findByDateAndMode(today, GameMode.CLASSIC);
 			if (!daily) {
 				try {
-					daily = await dailyGameRepository.create(cardPool[Math.floor(Math.random() * cardPool.length)].id, today, GameMode.CLASSIC);
+					daily = await dailyGameRepository.create(cardPool[Math.floor(Math.random() * cardPool.length)].oracleId, today, GameMode.CLASSIC);
 					res.status(201);
 				}
 				catch (err) {
@@ -51,10 +51,11 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		var guessCardList: MagicCard[] = (await guessRepository.findBySession(session.id)).map(cardPair => Object.values(cardPair)[0]);
 	}
 	catch (err) {
+		console.log("ERROR= ",err);
 		return res.status(500).json({err: "database issue"});
 	}
 	const frontCardPool: GuessEntity[] = cardPool.map(item => ({
-		id: item.id,
+		id: item.oracleId,
 		name: item.name,
 		artUrl: item.artUrl
 	}));
@@ -70,6 +71,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		})
 	}
 	catch (err) {
+		console.log("error= ", err);
 		return res.status(500).json({err: "couldn't resolve card properties"});
 	}
 	return res.json({pool: frontCardPool, session: session.id, guessResultList: guessResultList});
@@ -93,7 +95,7 @@ router.get("/guess", async (req: Request, res: Response) => {
 		if (rawAnswer === undefined) {
 			throw Error;
 		}
-		await guessRepository.create(session.id, rawGuess.id);
+		await guessRepository.create(session.id, rawGuess.oracleId);
 	}
 	catch (err) {
 		if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
@@ -101,7 +103,7 @@ router.get("/guess", async (req: Request, res: Response) => {
 		}
 		return res.status(500).json({err: "database issue"});
 	}
-	try {	
+	try {
 		var guessEntity: CardEntity = buildCardEntity(rawGuess);
 		var answerEntity: CardEntity = buildCardEntity(rawAnswer);
 	}
@@ -140,12 +142,12 @@ router.get("/guess", async (req: Request, res: Response) => {
 // });
 
 const COLOR_IDENTITY_RECORD: Record<string, ColorIdentity> = {
-  W: 'White',
-  B: 'Black',
-  U: 'Blue',
-  R: 'Red',
-  G: 'Green',
-  C: 'Colorless'
+  WHITE: 'White',
+  BLACK: 'Black',
+  BLUE: 'Blue',
+  RED: 'Red',
+  GREEN: 'Green',
+  COLORLESS: 'Colorless'
 } as const;
 
 const RARITY_RECORD: Record<DatabaseRarity, FrontRarity> = {
@@ -159,7 +161,7 @@ const RARITY_RECORD: Record<DatabaseRarity, FrontRarity> = {
 
 function buildCardEntity(rawCard: MagicCard): CardEntity {
 	return {
-		id: rawCard.id,
+		id: rawCard.oracleId,
 		name: rawCard.name,
 		artUrl: rawCard.artUrl,
 		manaValue: rawCard.manaValue,
