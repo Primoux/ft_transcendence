@@ -53,6 +53,10 @@ export type GuessResult = {
 	comp: Record<string, AttributeStatus>
 };
 
+export type GuessResponse = {
+	result: GuessResult;
+}
+
 export type SummaryEntity = {
 	manaHigh?: number,
 	manaLow?: number,

@@ -7,12 +7,11 @@ interface IAttributeCell {
   value2?: number;
   value3?: string;
   comp?: AttributeStatus;
-  comp2?: AttributeStatus;
   lastGuess?: boolean;
   delay: number;
 };
 
-function AttributeCell({value, value2, value3, comp, comp2, lastGuess = true, delay} : IAttributeCell) {
+function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : IAttributeCell) {
   const color = comp === "correct" && (value3 === undefined)
 								? "bg-green-100 text-green-900"
 								: comp === "incorrect"

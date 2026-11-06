@@ -30,15 +30,12 @@ export async function getGuessEntities(): Promise<CardSearchCache> {
 
 	const game_info = await response.json();
 
-	console.log("Ginfo", game_info);
-
 	const guesses: CardSearchCache = {
 		version: 1,
 		cards: game_info.pool,
 		session: game_info.session,
 		history: game_info.guessResultList
 	}
-	console.log("guesssss", guesses);
 	
 	localStorage.setItem("search_cards", JSON.stringify(guesses.cards));
 

@@ -51,7 +51,6 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		var guessCardList: MagicCard[] = (await guessRepository.findBySession(session.id)).map(cardPair => Object.values(cardPair)[0]);
 	}
 	catch (err) {
-		console.log("ERROR= ",err);
 		return res.status(500).json({err: "database issue"});
 	}
 	const frontCardPool: GuessEntity[] = cardPool.map(item => ({
@@ -71,7 +70,6 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		})
 	}
 	catch (err) {
-		console.log("error= ", err);
 		return res.status(500).json({err: "couldn't resolve card properties"});
 	}
 	return res.json({pool: frontCardPool, session: session.id, guessResultList: guessResultList});

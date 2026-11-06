@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus } from "../types/game.ts";
+import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse } from "../types/game.ts";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
 
@@ -14,9 +14,7 @@ import {getGuessEntities} from "../cardSearchCache.ts";
 	};
 function DlePage() {
 	const [input, setInput] = useState("");
-	const [search, setSearch] = useState<GuessEntity[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 	const [game_info, setGameInfo] = useState<CardSearchCache>({
 		version: 0,
 		cards: [],
@@ -28,18 +26,7 @@ function DlePage() {
 		comp: {}
 	});
 	const [refreshKey, setRefreshKey] = useState(0);
-
-	const [sessionId, setSession] = useState("");
-
-	async function initGameSession(): Promise<void> {
-		const response = await fetch(`/api/dle/classic/init`);
-		// setSession(response.json())
-		if (!response.ok) {
-			throw new Error("error: no game sesh");
-		}
-	}
-
-
+	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 
 	useEffect(() => {
 		// async function initialize() {
@@ -56,16 +43,11 @@ function DlePage() {
 
 		// initialize();
 		getGuessEntities().then(setGameInfo).finally(() => setLoading(false));
-		console.log("GI=", game_info);
-
 	}, []);
 
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-
-		// TODO: ask db and load in cache
-
 
 		const entity = game_info.cards.find((item: GuessEntity) => item.name === input );
 
@@ -85,15 +67,11 @@ function DlePage() {
 
 			// const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
-			const result: GuessResult = await response.json();
+			const result: GuessResponse = await response.json();
 
 			// setGuesses((guess) => [...guess, result]);
-			// setGuesses((prev) => [...prev, result]);
-			guesses.push(result.result);
-
-			console.log("result: ", result);
-			console.log("guesses length: ", guesses.length);
-			console.log("guess: ", guesses[guesses.length - 1]);
+			setGuesses((prev: GuessResult[]) => [...prev, result.result]);
+			// guesses.push(result.result);
 
 			setSummary((guess) => updateSummary(guess, result.result));
 
@@ -120,10 +98,10 @@ function DlePage() {
 			} 
 		}
 		else {
-			if (low === undefined || (low < comp && status === "higher")) {
+			if (status === "higher" && (low === undefined || low < comp)) {
 				low = comp;
 			}
-			if (high === undefined || (high > comp && status === "lower")) {
+			if (status === "lower" && (high === undefined || high > comp)) {
 				high = comp;
 			}
 		}
@@ -224,7 +202,6 @@ function DlePage() {
 			...summary, comp: {...summary.comp}
 		};
 
-		// console.log("gc===", guess.result.card);
 		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
 		for (const key of keys) {
 			if (summary.comp[key] === "correct") {
@@ -277,7 +254,7 @@ function DlePage() {
 									<AttributeCell
 										value={summary.manaLow} value2={summary.manaHigh}
 										comp={summary.comp["manaValue"]}
-										delay={400 * 0} lastGuess/>
+										delay={0} lastGuess/>
 									</td>
 									<td className="p-2">
 									<AttributeCell
@@ -325,7 +302,7 @@ function DlePage() {
 									<AttributeCell
 										value={summary.releaseYearLow} value2={summary.releaseYearHigh}
 										value3={summary.set}
-										comp={summary.comp["releaseYear"]} comp2={summary.comp["set"]}
+										comp={summary.comp["releaseYear"]}
 										delay={400 * 8} />
 									</td>
 									</tr>
@@ -375,7 +352,7 @@ function DlePage() {
 													<AttributeCell 
 														value={guess.card.releaseYear}
 														value3={guess.card.set}
-														comp={guess.comp["releaseYear"]} comp2={guess.comp[name]} lastGuess={isLastGuess}
+														comp={guess.comp["releaseYear"]} lastGuess={isLastGuess}
 														delay={400 * i} />
 												) : (
 													<AttributeCell value={value} comp={guess.comp[name]} lastGuess={isLastGuess} delay={400 * i} />
