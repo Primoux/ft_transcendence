@@ -18,11 +18,11 @@ app.use(cookieParser());
 
 // Public endpoints
 
-app.use("/dle", gameRoutes)
 app.use("/auth", authRoutes)
 app.use("/health", healthRoutes)
 
 app.use(requireAuth);
+app.use("/dle", gameRoutes)
 
 // sensitive endpoints : require valid jwt
 

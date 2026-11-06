@@ -3,14 +3,12 @@ import { prisma } from "../prisma";
 
 export const cardRepository = {
   async findAllPlayable(maxRank: number = 5000) {
-    return prisma.magicCard.findMany({take: 5000}); // todo: filter by edhrec rank < maxRank
-  },
-  async findById(cardId: string) {
-    return prisma.magicCard.findUnique({
-      where: {
-        id: cardId
-      }
+    return prisma.magicCard.findMany({
+      where: { edhrecRank: { lt: maxRank } },
     });
+  },
+  async findById(id: string) {
+    return prisma.magicCard.findUnique({ where: { id } });
   },
   async upsertMany(cards: Prisma.MagicCardCreateManyInput[]) {
     const operations = cards.map((card) => {
