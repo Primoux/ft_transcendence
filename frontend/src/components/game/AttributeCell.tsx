@@ -24,7 +24,7 @@ function AttributeCell({value, value2, value3, comp, comp2, lastGuess = true, de
 		  {Array.isArray(value)
       ? value.length > 0 ? value.join(", ") : "N/A"
       : value2 !== undefined && value !== undefined && value2 !== value
-        ? `${value} - ${value2}`
+        ? `${Number(value) + 1} - ${Number(value2) - 1}`
         : (<>
           {value?.toString() ?? value2?.toString() ?? "N/A"}
           {
@@ -41,7 +41,7 @@ function AttributeCell({value, value2, value3, comp, comp2, lastGuess = true, de
       {value3}
       <br/>
 		  {value2 !== undefined && value !== undefined && value2 !== value
-        ? `${value} - ${value2}`
+        ? `${Number(value) + 1} - ${Number(value2) - 1}`
         : (<>
           {value ?? value2}
           {

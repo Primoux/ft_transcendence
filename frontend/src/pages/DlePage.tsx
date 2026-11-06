@@ -86,21 +86,25 @@ function DlePage() {
 	}
 
 	function updateNumber(comp: number, status:AttributeStatus, high?: number, low?:number) {
+		if (status === "correct") {
+			high = comp;
+			low = comp;
+			return {high, low};
+		}
 		if (low === undefined && high === undefined) {
 			if (status === "higher") {
 				low = comp;
 			} else if (status === "lower") {
 				high = comp;
-			} else if (status === "correct") {
-				high = comp;
+			} 
+		}
+		else {
+			if (low === undefined || (low < comp && status === "higher")) {
 				low = comp;
 			}
-		}
-		else if (low === undefined || (low < comp && status === "higher")) {
-			low = comp;
-		}
-		else if (high === undefined || (high > comp && status === "lower")) {
-			high = comp;
+			if (high === undefined || (high > comp && status === "lower")) {
+				high = comp;
+			}
 		}
 		return {high, low};
 	}
@@ -237,7 +241,7 @@ function DlePage() {
 			<div>
 				<div>
 					{guesses.at(-1)!.win 
-					? (	<p>GG!<br/>You've won in {guesses.length} guesses!</p>)
+					? (	<p>GG!<br/>You've won in {guesses.length} guesses!<br/><img src={guesses[guesses.length - 1].fullCardUrl} alt={guesses[guesses.length - 1].card.name} /></p>)
 					: (	<div>
 							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
 							
@@ -330,7 +334,8 @@ function DlePage() {
 
 								return (
 								<tr key={guess.card.name}>
-									<td className="p-2">{guess.card.name}</td>
+									{/* <td className="p-2">{guess.card.name}</td> */}
+									<td className="p-2"><img className="h-14" src={guess.card.artUrl} title={guess.card.name} alt={guess.card.name} /></td>
 									{Object.entries(card).map(([name, value], i) => {
 										return (
 											<td key={name} className="p-2">
