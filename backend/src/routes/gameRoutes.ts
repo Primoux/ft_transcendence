@@ -21,9 +21,9 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 	try {
 		var cardPool: MagicCard[] = await cardRepository.findAllPlayable();
 		const today: Date = new Date();
-		var session: GameSession | null = await gameSessionRepository.findByDate(req.userId, today);
+		var session: GameSession | null = await gameSessionRepository.findByUserAndDate(req.userId, today);
 		if (!session) {
-			let daily = await dailyGameRepository.find(today, GameMode.CLASSIC);
+			let daily = await dailyGameRepository.findByDateAndMode(today, GameMode.CLASSIC);
 			if (!daily) {
 				try {
 					daily = await dailyGameRepository.create(cardPool[Math.floor(Math.random() * cardPool.length)].id, today, GameMode.CLASSIC);
@@ -31,7 +31,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 				}
 				catch (err) {
 					if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-						daily = await dailyGameRepository.find(today, GameMode.CLASSIC);
+						daily = await dailyGameRepository.findByDateAndMode(today, GameMode.CLASSIC);
 						if (!daily) {
 							throw Error;
 						}

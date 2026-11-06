@@ -96,7 +96,7 @@ model MagicCard {
 
 model Guess {
     id            String @id @default(cuid(2))
-    attemptNumber Int? // todo: auto increment on gameSesssionId
+    attemptNumber Int
 
     gameSessionId String
     gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
@@ -104,6 +104,7 @@ model Guess {
     guessedCardId String
     guessedCard   MagicCard @relation(fields: [guessedCardId], references: [id])
 
+    @@unique([gameSessionId, attemptNumber])
     @@unique([gameSessionId, guessedCardId])
 }
 

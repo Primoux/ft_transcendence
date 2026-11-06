@@ -14,12 +14,17 @@ export const guessRepository = {
 			}
 		});
 	},
-	async create(sessionId: string, cardId: string) {
-		return prisma.guess.create({
-			data: {
-				gameSessionId: sessionId,
-				guessedCardId: cardId
-			}
-		});
-	}
-}
+  async create(gameSessionId: string, guessedCardId: string) {
+    const existingGuessesCount = await prisma.guess.count({
+      where: { gameSessionId },
+    });
+
+    return prisma.guess.create({
+      data: {
+        gameSessionId,
+        guessedCardId,
+        attemptNumber: existingGuessesCount + 1,
+      },
+    });
+  },
+};
