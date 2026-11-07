@@ -1,4 +1,4 @@
-import express, { raw } from 'express';
+import express from "express";
 import type { Request, Response } from 'express';
 import { cardRepository, dailyGameRepository, gameSessionRepository } from "../data/repositories/index.ts";
 import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types.ts"
@@ -13,41 +13,27 @@ router.get("/", (req: Request, res: Response) => {
 })
 
 router.get("/classic/init", async (req: Request, res: Response) => {
-	if (!req.userId) { 
+	if (!req.userId) {
 		return res.status(401).json({err: "no user logged"});
 	}
 	res.status(200);
 	try {
 		var cardPool: MagicCard[] = await cardRepository.findAllPlayable();
 		const today: Date = new Date();
-		var session: GameSession | null = await gameSessionRepository.findByUserAndDate(req.userId, today);
+		var session: GameSession | null = await gameSessionRepository.findByUserAndDateAndMode(
+			req.userId, today, GameMode.CLASSIC);
+
 		if (!session) {
-			let daily = await dailyGameRepository.findByDateAndMode(today, GameMode.CLASSIC);
-			if (!daily) {
-				try {
-					daily = await dailyGameRepository.create(cardPool[Math.floor(Math.random() * cardPool.length)].oracleId, today, GameMode.CLASSIC);
-					res.status(201);
-				}
-				catch (err) {
-					if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-						daily = await dailyGameRepository.findByDateAndMode(today, GameMode.CLASSIC);
-						if (!daily) {
-							throw Error;
-						}
-					}
-					else {
-						throw err;
-					}
-				}
-			}
+			const daily: DailyGame = await dailyGameRepository.findOrCreate(
+				cardPool[Math.floor(Math.random() * cardPool.length)].oracleId, today, GameMode.CLASSIC);
 			session = await gameSessionRepository.create(req.userId, daily.id);
 			res.status(201);
 		}
-		let dailyCard: MagicCard | undefined = (await dailyGameRepository.findTargetCard(session.dailyGameId))?.targetCard;
-		if (dailyCard === undefined)
+		let dailyCard: MagicCard | null = await dailyGameRepository.findTargetCard(session.dailyGameId);
+		if (!dailyCard)
 			throw Error;
 		var dailyCardEntity: CardEntity = buildCardEntity(dailyCard);
-		var guessCardList: MagicCard[] = (await guessRepository.findBySession(session.id)).map(cardPair => Object.values(cardPair)[0]);
+		var guessCardList: MagicCard[] = await guessRepository.findBySession(session.id);
 	}
 	catch (err) {
 		return res.status(500).json({err: "database issue"});
@@ -88,8 +74,8 @@ router.get("/guess", async (req: Request, res: Response) => {
 		if (!session) {
 			return res.status(404).json({err: "no session found with id " + parsedInput.data.session});
 		}
-		var rawAnswer: MagicCard | undefined = (await dailyGameRepository.findTargetCard(session.dailyGameId))?.targetCard;
-		if (rawAnswer === undefined) {
+		var rawAnswer: MagicCard | null = await dailyGameRepository.findTargetCard(session.dailyGameId);
+		if (!rawAnswer) {
 			throw Error;
 		}
 		await guessRepository.create(session.id, rawGuess.oracleId);

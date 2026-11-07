@@ -1,14 +1,15 @@
+import { GameMode } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const gameSessionRepository = {
   async findById(id: string) {
     return prisma.gameSession.findUnique({ where: { id } });
   },
-  async findByUserAndDate(userId: string, date: Date) {
+  async findByUserAndDateAndMode(userId: string, date: Date, mode: GameMode) {
     return prisma.gameSession.findFirst({
       where: {
         userId,
-        dailyGame: { date },
+        dailyGame: { date, mode },
       },
       include: { dailyGame: true },
     });
