@@ -16,20 +16,20 @@ function App() {
 		return (<p>loading</p>)
 	}
 
-	let loginElement, registerElement, profileElement, editProfileElement;
+	let loginElement, registerElement, profileElement, editProfileElement, dleElement;
 	if (auth.authState.authStatus == "logged-in") {
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
 		profileElement = <ProfilePage />
 		editProfileElement= <EditProfilePage user={auth.authState.user} />
+		dleElement = <DlePage />
 	} else {
 		loginElement = <LoginPage/>
 		registerElement = <RegisterPage/>
 		profileElement = <Navigate to="/login" replace />
 		editProfileElement= <Navigate to="/login" replace />
+		dleElement = <Navigate to="/login" replace />
 	}
-	let dleElement;
-	dleElement = <DlePage />
 	return (
 		<div className="App min-h-dvh w-full flex flex-col">
 			<NavBar></NavBar>
