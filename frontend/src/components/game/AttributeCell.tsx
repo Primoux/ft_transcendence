@@ -12,11 +12,13 @@ interface IAttributeCell {
 };
 
 function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : IAttributeCell) {
-  const color = comp === "correct" && (value3 === undefined)
+  const color = comp === "correct" || comp === undefined && (value3 === undefined)
 								? "bg-green-100 text-green-900"
 								: comp === "incorrect"
 									? "bg-red-100 text-red-900"
 									: "bg-yellow-100 text-yellow-900";
+
+  console.log("atcl: ", value, value2, value3, comp)
 
   const content = value3 === undefined ? (
     <div className={`rounded-md p-3 text-sm ${color}`}>

@@ -27,22 +27,24 @@ function DlePage() {
 	});
 	const [refreshKey, setRefreshKey] = useState(0);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
+	const [suggestions, setSuggestions] = useState<GuessEntity[]>([]);
 
 	useEffect(() => {
-		// async function initialize() {
-		// 	try {
-		// 		await initGameSession();
-		// 		const cards = await getGuessEntities();
-		// 		setSearch(cards);
-		// 	} catch (err) {
-		// 		console.error("init failed", err);
-		// 	} finally {
-		// 		setLoading(false);
-		// 	}
-		// }
+		async function initialize() {
+			try {
+				const info = await getGuessEntities();
+				setGameInfo(info);
+				setSuggestions(info.cards);
+			} catch (err) {
+				console.error("init failed", err);
+			} finally {
+				setLoading(false);
+			}
+		}
 
-		// initialize();
-		getGuessEntities().then(setGameInfo).finally(() => setLoading(false));
+		initialize();
+		// getGuessEntities().then(setGameInfo).finally(() => setLoading(false));
+
 	}, []);
 
 
@@ -169,35 +171,12 @@ function DlePage() {
 			}
 				break;
 			default:
+				// dst.comp[key] = "correct"; //! TODO: test
 				break;
 		}
 	}
 
-	// function initSummary(guess: GuessResult): SummaryEntity {
-	// 	const summary: SummaryEntity = {
-	// 		legStatus: guess.card.legStatus,
-	// 		comp: {...guess.comp}
-	// 	};
-
-	// 	const keys = Object.keys(guess.card) as (keyof CardEntity)[];
-	// 	for (const key of keys) {
-	// 		summary.comp[key] = guess.comp[key];
-	// 		if (key === "legStatus" && summary.comp["legStatus"] !== "correct") {
-	// 			summary.legStatus = !summary.legStatus;
-	// 			summary.comp[key] = "correct";
-	// 			continue ;
-	// 		}
-	// 		if (summary.comp[key] !== "incorrect")	{
-	// 			updateAttribute(summary, guess.card, key);
-	// 		}
-	// 	}
-	// 	return summary;
-	// }
-
 	function updateSummary(summary: SummaryEntity, guess: GuessResult): SummaryEntity {
-		// if (summary === undefined) {
-		// 	return initSummary(guess); 
-		// }
 		const updatedSummary: SummaryEntity = {
 			...summary, comp: {...summary.comp}
 		};
@@ -232,7 +211,7 @@ function DlePage() {
 			{loading ? (<p>Loading cards...</p>) :
 			guesses.length === 0 ? (
 				<div>
-					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
+					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit} cards={[...suggestions].sort((c1, c2) => c1.name.localeCompare(c2.name))} guessed={guesses.map(guess => guess.card.name)} />
 				</div>
 			) : null}
 		</section>
@@ -244,7 +223,7 @@ function DlePage() {
 					{guesses.at(-1)!.win 
 					? (	<p>GG!<br/>You've won in {guesses.length} guesses!<br/><img src={guesses[guesses.length - 1].fullCardUrl} alt={guesses[guesses.length - 1].card.name} /></p>)
 					: (	<div>
-							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
+							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit} cards={[...suggestions].sort((c1, c2) => c1.name.localeCompare(c2.name))} guessed={guesses.map(guess => guess.card.name)} />
 							
 							<table className="table-auto">
 								<tbody key={refreshKey}>
