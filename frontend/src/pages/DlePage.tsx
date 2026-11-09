@@ -49,10 +49,12 @@ function DlePage() {
 	}, []);
 
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+	async function handleSubmit(event: FormEvent<HTMLFormElement>, name?: string) {
 		event.preventDefault();
 
-		const entity = gameInfo.cards.find((item: GuessEntity) => item.name === input );
+		const guess = name ?? input;
+
+		const entity = gameInfo.cards.find((item: GuessEntity) => item.name === guess );
 
 		if (!entity) {
 			console.error("Card not found");
