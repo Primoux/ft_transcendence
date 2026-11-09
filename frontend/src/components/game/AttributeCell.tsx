@@ -18,8 +18,6 @@ function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : 
 									? "bg-red-100 text-red-900"
 									: "bg-yellow-100 text-yellow-900";
 
-  console.log("atcl: ", value, value2, value3, comp)
-
   const content = value3 === undefined ? (
     <div className={`rounded-md p-3 text-sm ${color}`}>
 		  {Array.isArray(value)
