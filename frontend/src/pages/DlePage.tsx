@@ -28,13 +28,18 @@ function DlePage() {
 	const [refreshKey, setRefreshKey] = useState(0);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 	const [suggestions, setSuggestions] = useState<GuessEntity[]>([]);
-	const [showWin, setShowWin] = useState();
+	const [showWin, setShowWin] = useState(false);
+	// TODO: delay for "gg" message
+	// TODO: load history
 
 	useEffect(() => {
 		async function initialize() {
 			try {
 				const info = await getGuessEntities();
 				setGameInfo(info);
+				setGuesses(info.history);
+				// updateSummary(summary, info.history[info.history.length - 1]); // TODO: fix summary
+				setShowWin(guesses.some((guess: GuessResult) => guess.win));
 				setSuggestions(info.cards);
 			} catch (err) {
 				console.error("init failed", err);
@@ -42,18 +47,22 @@ function DlePage() {
 				setLoading(false);
 			}
 		}
-
 		initialize();
-		// getGuessEntities().then(setGameInfo).finally(() => setLoading(false));
-
 	}, []);
 
+	useEffect(() => {
+		if (!guesses.some((guess: GuessResult) => guess.win)) {
+			return ;
+		}
+		const timeout = setTimeout(() => {
+			setShowWin(true);
+		}, 3900);
+		return () => clearTimeout(timeout);
+	}, [guesses]);
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>, name?: string) {
 		event.preventDefault();
-
 		const guess = name ?? input;
-
 		const entity = gameInfo.cards.find((item: GuessEntity) => item.name === guess );
 
 		if (!entity) {
@@ -61,29 +70,19 @@ function DlePage() {
 			return;
 		}
 
-
 		const params = new URLSearchParams({
 			session: gameInfo.session,
 			card: entity.id
-		})
+		});
 
 		try {
-			// const params = new URLSearchParams({guess: input});
-
-			// const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const result: GuessResponse = await response.json();
 
-			// setGuesses((guess) => [...guess, result]);
 			setGuesses((prev: GuessResult[]) => [...prev, result.result]);
-			// guesses.push(result.result);
-
-			setSummary((guess) => updateSummary(guess, result.result));
-
-			setRefreshKey(guess => guess + 1);
-
+			setSummary((guess: SummaryEntity) => updateSummary(guess, result.result));
+			setRefreshKey((guess: number) => guess + 1);
 			setInput("");
-			console.log("Comparison result:", result);
 		} catch (error) {
 			console.error("Error in handleSubmit", error);
 		}
@@ -223,8 +222,9 @@ function DlePage() {
 			{guesses.length > 0 && (
 			<div>
 				<div>
-					{guesses.at(-1)!.win 
-					? (	<p>GG!<br/>You've won in {guesses.length} guesses!<br/><img src={guesses[guesses.length - 1].fullCardUrl} alt={guesses[guesses.length - 1].card.name} /></p>)
+					{/* {guesses.at(-1)!.win  */}
+					{showWin
+					? (	<p>GG!<br/>You've won in {guesses.length} guesses!<br/><img src={guesses.find(guess => guess.win)?.fullCardUrl} alt={guesses.find(guess => guess.win)?.card.name} /></p>)
 					: (	<div>
 							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit} cards={[...suggestions].sort((c1, c2) => c1.name.localeCompare(c2.name))} guessed={guesses.map(guess => guess.card.name)} />
 							
