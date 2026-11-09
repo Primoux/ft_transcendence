@@ -19,6 +19,9 @@ const EXCLUDED_LAYOUTS = new Set([
   "vanguard",
   "augment",
   "host",
+  "split",
+  "adventure",
+  "class",
 
   // Double-faced cards
   "transform",

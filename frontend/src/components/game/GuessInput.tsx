@@ -29,7 +29,7 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 				cleanInput(delayInput).length > 3
 				? cleanInput(card.name).includes(cleanInput(delayInput))
 				: cleanInput(card.name).startsWith(cleanInput(delayInput)));
-	}, [cards, delayInput]);
+	}, [cards, guessed, delayInput]);
 
 	useEffect(() => {
 			const timeout = setTimeout(() => {

@@ -160,8 +160,8 @@ function DlePage() {
 			case "rarity":
 				dst.rarity = src.rarity;
 				break;
-			case "set":
-				dst.set = src.set;
+			case "releaseSet":
+				dst.releaseSet = src.releaseSet;
 				break;
 			case "releaseYear":
 			{
@@ -180,7 +180,7 @@ function DlePage() {
 		const updatedSummary: SummaryEntity = {
 			...summary, comp: {...summary.comp}
 		};
-
+		
 		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
 		for (const key of keys) {
 			if (summary.comp[key] === "correct") {
@@ -280,7 +280,7 @@ function DlePage() {
 									<td className="p-2">
 									<AttributeCell
 										value={summary.releaseYearLow} value2={summary.releaseYearHigh}
-										value3={summary.set}
+										value3={summary.releaseSet}
 										comp={summary.comp["releaseYear"]}
 										delay={400 * 8} />
 									</td>
@@ -317,7 +317,7 @@ function DlePage() {
 										toughness: guess.card.toughness,
 										legStatus: guess.card.legStatus,
 										rarity: guess.card.rarity,
-										set: guess.card.set
+										releaseSet: guess.card.releaseSet
 								}
 
 								return (
@@ -327,10 +327,10 @@ function DlePage() {
 									{Object.entries(card).map(([name, value], i) => {
 										return (
 											<td key={name} className="p-2">
-												{name === "set" ? (
+												{name === "releaseSet" ? (
 													<AttributeCell 
 														value={guess.card.releaseYear}
-														value3={guess.card.set}
+														value3={guess.card.releaseSet}
 														comp={guess.comp["releaseYear"]} lastGuess={isLastGuess}
 														delay={400 * i} />
 												) : (
