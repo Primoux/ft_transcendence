@@ -34,7 +34,7 @@ export type CardEntity = {
 	toughness?: number,
 	legStatus: boolean,
 	rarity: Rarity,
-	set: string,
+	releaseSet: string,
 	releaseYear: number
 }
 
@@ -69,7 +69,7 @@ export type SummaryEntity = {
 	toughnessLow?: number,
 	legStatus: boolean,
 	rarity?: Rarity,
-	set?: string,
+	releaseSet?: string,
 	releaseYearHigh?: number,
 	releaseYearLow?: number,
 	comp: Record<string, AttributeStatus>
