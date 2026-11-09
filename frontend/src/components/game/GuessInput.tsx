@@ -1,5 +1,5 @@
 import type { GuessEntity } from "../../types/game";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 interface IGuessInput {
   input: string;
@@ -10,18 +10,12 @@ interface IGuessInput {
 }
 
 function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput) {
-	const cleanInput = (str: string) => str.trim().toLowerCase().replace(/[\s\p{P}]/gu, "");
 	const [delayInput, setDelayInput] = useState("");
 	const [listIndex, setListIndex] = useState(-1);
-	// const [filtered, setFiltered] = useState<GuessEntity[]>([]);
+	const listRef = useRef<HTMLUListElement>(null);
 
-	// useEffect(() => {
-	// 	const filteredCards = cards.filter((card) => 
-	// 		cleanInput(delayInput).length > 3
-	// 		? cleanInput(card.name).includes(cleanInput(delayInput))
-	// 		: cleanInput(card.name).startsWith(cleanInput(delayInput)));
-	// 	setFiltered(filteredCards);
-	// }, [cards, delayInput]);
+	const cleanInput = (str: string) =>
+		str.trim().toLowerCase().replace(/,\s*/g, " ");
 	
 	const filtered = useMemo(() => {
 		return cards.filter((card) => !guessed.includes(card.name))
@@ -32,20 +26,32 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 	}, [cards, guessed, delayInput]);
 
 	useEffect(() => {
-			const timeout = setTimeout(() => {
-				setDelayInput(input);
-				setListIndex(-1);
-			}, 300);
-			return () => clearTimeout(timeout);
-		}, [input]);
+		const timeout = setTimeout(() => {
+			setDelayInput(input);
+			setListIndex(-1);
+		}, 300);
+		return () => clearTimeout(timeout);
+	}, [input]);
+
+	useEffect(() => {
+		if (listIndex < 0) {
+			return ;
+		}
+		const listFocus = listRef.current?.children[listIndex];
+
+		listFocus?.scrollIntoView({
+			block: "nearest",
+			behavior: "smooth"
+		});
+	}, [listIndex]);
 
 	function handleKeyboardInput(event: React.KeyboardEvent<HTMLInputElement>) {
 		if (event.key === "ArrowDown") {
 			event.preventDefault();
-			if (listIndex <= 0) {
-				setListIndex((prev: number) => prev + 1);
-				return ;
-			}
+			// if (listIndex <= 0) {
+			// 	setListIndex((prev: number) => prev + 1);
+			// 	return ;
+			// }
 			setListIndex((prev: number) => Math.min(prev + 1, filtered.length - 1));
 		}
 		if (event.key === "ArrowUp") {
@@ -57,15 +63,34 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		}
 		if (event.key === "Enter") {
 			event.preventDefault();
-			if (listIndex < 0 && input) {
-				setListIndex(0);
-			}
 			if (listIndex < 0 || !filtered[listIndex]) {
 				return;
 			}
 			setInput(filtered[listIndex].name);
-			event.currentTarget.form?.requestSubmit();
+			console.log(filtered[listIndex].name);
+			// event.currentTarget.form?.requestSubmit();
+			submitFunc(
+				event as unknown as React.FormEvent<HTMLFormElement>,
+				filtered[listIndex].name
+			);
+			setListIndex(-1);
 		}
+		if  (event.key === "Escape") {
+			event.preventDefault();
+			setListIndex(-1);
+			setDelayInput("");
+		}
+	}
+
+	function handleMouseInput(event: React.MouseEvent<HTMLInputElement>, card: GuessEntity) {
+		event.preventDefault();
+		setInput(card.name);
+		submitFunc(
+			event as unknown as React.FormEvent<HTMLFormElement>,
+			filtered[listIndex].name
+		);
+		// setDelayInput(card.name);
+		setListIndex(-1);
 	}
 
 	return (
@@ -78,10 +103,12 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 				autoFocus
 			/>
 			<button type="submit">Guess</button>
-			<ul className="max-h-60 min-w-60 overflow-y-auto">
+			<ul className="max-h-60 min-w-60 overflow-y-auto" ref={listRef}>
 			{delayInput.trim().length > 0 && (
 				filtered.map((card, index) => (
-					<li key={card.id} className={`flex items-center gap-2 h-8 ${listIndex === index ? "bg-blue-300" : ""}`}>
+					<li key={card.id} className={`flex items-center gap-2 h-8 ${listIndex === index ? "bg-blue-300" : ""}`}
+						onMouseEnter={() => setListIndex(index)} onMouseDown={e => handleMouseInput(e, card)}
+					>
 						<img className="w-8" src={card.artUrl}/>{card.name}
 					</li>
 				))
