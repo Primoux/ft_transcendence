@@ -4,21 +4,22 @@
   "metadata": {
     "name": "mtgdle-game",
     "namespace": "default",
-    "uid": "9e910c45-1662-4ed7-b93e-c5eedb84eb58",
-    "resourceVersion": "1793737799709986",
-    "generation": 1,
-    "creationTimestamp": "2026-11-03T20:29:59Z",
+    "uid": "81f8302f-1f94-4c92-91e4-a8f302aee9f5",
+    "resourceVersion": "1794220764681990",
+    "generation": 2,
+    "creationTimestamp": "2026-11-09T09:42:01Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "1024113861419008"
+      "grafana.app/deprecatedInternalID": "3035374258327552"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "default",
-      "grafana.app/sourceChecksum": "8bde0652561f621689050268322c2797",
+      "grafana.app/sourceChecksum": "8df944238929813ee87d199319bceff7",
       "grafana.app/sourcePath": "/var/lib/grafana/dashboards/game.json",
-      "grafana.app/sourceTimestamp": "1793737770000",
+      "grafana.app/sourceTimestamp": "1794220759000",
       "grafana.app/updatedBy": "access-policy:service",
+      "grafana.app/updatedTimestamp": "2026-11-09T10:39:24Z",
       "grafana.app/folder": ""
     }
   },
@@ -940,7 +941,9 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum(increase(http_requests_total{route=\"/auth/register\",status=\"201\"}[24h]))",
+                        "editorMode": "code",
+                        "exemplar": false,
+                        "expr": "round(sum(increase(http_requests_total{route=\"/auth/register\",status=\"201\"}[24h])))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
