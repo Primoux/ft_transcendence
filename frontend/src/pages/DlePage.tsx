@@ -15,7 +15,7 @@ import {getGuessEntities} from "../cardSearchCache.ts";
 function DlePage() {
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(true);
-	const [game_info, setGameInfo] = useState<CardSearchCache>({
+	const [gameInfo, setGameInfo] = useState<CardSearchCache>({
 		version: 0,
 		cards: [],
 		session: "",
@@ -28,6 +28,7 @@ function DlePage() {
 	const [refreshKey, setRefreshKey] = useState(0);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 	const [suggestions, setSuggestions] = useState<GuessEntity[]>([]);
+	const [showWin, setShowWin] = useState();
 
 	useEffect(() => {
 		async function initialize() {
@@ -51,7 +52,7 @@ function DlePage() {
 	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
-		const entity = game_info.cards.find((item: GuessEntity) => item.name === input );
+		const entity = gameInfo.cards.find((item: GuessEntity) => item.name === input );
 
 		if (!entity) {
 			console.error("Card not found");
@@ -60,7 +61,7 @@ function DlePage() {
 
 
 		const params = new URLSearchParams({
-			session: game_info.session,
+			session: gameInfo.session,
 			card: entity.id
 		})
 
@@ -229,55 +230,55 @@ function DlePage() {
 								<tbody key={refreshKey}>
 									<tr>
 									<td key="summary">Summary</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.manaLow} value2={summary.manaHigh}
 										comp={summary.comp["manaValue"]}
 										delay={0} lastGuess/>
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.colorIdentity}
 										comp={summary.comp["colorIdentity"]}
 										delay={400 * 1} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.types}
 										comp={summary.comp["types"]}
 										delay={400 * 2} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.subtypes}
 										comp={summary.comp["subtypes"]}
 										delay={400 * 3} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.powerLow} value2={summary.powerHigh}
 										comp={summary.comp["power"]}
 										delay={400 * 4} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.toughnessLow} value2={summary.toughnessHigh}
 										comp={summary.comp["toughness"]}
 										delay={400 * 5} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.legStatus}
 										comp={summary.comp["legStatus"]}
 										delay={400 * 6} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.rarity}
 										comp={summary.comp["rarity"]}
 										delay={400 * 7} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-23">
 									<AttributeCell
 										value={summary.releaseYearLow} value2={summary.releaseYearHigh}
 										value3={summary.releaseSet}
@@ -323,10 +324,10 @@ function DlePage() {
 								return (
 								<tr key={guess.card.name}>
 									{/* <td className="p-2">{guess.card.name}</td> */}
-									<td className="p-2"><img className="h-14" src={guess.card.artUrl} title={guess.card.name} alt={guess.card.name} /></td>
+									<td className="p-2"><img className="h-14 max-w-19" src={guess.card.artUrl} title={guess.card.name} alt={guess.card.name} /></td>
 									{Object.entries(card).map(([name, value], i) => {
 										return (
-											<td key={name} className="p-2">
+											<td key={name} className="p-2 w-23">
 												{name === "releaseSet" ? (
 													<AttributeCell 
 														value={guess.card.releaseYear}

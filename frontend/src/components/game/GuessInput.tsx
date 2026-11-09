@@ -12,7 +12,7 @@ interface IGuessInput {
 function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput) {
 	const cleanInput = (str: string) => str.trim().toLowerCase().replace(/[\s\p{P}]/gu, "");
 	const [delayInput, setDelayInput] = useState("");
-	const [listIndex, setListIndex] = useState(0);
+	const [listIndex, setListIndex] = useState(-1);
 	// const [filtered, setFiltered] = useState<GuessEntity[]>([]);
 
 	// useEffect(() => {
@@ -34,15 +34,15 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 	useEffect(() => {
 			const timeout = setTimeout(() => {
 				setDelayInput(input);
-				setListIndex(0);
-			}, 200);
+				setListIndex(-1);
+			}, 300);
 			return () => clearTimeout(timeout);
 		}, [input]);
 
 	function handleKeyboardInput(event: React.KeyboardEvent<HTMLInputElement>) {
 		if (event.key === "ArrowDown") {
 			event.preventDefault();
-			if (listIndex === 0) {
+			if (listIndex <= 0) {
 				setListIndex((prev: number) => prev + 1);
 				return ;
 			}
@@ -50,18 +50,23 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		}
 		if (event.key === "ArrowUp") {
 			event.preventDefault();
+			if (listIndex < 0) {
+				return ;
+			}
 			setListIndex((prev: number) => Math.max(prev - 1, 0));
 		}
 		if (event.key === "Enter") {
 			event.preventDefault();
-			if (!filtered[listIndex]) {
+			if (listIndex < 0 && input) {
+				setListIndex(0);
+			}
+			if (listIndex < 0 || !filtered[listIndex]) {
 				return;
 			}
 			setInput(filtered[listIndex].name);
 			event.currentTarget.form?.requestSubmit();
 		}
 	}
-
 
 	return (
 		<form onSubmit={submitFunc}>
@@ -76,7 +81,7 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 			<ul className="max-h-60 min-w-60 overflow-y-auto">
 			{delayInput.trim().length > 0 && (
 				filtered.map((card, index) => (
-					<li key={card.id} className={`flex items-center gap-2 h-8 ${listIndex === index ? "bg-blue-500" : ""}`}>
+					<li key={card.id} className={`flex items-center gap-2 h-8 ${listIndex === index ? "bg-blue-300" : ""}`}>
 						<img className="w-8" src={card.artUrl}/>{card.name}
 					</li>
 				))

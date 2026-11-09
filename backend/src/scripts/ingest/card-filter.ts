@@ -22,6 +22,7 @@ const EXCLUDED_LAYOUTS = new Set([
   "split",
   "adventure",
   "class",
+  "saga",
 
   // Double-faced cards
   "transform",
