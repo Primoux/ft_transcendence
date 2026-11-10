@@ -31,6 +31,10 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+    # No Vault in dev: contactpoints.yml reads the same path, filled from .env instead.
+    configs:
+      - source: discord_webhook_url
+        target: /secrets/discord_webhook_url
     depends_on: !override
       prometheus:
         condition: service_healthy
@@ -122,3 +126,8 @@ services:
           path: ./frontend/package.json
         - action: rebuild
           path: ./frontend/package-lock.json
+
+configs:
+  discord_webhook_url:
+    # Optional in dev: without it, alerts are evaluated but not delivered.
+    content: ${DISCORD_WEBHOOK_URL:-https://discord.invalid/webhook-not-configured}

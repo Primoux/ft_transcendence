@@ -70,7 +70,7 @@ services:
       - grafana_creds:/creds:ro
       - grafana_secrets:/secrets
     healthcheck:
-      test: ["CMD-SHELL", "test -s /secrets/grafana_password"]
+      test: ["CMD-SHELL", "test -s /secrets/grafana_password && test -s /secrets/discord_webhook_url"]
       interval: 1s
       timeout: 2s
       retries: 30

@@ -7,4 +7,8 @@ contactPoints:
       - uid: discord
         type: discord
         settings:
-          url: ${DISCORD_WEBHOOK_URL}
+          # Rendered from Vault by vault-agent-grafana (see vault-agent/grafana.hcl).
+          url: $__file{/secrets/discord_webhook_url}
+          title: '{{ template "mtgdle.discord.title" . }}'
+          message: '{{ template "mtgdle.discord.message" . }}'
+        disableResolveMessage: false
