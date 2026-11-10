@@ -7,4 +7,7 @@ contactPoints:
       - uid: discord
         type: discord
         settings:
-          url: ${DISCORD_WEBHOOK_URL}
+          url: $__env{DISCORD_WEBHOOK_URL}
+          title: '{{ template "mtgdle.discord.title" . }}'
+          message: '{{ template "mtgdle.discord.message" . }}'
+        disableResolveMessage: false
