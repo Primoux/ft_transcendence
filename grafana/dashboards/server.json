@@ -10,7 +10,7 @@
   "version": 1,
   "refresh": "15s",
   "time": {
-    "from": "now-6h",
+    "from": "now/d",
     "to": "now"
   },
   "editable": true,
