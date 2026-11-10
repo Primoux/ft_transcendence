@@ -82,9 +82,11 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		}
 	}
 
-	function handleMouseInput(event: React.MouseEvent<HTMLInputElement>, card: GuessEntity) {
+	function handleMouseInput(event: React.MouseEvent<HTMLInputElement>, card: GuessEntity | string) {
 		event.preventDefault();
-		setInput(card.name);
+		if (typeof card !== "string") {
+			setInput(card.name);
+		}
 		submitFunc(
 			event as unknown as React.FormEvent<HTMLFormElement>,
 			filtered[listIndex].name
@@ -102,7 +104,7 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 				onKeyDown={handleKeyboardInput}
 				autoFocus
 			/>
-			<button type="submit">Guess</button>
+			<button type="submit" onMouseDown={e => handleMouseInput(e, input)}>Guess</button>
 			<ul className="max-h-60 min-w-60 overflow-y-auto" ref={listRef}>
 			{delayInput.trim().length > 0 && (
 				filtered.map((card, index) => (
