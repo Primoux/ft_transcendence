@@ -11,6 +11,8 @@ interface IAttributeCell {
   delay: number;
 };
 
+// (<>{value.includes("White")}<img className="w-10 h-10" src="../../public/color/mtg-white.png" title="White" alt="white"/></>)
+
 function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : IAttributeCell) {
   const color = comp === "correct" || comp === undefined && (value3 === undefined)
 								? "bg-green-100 text-green-900"
@@ -21,7 +23,10 @@ function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : 
   const content = value3 === undefined ? (
     <div className={`rounded-md p-3 text-sm ${color}`}>
 		  {Array.isArray(value)
-      ? value.length > 0 ? value.join(", ") : "N/A"
+      ? value.length > 0
+        ? value.map((color) => (
+          <img key={color} className="w-5 h-5" src={`../../public/color/mtg-${color.toLowerCase()}.png`} title={color} alt={color}/>
+        )) : value.join(", ") //: "N/A"
       : value2 !== undefined && value !== undefined && value2 !== value
         ? `${Number(value) + 1} - ${Number(value2) - 1}`
         : (<>
