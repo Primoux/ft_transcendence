@@ -32,3 +32,8 @@ export const changePasswordSchema = zod.object({
   newPassword: zod.string().min(minPasswordLength).max(maxPasswordLength).refine((value) => (password = value)),
   newPasswordConfirmation: zod.string().min(minPasswordLength).max(maxPasswordLength).refine((value) => (value === password), 'passwords do not match')
 })
+
+export const guessSchema = zod.object({
+  session: zod.string().nonempty(),
+  card: zod.string().nonempty()
+})
