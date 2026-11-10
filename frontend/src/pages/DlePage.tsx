@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse } from "../types/game.ts";
+import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse, CardSearchCache } from "../types/game.ts";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
-
 import {getGuessEntities} from "../cardSearchCache.ts";
 
-	type CardSearchCache = {
-		version: number;
-		cards: GuessEntity[];
-		session: string;
-		history: GuessResult[];
-	};
 function DlePage() {
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(true);
@@ -50,6 +43,13 @@ function DlePage() {
 				setGameInfo(info);
 				setGuesses(info.history);
 				// updateSummary(summary, info.history[info.history.length - 1]); // TODO: fix summary
+				/**
+				 * send summary to the backend
+				 * back stores in the database
+				 * add summary to info returned
+				 * (maybe rename getGuessEntities to getGameSessionInfo)
+				 * here setSummary(info.summary)
+				 */
 				setShowWin(guesses.some((guess: GuessResult) => guess.win));
 				setSuggestions(info.cards);
 			} catch (err) {
@@ -59,7 +59,7 @@ function DlePage() {
 			}
 		}
 		initialize();
-	}, []);
+	}, [guesses]);
 
 	useEffect(() => {
 		if (!guesses.some((guess: GuessResult) => guess.win)) {
@@ -184,7 +184,7 @@ function DlePage() {
 			}
 				break;
 			default:
-				dst.comp[key] = "correct"; //! TODO: test
+				dst.comp[key] = "correct";
 				break;
 		}
 	}
@@ -243,56 +243,56 @@ function DlePage() {
 							<table className="table-auto">
 								<tbody key={refreshKey}>
 									<tr>
-									<td key="summary">Summary</td>
-									<td className="p-2 w-23">
+									<td key="summary" className="w-23">Summary</td>
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.manaLow} value2={summary.manaHigh}
 										comp={summary.comp["manaValue"]}
 										delay={0} lastGuess/>
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.colorIdentity}
 										comp={summary.comp["colorIdentity"]}
 										delay={400 * 1} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.types}
 										comp={summary.comp["types"]}
 										delay={400 * 2} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.subtypes}
 										comp={summary.comp["subtypes"]}
 										delay={400 * 3} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.powerLow} value2={summary.powerHigh}
 										comp={summary.comp["power"]}
 										delay={400 * 4} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.toughnessLow} value2={summary.toughnessHigh}
 										comp={summary.comp["toughness"]}
 										delay={400 * 5} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.legStatus}
 										comp={summary.comp["legStatus"]}
 										delay={400 * 6} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.rarity}
 										comp={summary.comp["rarity"]}
 										delay={400 * 7} />
 									</td>
-									<td className="p-2 w-23">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.releaseYearLow} value2={summary.releaseYearHigh}
 										value3={summary.releaseSet}
@@ -341,7 +341,7 @@ function DlePage() {
 									<td className="p-2"><img className="h-14 max-w-19" src={guess.card.artUrl} title={guess.card.name} alt={guess.card.name} /></td>
 									{Object.entries(card).map(([name, value], i) => {
 										return (
-											<td key={name} className="p-2 w-23">
+											<td key={name} className="p-2 w-26">
 												{name === "releaseSet" ? (
 													<AttributeCell 
 														value={guess.card.releaseYear}
