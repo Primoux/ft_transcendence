@@ -69,8 +69,9 @@ Several secrets are required for MagicDle to run :
 + Postgres DB root password
 + JWT Signing key for auth
 + Grafana admin password
++ Discord webhook URL for alerts (optional, see [Alerting](#alerting))
 
-These secrets are generated at first run and put into vault through the `vault-init/main.ts` script. The root token and unseal keys (required for Vault handling) are then written in the `vault-init-data/vault-keys.json` file. This file needs to be read by the operators (and only them), its content saved for later use, then immediately deleted.
+The first three secrets are generated at first run and put into vault through the `vault-init/main.ts` script. The root token and unseal keys (required for Vault handling) are then written in the `vault-init-data/vault-keys.json` file. This file needs to be read by the operators (and only them), its content saved for later use, then immediately deleted.
 
 The postgres password and JWT key should not be needed by operators.
 On the other hand, the Grafana password needs to be known by admins in order to access the monitoring dashboard. To get the grafana admin password that was generated, run :
@@ -86,9 +87,13 @@ Any credential change inside Vault will not update the corresponding service, an
 
 Grafana is available at `http://localhost:3000`.
 
-1. Log in with the credentials from the `.env` file (`GRAFANA_USER` / `GRAFANA_PASSWORD`).
+1. Log in with `GRAFANA_USER` from the `.env` file, and the password:
+   + in dev: `GRAFANA_PASSWORD` from the `.env` file.
+   + in prod: the one stored in Vault (see [Secrets handling](#secrets-handling)).
 2. Click `Dashboards` in the left menu.
-3. Two dashboards are available: `Server` and `Game`.
+3. Three dashboards are available: `MtgDle - Server`, `MtgDle - Game` and `PostgreSQL Database`.
+
+If you can't log in after switching between dev and prod, the `grafana_data` volume still holds the other mode's password (it is only set when the volume is created).
 
 ### What you can see
 
@@ -100,3 +105,39 @@ Grafana is available at `http://localhost:3000`.
 - Panels based on HTTP traffic stay at "No data" until some requests have been made. Wait ~15-30 s after sending requests (Prometheus scrape interval).
 - The failed-login counter resets to 0 whenever the backend restarts.
 - Panels related to `gameSessions` stay empty for now, because the matching game features are not implemented yet.
+
+## Alerting
+
+Grafana checks the rules below every minute and notifies a Discord channel. Everything lives in `grafana/provisioning/alerting/` (`rules.yml`, `policies.yml`, `contactpoints.yml`, `templates.yml`): edit those files, not the UI, then restart Grafana.
+
+| Rule | Fires when | Severity |
+|---|---|---|
+| Backend down | backend unreachable for 1 min | critical |
+| Too many 5xx errors | > 5% of requests in 5xx for 5 min (above 0.1 req/s) | critical |
+| High p95 latency | p95 > 1 s for 5 min | warning |
+| Event loop saturated | lag > 500 ms for 2 min | warning |
+| Backend memory high | > 512 MiB for 10 min | warning |
+| Too many failed logins | > 20 in 5 min | warning |
+| Stale Scryfall Sync | last sync > 48 h ago | warning |
+| Postgres unreachable | Postgres or its exporter down for 1 min | critical |
+| Postgres connections near limit | > 80% of `max_connections` for 5 min | warning |
+| Postgres deadlocks | any in 10 min | warning |
+
+`critical` alerts repeat every hour, `warning` every 4 h. New rules need a `severity` label.
+
+### Discord webhook
+
+Optional: without it, alerts are evaluated but not sent. Create one in the channel settings (`Integrations` > `Webhooks`) and treat its URL as a secret.
+
++ **dev**: add `DISCORD_WEBHOOK_URL=...` to `.env`.
++ **prod**: store it in Vault (paste the URL, then Ctrl+D; use `patch`, `put` would erase the Grafana password):
+
+```sh
+docker compose exec -i -e VAULT_TOKEN=<root token> vault \
+  vault kv patch secret/grafana/config DISCORD_WEBHOOK_URL=-
+docker compose restart vault-agent-grafana
+```
+
+Then `docker compose restart grafana`, and check with `Alerting` > `Contact points` > `discord` > `Test`.
+
+**warning** : a mistake in any alerting file stops Grafana entirely. Find it with `docker compose logs grafana | grep 'Failed to provision'`.
