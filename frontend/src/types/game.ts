@@ -87,3 +87,10 @@ export interface LocalGameStorage {
 	version: 1;
 	games: Record<string, GameState>;
 }
+
+export type CardSearchCache = {
+	version: number;
+	cards: GuessEntity[];
+	session: string;
+	history: GuessResult[];
+};
