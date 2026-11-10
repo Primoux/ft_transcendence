@@ -1,14 +1,14 @@
 import { prisma } from "../../data/prisma.ts";
 import {
   cardRepository,
+  scryfallSyncRepository,
   stagingRepository,
   SyncKey,
-  syncRepository,
 } from "../../data/repositories/index.ts";
-import { stageCardHistories, stageOracleCards } from "./card-loader.ts";
-import { fetchBulkMetadata, fetchBulkStream } from "./scryfall-client.ts";
-import { readZippedStream } from "./scryfall-stream.ts";
-import { SCRYFALL_BULK_TYPES } from "./scryfall-types.ts";
+import { scryfallCardLoader } from "./scryfall/card-loader.ts";
+import { scryfallClient } from "./scryfall/client.ts";
+import { SCRYFALL_BULK_TYPES } from "./scryfall/types.ts";
+import { readZippedStream } from "./utils/read-zipped-stream.ts";
 
 try {
   console.log("Checking for card updates...");
@@ -16,16 +16,16 @@ try {
   const startTime = performance.now();
 
   const [oracleMetadata, defaultMetadata] = await Promise.all([
-    fetchBulkMetadata(SCRYFALL_BULK_TYPES.ORACLE),
-    fetchBulkMetadata(SCRYFALL_BULK_TYPES.DEFAULT),
+    scryfallClient.fetchBulkMetadata(SCRYFALL_BULK_TYPES.ORACLE),
+    scryfallClient.fetchBulkMetadata(SCRYFALL_BULK_TYPES.DEFAULT),
   ]);
 
   const oracleSyncKey: SyncKey = `scryfall_${SCRYFALL_BULK_TYPES.ORACLE}`;
   const defaultSyncKey: SyncKey = `scryfall_${SCRYFALL_BULK_TYPES.DEFAULT}`;
 
   const [lastOracleSync, lastDefaultSync] = await Promise.all([
-    await syncRepository.getLastSync(oracleSyncKey),
-    await syncRepository.getLastSync(defaultSyncKey),
+    await scryfallSyncRepository.getLastSync(oracleSyncKey),
+    await scryfallSyncRepository.getLastSync(defaultSyncKey),
   ]);
 
   const isOracleNew =
@@ -54,19 +54,19 @@ try {
     await stagingRepository.clear();
 
     const [oracleStream, defaultStream] = await Promise.all([
-      fetchBulkStream(oracleMetadata),
-      fetchBulkStream(defaultMetadata),
+      scryfallClient.fetchBulkStream(oracleMetadata),
+      scryfallClient.fetchBulkStream(defaultMetadata),
     ]);
 
     await Promise.all([
       readZippedStream(
         oracleStream,
-        stageOracleCards,
+        scryfallCardLoader.stageOracleCards,
         SCRYFALL_BULK_TYPES.ORACLE,
       ),
       readZippedStream(
         defaultStream,
-        stageCardHistories,
+        scryfallCardLoader.stageCardHistories,
         SCRYFALL_BULK_TYPES.DEFAULT,
       ),
     ]);
@@ -80,8 +80,14 @@ try {
     );
 
     await Promise.all([
-      syncRepository.saveLastSync(oracleSyncKey, oracleMetadata.updatedAt),
-      syncRepository.saveLastSync(defaultSyncKey, defaultMetadata.updatedAt),
+      scryfallSyncRepository.saveLastSync(
+        oracleSyncKey,
+        oracleMetadata.updatedAt,
+      ),
+      scryfallSyncRepository.saveLastSync(
+        defaultSyncKey,
+        defaultMetadata.updatedAt,
+      ),
     ]);
 
     const totalDuration = ((performance.now() - startTime) / 1000).toFixed(2);
