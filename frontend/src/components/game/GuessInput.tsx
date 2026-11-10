@@ -82,7 +82,7 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		}
 	}
 
-	function handleMouseInput(event: React.MouseEvent<HTMLInputElement>, card: GuessEntity | string) {
+	function handleMouseInput(event: React.MouseEvent<Element, MouseEvent>, card: GuessEntity | string) {
 		event.preventDefault();
 		if (typeof card !== "string") {
 			setInput(card.name);
