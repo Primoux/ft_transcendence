@@ -1,5 +1,8 @@
 apiVersion: 1
 
+# Every rule follows the same shape: A = PromQL (instant), B = reduce to one value per series, C = threshold.
+# Template variables ($values, $labels) are written as is: only ${VAR}-style env vars get expanded here.
+
 groups:
   - orgId: 1
     name: backend
@@ -38,13 +41,16 @@ groups:
                     type: lt
                     params: [1]
               refId: C
+        # No data = Prometheus has no `up` series at all (Prometheus down or scrape job gone): treat as down.
         noDataState: Alerting
         execErrState: Error
         for: 1m
         annotations:
           summary: Backend not responding for more than 1 minute
+          description: Prometheus cannot scrape the backend metrics endpoint (backend:9100).
         labels:
           severity: critical
+
       - uid: backend-5xx
         title: Too many 5xx errors
         condition: C
@@ -55,7 +61,10 @@ groups:
               to: 0
             datasourceUid: prometheus
             model:
-              expr: 'sum(rate(http_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(http_requests_total[5m])), 0.001)'
+              # `and` drops the result under 0.1 req/s, so a single 500 on an idle server does not page anyone.
+              expr: >-
+                sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
+                and sum(rate(http_requests_total[5m])) > 0.1
               instant: true
               refId: A
           - refId: B
@@ -82,8 +91,10 @@ groups:
         for: 5m
         annotations:
           summary: More than 5% of requests end in a 5xx error
+          description: '{{ humanizePercentage $values.B.Value }} of requests failed with a 5xx over the last 5 minutes.'
         labels:
           severity: critical
+
       - uid: backend-latency
         title: High p95 latency
         condition: C
@@ -121,8 +132,10 @@ groups:
         for: 5m
         annotations:
           summary: 95% of requests take more than one second to complete
+          description: 'p95 latency is {{ humanizeDuration $values.B.Value }}.'
         labels:
           severity: warning
+
       - uid: backend-eventloop
         title: Event loop saturated
         condition: C
@@ -133,7 +146,7 @@ groups:
               to: 0
             datasourceUid: prometheus
             model:
-              expr: 'nodejs_eventloop_lag_seconds'
+              expr: 'nodejs_eventloop_lag_seconds{job="backend"}'
               instant: true
               refId: A
           - refId: B
@@ -160,8 +173,52 @@ groups:
         for: 2m
         annotations:
           summary: Node event loop lag exceeds 500 ms
+          description: 'Event loop lag is {{ humanizeDuration $values.B.Value }}: something is blocking the main thread.'
         labels:
           severity: warning
+
+      - uid: backend-memory
+        title: Backend memory high
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'process_resident_memory_bytes{job="backend"}'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    # 512 MiB; the backend idles around 140 MiB.
+                    params: [536870912]
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: Backend uses more than 512 MiB of memory
+          description: 'Resident memory is {{ humanize1024 $values.B.Value }}B. A steady climb usually means a leak.'
+        labels:
+          severity: warning
+
       - uid: login-failures
         title: Too many failed logins
         condition: C
@@ -199,8 +256,10 @@ groups:
         for: 0s
         annotations:
           summary: More than 20 failed logins in 5 minutes
+          description: '{{ humanize $values.B.Value }} failed logins in 5 minutes: possible brute force.'
         labels:
           severity: warning
+
       - uid: scryfall-sync-stale
         title: Stale Scryfall Sync
         condition: C
@@ -211,6 +270,7 @@ groups:
               to: 0
             datasourceUid: prometheus
             model:
+              # One series per sync key, so each key alerts on its own.
               expr: 'time() - mtgdle_card_sync_last_timestamp_seconds'
               instant: true
               refId: A
@@ -238,5 +298,135 @@ groups:
         for: 10m
         annotations:
           summary: The last Scryfall sync is more than 48 hours old
+          description: 'Sync "{{ $labels.key }}" last ran {{ humanizeDuration $values.B.Value }} ago.'
+        labels:
+          severity: warning
+
+  - orgId: 1
+    name: postgres
+    folder: MtgDle
+    interval: 1m
+    rules:
+      - uid: postgres-down
+        title: Postgres unreachable
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              # 0 = the exporter runs but cannot connect; no series = the exporter itself is down.
+              expr: 'pg_up{job="postgres"}'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [1]
+              refId: C
+        noDataState: Alerting
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: Postgres is unreachable for more than 1 minute
+          description: Either Postgres is down or postgres-exporter cannot reach it (or is down itself).
+        labels:
+          severity: critical
+
+      - uid: postgres-connections
+        title: Postgres connections near limit
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(pg_stat_activity_count{job="postgres"}) / max(pg_settings_max_connections{job="postgres"})'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0.8]
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: More than 80% of Postgres connections are in use
+          description: '{{ humanizePercentage $values.B.Value }} of max_connections used. New connections will soon be refused.'
+        labels:
+          severity: warning
+
+      - uid: postgres-deadlocks
+        title: Postgres deadlocks
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(increase(pg_stat_database_deadlocks{job="postgres"}[10m]))'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: Postgres detected deadlocks in the last 10 minutes
+          description: '{{ humanize $values.B.Value }} deadlock(s): two transactions lock rows in opposite order.'
         labels:
           severity: warning
