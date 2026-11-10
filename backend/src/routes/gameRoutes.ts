@@ -2,9 +2,10 @@ import express from "express";
 import type { Request, Response } from 'express';
 import { cardRepository, dailyGameRepository, gameSessionRepository } from "../data/repositories/index.ts";
 import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types.ts"
-import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity, GameSession, Guess } from "../../generated/client.ts"
+import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity, GameSession, GameStatus, Guess } from "../../generated/client.ts"
 import { guessSchema } from "../utils/validation/zodSchema.ts"
 import { guessRepository } from '../data/repositories/guess.repository.ts';
+import { prisma } from "../data/prisma.ts"
 
 const router = express.Router();
 
@@ -20,9 +21,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 	try {
 		var cardPool: MagicCard[] = await cardRepository.findAllPlayable();
 		const today: Date = new Date();
-		var session: GameSession | null = await gameSessionRepository.findByUserAndDateAndMode(
-			req.userId, today, GameMode.CLASSIC);
-
+		var session: GameSession | null = await gameSessionRepository.findByUserAndDateAndMode(req.userId, today, GameMode.CLASSIC);
 		if (!session) {
 			const daily: DailyGame = await dailyGameRepository.findOrCreate(
 				cardPool[Math.floor(Math.random() * cardPool.length)].oracleId, today, GameMode.CLASSIC);
@@ -31,8 +30,9 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		}
 		let dailyCard: MagicCard | null = await dailyGameRepository.findTargetCard(session.dailyGameId);
 		if (!dailyCard)
-			throw new Error("could not retrieve the solution");
+			throw new Error("could not retrieve daily solution for this mode");
 		var dailyCardEntity: CardEntity = buildCardEntity(dailyCard);
+		console.log(dailyCard.name);
 		var guessCardList: MagicCard[] = await guessRepository.findBySession(session.id);
 	}
 	catch (err) {
@@ -61,22 +61,26 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 })
 
 router.get("/guess", async (req: Request, res: Response) => {
+	if (!req.userId) {
+		return res.status(401).json({err: "no user logged"});
+	}
 	const parsedInput = guessSchema.safeParse(req.query)
 	if (!parsedInput.success) {
 		return res.status(404).json({err: parsedInput.error.issues});
 	}
 	try {
+		const today: Date = new Date();
+		var session: GameSession | null = await gameSessionRepository.findByUserAndDateAndMode(req.userId, today, GameMode.CLASSIC);
+		if (!session) {
+			return res.status(404).json({err: "no session found"});
+		}
 		var rawGuess: MagicCard | null = await cardRepository.findById(parsedInput.data.card);
 		if (!rawGuess) {
 			return res.status(404).json({err: "no card found with id " + parsedInput.data.card});
 		}
-		let session: GameSession | null = await gameSessionRepository.findById(parsedInput.data.session);
-		if (!session) {
-			return res.status(404).json({err: "no session found with id " + parsedInput.data.session});
-		}
 		var rawAnswer: MagicCard | null = await dailyGameRepository.findTargetCard(session.dailyGameId);
 		if (!rawAnswer) {
-			throw Error;
+			throw new Error("could not retrieve daily solution for this mode");
 		}
 		await guessRepository.create(session.id, rawGuess.oracleId);
 	}
@@ -98,6 +102,19 @@ router.get("/guess", async (req: Request, res: Response) => {
 		fullCardUrl: guessEntity.id === answerEntity.id ? rawGuess.imageUrl : undefined,
 		card: guessEntity,
 		comp: buildGuessComp(guessEntity, answerEntity)
+	}
+	if (result.win) {
+		session = await prisma.gameSession.update({
+			where: {
+				id: session.id
+			},
+			data: {
+				status: GameStatus.WON
+			}
+		});
+		if (!session) {
+			return res.status(404).json({err: "cannot find game session to update status"});
+		}
 	}
 	return res.status(200).json({result: result});
 });
@@ -151,7 +168,7 @@ function buildCardEntity(rawCard: MagicCard): CardEntity {
 		colorIdentity: rawCard.colorIdentity.map(stringColor => {
 			const cardColor: ColorIdentity = COLOR_IDENTITY_RECORD[stringColor];
 			if (cardColor === undefined) {
-				throw Error;
+				throw new Error("cannot match colors");
 			}
 			return cardColor;
 		}),
@@ -161,7 +178,7 @@ function buildCardEntity(rawCard: MagicCard): CardEntity {
 		power: rawCard.power === null ? undefined : rawCard.power.includes("*") ? "Variable" : rawCard.power,
 		toughness: rawCard.toughness === null ? undefined : rawCard.toughness.includes("*") ? "Variable" : rawCard.toughness,
 		rarity: RARITY_RECORD[rawCard.rarity] ?? (() => {
-			throw Error;
+			throw new Error("cannot match rarities");
 		})(),
 		releaseSet: rawCard.releaseSet,
 		releaseYear: rawCard.releaseDate.getFullYear()
