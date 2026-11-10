@@ -82,11 +82,11 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		}
 	}
 
-	function handleMouseInput(event: React.MouseEvent<Element, MouseEvent>, card: GuessEntity | string) {
+	function handleMouseInput(event: React.MouseEvent<Element, MouseEvent>, card: GuessEntity) { // | string) {
 		event.preventDefault();
-		if (typeof card !== "string") {
-			setInput(card.name);
-		}
+		// if (typeof card !== "string") {
+		setInput(card.name);
+		// }
 		submitFunc(
 			event as unknown as React.FormEvent<HTMLFormElement>,
 			filtered[listIndex].name
@@ -104,13 +104,13 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 				onKeyDown={handleKeyboardInput}
 				autoFocus
 			/>
-			<button type="submit" onMouseDown={e => handleMouseInput(e, input)}>Guess</button>
+			{/* <button type="submit" onMouseDown={e => handleMouseInput(e, input)}>Guess</button> */}
+			{/* <button type="submit">Guess</button> */}
 			<ul className="max-h-60 min-w-60 overflow-y-auto" ref={listRef}>
 			{delayInput.trim().length > 0 && (
 				filtered.map((card, index) => (
 					<li key={card.id} className={`flex items-center gap-2 h-8 ${listIndex === index ? "bg-blue-300" : ""}`}
-						onMouseEnter={() => setListIndex(index)} onMouseDown={e => handleMouseInput(e, card)}
-					>
+						onMouseEnter={() => setListIndex(index)} onMouseDown={e => handleMouseInput(e, card)}>
 						<img className="w-8" src={card.artUrl}/>{card.name}
 					</li>
 				))
