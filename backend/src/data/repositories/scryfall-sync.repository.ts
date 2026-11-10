@@ -1,9 +1,9 @@
-import type { ScryfallBulkType } from "../../scripts/ingest/scryfall-types.ts";
+import type { ScryfallBulkType } from "../../scripts/ingest/scryfall/types.ts";
 import { prisma } from "../prisma.ts";
 
 export type SyncKey = `scryfall_${ScryfallBulkType}`;
 
-export const syncRepository = {
+export const scryfallSyncRepository = {
   async getLastSync(key: SyncKey): Promise<Date | null> {
     const record = await prisma.cardSync.findUnique({
       where: { key },

@@ -121,7 +121,7 @@ model Guess {
     @@unique([gameSessionId, guessedCardId])
 }
 
-model CardSync {
+model ScryfallSyncCard {
   key        String   @id
   lastSyncAt DateTime
 }

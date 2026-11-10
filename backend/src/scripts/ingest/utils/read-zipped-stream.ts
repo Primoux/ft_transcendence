@@ -1,14 +1,13 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGunzip } from "node:zlib";
-import type { ScryfallBulkType } from "./scryfall-types.ts";
 
 export async function readZippedStream(
   rawStream: Readable,
   processor: (readable: Readable) => Promise<void>,
-  bulkType: ScryfallBulkType,
+  label: string,
 ): Promise<void> {
-  console.log(`[${bulkType}] Decompressing stream and starting processing...`);
+  console.log(`[${label}] Decompressing stream and starting processing...`);
 
   const gz = createGunzip();
 
@@ -17,5 +16,5 @@ export async function readZippedStream(
     processor(gz),
   ]);
 
-  console.log(`[${bulkType}] Stream processing completed.`);
+  console.log(`[${label}] Stream processing completed.`);
 }
