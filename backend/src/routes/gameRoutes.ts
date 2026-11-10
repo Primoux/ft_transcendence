@@ -31,7 +31,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 		}
 		let dailyCard: MagicCard | null = await dailyGameRepository.findTargetCard(session.dailyGameId);
 		if (!dailyCard)
-			throw Error;
+			throw new Error("could not retrieve the solution");
 		var dailyCardEntity: CardEntity = buildCardEntity(dailyCard);
 		var guessCardList: MagicCard[] = await guessRepository.findBySession(session.id);
 	}
