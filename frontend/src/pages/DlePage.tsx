@@ -23,7 +23,18 @@ function DlePage() {
 	});
 	const [summary, setSummary] = useState<SummaryEntity>({
 		legStatus: false,
-		comp: {}
+		comp: {
+			"manaValue": "incorrect",
+			"colorIdentity": "incorrect",
+			"types": "incorrect",
+			"subtypes": "incorrect",
+			"power": "incorrect",
+			"toughness": "incorrect",
+			"legStatus": "incorrect",
+			"rarity": "incorrect",
+			"releaseSet": "incorrect",
+			"releaseYear": "incorrect"
+		}
 	});
 	const [refreshKey, setRefreshKey] = useState(0);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
@@ -173,7 +184,7 @@ function DlePage() {
 			}
 				break;
 			default:
-				// dst.comp[key] = "correct"; //! TODO: test
+				dst.comp[key] = "correct"; //! TODO: test
 				break;
 		}
 	}
@@ -183,7 +194,8 @@ function DlePage() {
 			...summary, comp: {...summary.comp}
 		};
 		
-		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
+		// const keys = Object.keys(guess.card) as (keyof CardEntity)[];
+		const keys = Object.keys(summary.comp) as (keyof CardEntity)[];
 		for (const key of keys) {
 			if (summary.comp[key] === "correct") {
 				continue ;
