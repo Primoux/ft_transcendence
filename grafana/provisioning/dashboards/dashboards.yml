@@ -1,6 +1,7 @@
 apiVersion: 1
 providers:
-  - name: default
+  - name: mtgdle
     type: file
+    folder: MtgDle
     options:
       path: /var/lib/grafana/dashboards
