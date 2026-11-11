@@ -1,11 +1,9 @@
-import express from "express";
 import type { Request, Response } from 'express';
-import { cardRepository, dailyGameRepository, gameSessionRepository } from "../data/repositories/index.ts";
-import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types.ts"
-import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity, GameSession, GameStatus, Guess } from "../../generated/client.ts"
-import { guessSchema } from "../utils/validation/zodSchema.ts"
-import { guessRepository } from '../data/repositories/guess.repository.ts';
-import { prisma } from "../data/prisma.ts"
+import express from "express";
+import { DailyGame, Rarity as DatabaseRarity, GameMode, GameSession, MagicCard, Prisma } from "../../generated/client.ts";
+import { cardRepository, dailyGameRepository, gameSessionRepository, guessRepository } from "../data/repositories/index.ts";
+import { AttributeStatus, CardEntity, ColorIdentity, Rarity as FrontRarity, GuessEntity, GuessResult } from "../types/game.types.ts";
+import { guessSchema } from "../utils/validation/zodSchema.ts";
 
 const router = express.Router();
 

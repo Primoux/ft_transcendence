@@ -1,6 +1,19 @@
 import { prisma } from "../prisma.ts";
 
 export const guessRepository = {
+  async create(gameSessionId: string, guessedCardId: string) {
+    const existingGuessesCount = await prisma.guess.count({
+      where: { gameSessionId },
+    });
+
+    return prisma.guess.create({
+      data: {
+        gameSessionId,
+        guessedCardId,
+        attemptNumber: existingGuessesCount + 1,
+      },
+    });
+  },
   async findBySession(sessionId: string) {
     const guesses = await prisma.guess.findMany({
       where: {
@@ -15,17 +28,7 @@ export const guessRepository = {
     });
     return guesses.map(({ guessedCard }) => guessedCard);
   },
-  async create(gameSessionId: string, guessedCardId: string) {
-    const existingGuessesCount = await prisma.guess.count({
-      where: { gameSessionId },
-    });
-
-    return prisma.guess.create({
-      data: {
-        gameSessionId,
-        guessedCardId,
-        attemptNumber: existingGuessesCount + 1,
-      },
-    });
+  async countAll() {
+    return prisma.guess.count();
   },
 };

@@ -2,6 +2,14 @@ import { GameMode } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const gameSessionRepository = {
+  async create(userId: string, dailyGameId: string) {
+    return prisma.gameSession.create({
+      data: {
+        userId,
+        dailyGameId,
+      },
+    });
+  },
   async findById(id: string) {
     return prisma.gameSession.findUnique({ where: { id } });
   },
@@ -24,12 +32,29 @@ export const gameSessionRepository = {
       },
     });
   },
-  async create(userId: string, dailyGameId: string) {
-    return prisma.gameSession.create({
-      data: {
+  async findWonSessionsSummary(userId: string): Promise<number[]> {
+    const wonSession = await prisma.gameSession.findMany({
+      where: {
         userId,
-        dailyGameId,
+        status: "WON",
       },
+      select: {
+        _count: {
+          select: { guesses: true },
+        },
+      },
+    });
+    return wonSession.map(({ _count: { guesses } }) => guesses);
+  },
+  async countSince(startDate: Date) {
+    return prisma.gameSession.count({
+      where: { createdAt: { gte: startDate } },
+    });
+  },
+  async countByStatus() {
+    return prisma.gameSession.groupBy({
+      by: ["status"],
+      _count: true,
     });
   },
 };
