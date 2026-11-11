@@ -1,10 +1,10 @@
-import { Prisma } from "../../generated/client.ts";
 import bcrypt from "bcryptjs";
 import express from "express";
 import jwt from "jsonwebtoken";
-import { prisma } from "../data/prisma.ts";
-import * as zod from 'zod'
-import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
+import * as zod from "zod";
+import { Prisma } from "../../generated/client.ts";
+import { userRepository } from "../data/repositories/index.ts";
+import { loginSchema, registerSchema } from "../utils/validation/zodSchema.ts";
 
 const router = express.Router();
 
@@ -13,22 +13,12 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const parsedData = zod.safeParse(loginSchema, req.body)
+  const parsedData = zod.safeParse(loginSchema, req.body);
   if (!parsedData.success)
-    return res.status(400).send(zod.flattenError(parsedData.error))
+    return res.status(400).send(zod.flattenError(parsedData.error));
   const { username, password } = parsedData.data;
   try {
-    let user = await prisma.user.findUnique({
-      where: {
-        username,
-      },
-      select: {
-        id: true,
-        username: true,
-        displayName: true,
-        passwordHash: true,
-      },
-    });
+    let user = await userRepository.findForAuthByUsername(username);
     if (!user) {
       return res.status(401).json({ error: "invalid credentials" });
     }
@@ -56,27 +46,18 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  const parsedData = zod.safeParse(registerSchema, req.body)
+  const parsedData = zod.safeParse(registerSchema, req.body);
   if (!parsedData.success) {
-    return res.status(400).send(zod.flattenError(parsedData.error))
+    return res.status(400).send(zod.flattenError(parsedData.error));
   }
-  const {username, displayName, password} = parsedData.data
+  const { username, displayName, password } = parsedData.data;
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    newUser = await prisma.user.create({
-      data: {
-        username,
-        displayName,
-        passwordHash: hashedPassword,
-      },
-      select: {
-        id: true,
-        username: true,
-        displayName: true,
-        privateProfile: true,
-        createdAt: true
-      }
+    newUser = await userRepository.create({
+      username,
+      displayName,
+      passwordHash: hashedPassword,
     });
     const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET!, {
       expiresIn: "4h",
