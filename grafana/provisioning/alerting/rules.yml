@@ -271,8 +271,6 @@ groups:
               to: 0
             datasourceUid: prometheus
             model:
-              # Same reason as backend-5xx: this series is created at zero when the backend boots,
-              # so the first failed login of a burst is counted instead of being its baseline.
               expr: 'sum(increase(mtgdle_auth_events_total{event="login",result="failure"}[5m]))'
               instant: true
               refId: A
