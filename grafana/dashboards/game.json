@@ -767,7 +767,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "(sum(increase(http_requests_total{route=\"/auth/login\",status=\"200\"}[24h])) or vector(0))",
+                        "expr": "round(sum(increase(mtgdle_auth_events_total{event=\"login\",result=\"success\"}[24h])))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -854,7 +854,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum(increase(http_requests_total{route=\"/auth/login\",status=\"401\"}[24h]))",
+                        "expr": "round(sum(increase(mtgdle_auth_events_total{event=\"login\",result=\"failure\"}[24h])))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -943,7 +943,7 @@
                       "spec": {
                         "editorMode": "code",
                         "exemplar": false,
-                        "expr": "round(sum(increase(http_requests_total{route=\"/auth/register\",status=\"201\"}[24h])))",
+                        "expr": "round(sum(increase(mtgdle_auth_events_total{event=\"register\",result=\"success\"}[24h])))",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1116,7 +1116,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "(sum(increase(http_requests_total{route=\"/auth/login\",status=\"200\"}[24h])) or vector(0)) / clamp_min((sum(increase(http_requests_total{route=\"/auth/login\"}[24h])) or vector(0)), 1)",
+                        "expr": "sum(increase(mtgdle_auth_events_total{event=\"login\",result=\"success\"}[24h])) / clamp_min(sum(increase(mtgdle_auth_events_total{event=\"login\"}[24h])), 1)",
                         "instant": true,
                         "legendFormat": "",
                         "range": false
@@ -1320,8 +1320,8 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (status) (increase(http_requests_total{route=\"/auth/login\"}[1h]))",
-                        "legendFormat": "{{status}}"
+                        "expr": "round(sum by (result) (increase(mtgdle_auth_events_total{event=\"login\"}[1h])))",
+                        "legendFormat": "{{result}}"
                       },
                       "version": "v0"
                     },
