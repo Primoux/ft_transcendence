@@ -94,6 +94,49 @@ groups:
         labels:
           severity: critical
 
+      # The ratio rule above needs sustained traffic to say anything; this one catches a burst
+      # of errors on an otherwise idle server, and is the one that can be tested by hand.
+      - uid: backend-5xx-burst
+        title: 5xx error burst
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(increase(http_server_errors_total[5m]))'
+              instant: true
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: dropNN
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [10]
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: More than 10 server errors in 5 minutes
+          description: '{{ humanize $values.B.Value }} responses ended in a 5xx over the last 5 minutes.'
+        labels:
+          severity: critical
+
       - uid: backend-latency
         title: High p95 latency
         condition: C
