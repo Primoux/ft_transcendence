@@ -61,10 +61,9 @@ groups:
               to: 0
             datasourceUid: prometheus
             model:
-              # `and` drops the result under 0.1 req/s, so a single 500 on an idle server does not page anyone.
               expr: >-
-                sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
-                and sum(rate(http_requests_total[5m])) > 0.1
+                sum(rate(http_server_errors_total[5m])) / sum(rate(http_requests_served_total[5m]))
+                and sum(rate(http_requests_served_total[5m])) > 0.1
               instant: true
               refId: A
           - refId: B
