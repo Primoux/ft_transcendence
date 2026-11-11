@@ -1,4 +1,4 @@
-import { GameMode } from "../../../generated/client.ts";
+import { GameMode, Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const gameSessionRepository = {
@@ -19,7 +19,6 @@ export const gameSessionRepository = {
         userId,
         dailyGame: { date, mode },
       },
-      include: { dailyGame: true },
     });
   },
   async findByUserAndGame(userId: string, dailyGameId: string) {
@@ -45,6 +44,12 @@ export const gameSessionRepository = {
       },
     });
     return wonSession.map(({ _count: { guesses } }) => guesses);
+  },
+  async updateById(id: string, data: Prisma.GameSessionUpdateInput) {
+    return prisma.gameSession.update({
+      where: { id },
+      data,
+    });
   },
   async countSince(startDate: Date) {
     return prisma.gameSession.count({

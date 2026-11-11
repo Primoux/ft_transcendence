@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import express from "express";
-import { DailyGame, Rarity as DatabaseRarity, GameMode, GameSession, MagicCard, Prisma } from "../../generated/client.ts";
+import { DailyGame, Rarity as DatabaseRarity, GameMode, GameStatus, GameSession, MagicCard, Prisma } from "../../generated/client.ts";
 import { cardRepository, dailyGameRepository, gameSessionRepository, guessRepository } from "../data/repositories/index.ts";
 import { AttributeStatus, CardEntity, ColorIdentity, Rarity as FrontRarity, GuessEntity, GuessResult } from "../types/game.types.ts";
 import { guessSchema } from "../utils/validation/zodSchema.ts";
@@ -102,14 +102,7 @@ router.get("/guess", async (req: Request, res: Response) => {
 		comp: buildGuessComp(guessEntity, answerEntity)
 	}
 	if (result.win) {
-		session = await prisma.gameSession.update({
-			where: {
-				id: session.id
-			},
-			data: {
-				status: GameStatus.WON
-			}
-		});
+		session = await gameSessionRepository.updateById(session.id, {status: GameStatus.WON});
 		if (!session) {
 			return res.status(404).json({err: "cannot find game session to update status"});
 		}
