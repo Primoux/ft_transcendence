@@ -7,7 +7,7 @@ templates:
   - orgId: 1
     name: mtgdle-discord
     template: |
-      {{ define "mtgdle.discord.title @everyone" -}}
+      {{ define "mtgdle.discord.title" -}}
       [{{ .Status | toUpper }}{{ if eq .Status "firing" }} x{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
       {{- end }}
 
