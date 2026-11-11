@@ -32,6 +32,50 @@ export const httpDuration = new Histogram({
 	labelNames: ['method', 'route'],
 })
 
+
+export const httpServed = new Counter({
+	name: 'http_requests_served_total',
+	help: 'Total number of HTTP responses sent',
+})
+
+export const httpServerErrors = new Counter({
+	name: 'http_server_errors_total',
+	help: 'Number of HTTP responses with a 5xx status',
+})
+
+// ---- Auth ----
+
+
+const AUTH_EVENTS: Record<string, Record<number, { event: string, result: string }>> = {
+	'/auth/login': {
+		200: { event: 'login', result: 'success' },
+		401: { event: 'login', result: 'failure' },
+	},
+	// registering signs the cookie itself and never goes through /auth/login,
+	// so it is counted as a registration, not as a login
+	'/auth/register': {
+		201: { event: 'register', result: 'success' },
+		409: { event: 'register', result: 'conflict' },
+	},
+}
+
+export const authEvents = new Counter({
+	name: 'mtgdle_auth_events_total',
+	help: 'Authentication events',
+	labelNames: ['event', 'result'],
+})
+
+// Create every series the map can produce at zero, for the same reason as the two counters above:
+// otherwise the first login or registration is only a baseline and goes uncounted.
+for (const statuses of Object.values(AUTH_EVENTS))
+	for (const labels of Object.values(statuses))
+		authEvents.inc(labels, 0)
+
+// Returns the auth event a finished response stands for, if any.
+export function authEventFor(route: string, status: number) {
+	return AUTH_EVENTS[route]?.[status]
+}
+
 // ---- Users ----
 
 new Gauge({
