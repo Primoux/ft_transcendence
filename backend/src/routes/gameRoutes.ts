@@ -31,7 +31,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 			throw new Error("could not retrieve daily solution for this mode");
 		var dailyCardEntity: CardEntity = buildCardEntity(dailyCard);
 		console.log(dailyCard.name);
-		var guessCardList: MagicCard[] = await guessRepository.findBySession(session.id);
+		var guessCardList: MagicCard[] = await guessRepository.findGuessedCardsBySession(session.id);
 	}
 	catch (err) {
 		return res.status(500).json({err: "database issue"});

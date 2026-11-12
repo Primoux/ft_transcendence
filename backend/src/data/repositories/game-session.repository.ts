@@ -1,4 +1,4 @@
-import { GameMode, Prisma } from "../../../generated/client.ts";
+import type { GameMode, Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const gameSessionRepository = {
