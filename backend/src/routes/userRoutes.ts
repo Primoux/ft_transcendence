@@ -1,15 +1,10 @@
-import bcrypt from "bcryptjs";
-import express from "express";
-import * as zod from "zod";
-import { Prisma } from "../../generated/client.ts";
-import {
-  gameSessionRepository,
-  userRepository,
-} from "../data/repositories/index.ts";
-import {
-  changeDisplayNameSchema,
-  changePasswordSchema,
-} from "../utils/validation/zodSchema.ts";
+import express from 'express'
+import { prisma } from '../data/prisma.ts'
+import { Prisma } from "../../generated/client.ts"
+import bcrypt from 'bcryptjs'
+import * as zod from 'zod'
+import { changeDisplayNameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
+import { userRepository, gameSessionRepository, authRepository } from '../data/repositories/index.ts';
 
 const router = express.Router();
 
@@ -111,10 +106,11 @@ router.post("/me/changePassword", async (req, res) => {
     return res.status(403).json({ error: "incorrect password" });
 
   const passwordChangeResponse = await userRepository.updateById(req.userId, {
-    passwordHash: bcrypt.hashSync(req.body.newPassword, 10),
-  });
-  return res.status(201).json(passwordChangeResponse);
-});
+      passwordHash: bcrypt.hashSync(req.body.newPassword, 10)
+    });
+    await authRepository.revokeOtherSessions(req.userId, req.sessionId!);
+    return res.status(201).json(passwordChangeResponse)
+})
 
 /**
  * @returns the public profile data of specified user

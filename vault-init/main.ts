@@ -228,7 +228,6 @@ async function seedDatabaseSecrets(token: string) {
     await vaultRequest(backendSecretPath, "POST", {
         data: {
             DATABASE_URL: `postgresql://${dbUser}:${dbPassword}@postgres:5432/${dbName}`,
-            JWT_SECRET: randomBytes(32).toString("hex"),
         },
     }, token)
 
