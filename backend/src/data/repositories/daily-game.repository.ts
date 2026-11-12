@@ -1,4 +1,4 @@
-import { GameMode } from "../../../generated/client.ts";
+import type { GameMode, MagicCard } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const dailyGameRepository = {
@@ -21,7 +21,7 @@ export const dailyGameRepository = {
       },
     });
   },
-  async findTargetCard(id: string) {
+  async findTargetCard(id: string): Promise<MagicCard | null> {
     const dailyGame = await prisma.dailyGame.findUnique({
       where: { id },
       select: { targetCard: true },

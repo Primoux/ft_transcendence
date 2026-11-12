@@ -1,3 +1,4 @@
+import type { MagicCard } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const guessRepository = {
@@ -14,7 +15,7 @@ export const guessRepository = {
       },
     });
   },
-  async findBySession(sessionId: string) {
+  async findGuessedCardsBySession(sessionId: string): Promise<MagicCard[]> {
     const guesses = await prisma.guess.findMany({
       where: {
         gameSessionId: sessionId,
