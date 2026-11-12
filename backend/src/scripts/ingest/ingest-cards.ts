@@ -94,7 +94,7 @@ try {
     console.log(`Card ingestion pipeline completed in ${totalDuration}s.`);
   }
 } catch (error) {
-  console.error("Fatal ingestion error:", error);
+  console.error(error);
   process.exitCode = 1;
 } finally {
   await stagingRepository.clear();
