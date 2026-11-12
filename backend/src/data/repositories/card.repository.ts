@@ -2,6 +2,16 @@ import type { Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const cardRepository = {
+  async findAllPlayable(maxCards: number = 5000) {
+    return prisma.magicCard.findMany({
+      where: { edhrecRank: { not: null } },
+      orderBy: { edhrecRank: "asc" },
+      take: maxCards,
+    });
+  },
+  async findById(id: string) {
+    return prisma.magicCard.findUnique({ where: { oracleId: id } });
+  },
   async upsertMany(cards: Prisma.MagicCardCreateManyInput[]) {
     const operations = cards.map((card) => {
       const { oracleId, ...updateFields } = card;
