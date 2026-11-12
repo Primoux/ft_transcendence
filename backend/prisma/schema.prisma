@@ -105,6 +105,8 @@ model MagicCard {
 
     dailyGames  DailyGame[]
     guesses     Guess[]
+
+    @@index([edhrecRank])
 }
 
 model Guess {
