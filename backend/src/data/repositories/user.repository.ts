@@ -1,4 +1,4 @@
-import { Prisma } from "../../../generated/client.ts";
+import type { Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const userRepository = {
@@ -30,27 +30,6 @@ export const userRepository = {
     return prisma.user.update({
       where: { id },
       data,
-    });
-  },
-  async togglePrivateProfile(userId: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { privateProfile: true },
-    });
-
-    if (!user) {
-      throw new Prisma.PrismaClientKnownRequestError(
-        "No 'User' record was found.",
-        {
-          code: "P2025",
-          clientVersion: Prisma.prismaVersion.client,
-        },
-      );
-    }
-
-    return prisma.user.update({
-      where: { id: userId },
-      data: { privateProfile: !user.privateProfile },
     });
   },
   async countAll() {
