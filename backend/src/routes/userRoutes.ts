@@ -1,5 +1,4 @@
 import express from 'express'
-import { prisma } from '../data/prisma.ts'
 import { Prisma } from "../../generated/client.ts"
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'

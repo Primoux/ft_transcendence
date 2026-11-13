@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import express from "express";
 import { Prisma } from "../../generated/client.ts";
-import { prisma } from "../data/prisma.ts";
 import * as zod from 'zod'
 import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
 import {SESSION_COOKIE, authRepository, userRepository} from '../data/repositories/index.ts'
