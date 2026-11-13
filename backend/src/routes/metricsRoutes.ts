@@ -43,6 +43,10 @@ export const httpServerErrors = new Counter({
 	help: 'Number of HTTP responses with a 5xx status',
 })
 
+// Create every series the map can produce at zero, so that they are always present in the metrics output.
+httpServed.inc(0)
+httpServerErrors.inc(0)
+
 // ---- Auth ----
 
 
@@ -65,8 +69,7 @@ export const authEvents = new Counter({
 	labelNames: ['event', 'result'],
 })
 
-// Create every series the map can produce at zero, for the same reason as the two counters above:
-// otherwise the first login or registration is only a baseline and goes uncounted.
+// Create every series the map can produce at zero, for the same reason as the two counters above.
 for (const statuses of Object.values(AUTH_EVENTS))
 	for (const labels of Object.values(statuses))
 		authEvents.inc(labels, 0)
