@@ -1,58 +1,11 @@
 services:
-  vault:
-    profiles: [vault]
-  vault-init:
-    profiles: [vault]
-  vault-agent-postgres:
-    profiles: [vault]
-  vault-agent-backend:
-    profiles: [vault]
-  vault-agent-grafana:
-    profiles: [vault]
-  vault-agent-frontend:
-    profiles: [vault]
-  vault-agent-postgres-exporter:
-    profiles: [vault]
-  postgres-exporter:
-    environment:
-      DATA_SOURCE_USER: ${DB_USER}
-      DATA_SOURCE_PASS: ${DB_PASSWORD}
-      DATA_SOURCE_PASS_FILE: !reset null
-    group_add: !reset []
-    volumes: !reset []
-    depends_on: !override
-      postgres:
-        condition: service_healthy
-  grafana:
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?missing from .env, run make env}
-      GF_SECURITY_ADMIN_PASSWORD__FILE: !reset null
-    volumes: !override
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    depends_on: !override
-      prometheus:
-        condition: service_healthy
   postgres:
-    depends_on: !reset {}
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_PASSWORD_FILE: !reset null
-    # Dev keeps its own data: prod's volume is initialized with the Vault password, dev's with the one from .env.
+    # Dev keeps its own data, so resetting prod with `make down` doesn't wipe it.
     volumes: !override
       - postgres_dev_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
   backend:
-    environment: !override
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-    volumes: !reset []
-    depends_on: !override
-      postgres:
-        condition: service_healthy
-      card-ingestion:
-        condition: service_completed_successfully
     build:
       target: dev
     image: backend-dev
@@ -73,13 +26,6 @@ services:
           path: ./backend/prisma/migrations
         - action: rebuild
           path: ./backend/prisma.config.ts
-  card-ingestion:
-    environment: !override
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-    volumes: !reset []
-    depends_on: !override
-      postgres:
-        condition: service_healthy
   frontend:
     healthcheck: !override
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5173/"]
@@ -89,13 +35,9 @@ services:
       start_period: 10s
     ports: !override
       - "127.0.0.1:5173:5173"
-    # Vite serves plain HTTP in dev: no certificate, so no Vault Agent to wait for.
+    # Vite serves plain HTTP in dev: no certificate, so none of prod's nginx settings.
     environment: !reset {}
-    group_add: !reset []
     volumes: !reset []
-    depends_on: !override
-      backend:
-        condition: service_healthy
     build:
       target: dev
     image: frontend-dev
