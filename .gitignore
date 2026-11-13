@@ -5,7 +5,7 @@ node_modules/
 backend/generated
 .env
 .DS_Store
-vault-keys.json
 .vscode/
 .DS_Store
-vault-keys.json
+# Self-signed HTTPS certificate and its private key, created by `make certs`.
+certs/

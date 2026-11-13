@@ -3,7 +3,7 @@
 if [ -f .env ]
 then
     echo "[WARN].env file already present."
-    echo "Press enter to replace and DROP YOUR CURRENT DB AND VAULT. ctrl+c to abort"
+    echo "Press enter to replace and DROP YOUR CURRENT DB. ctrl+c to abort"
     read _
     docker compose down -v
 else
@@ -12,7 +12,7 @@ else
 fi
 
     DB_USER=`whoami`
-    DB_PASSWORD=`openssl rand -hex 6`
+    DB_PASSWORD=`openssl rand -hex 32`
     DB_NAME="dev_db"
     
     echo "DB_USER=$DB_USER" > .env
@@ -24,3 +24,8 @@ fi
 
     echo "GRAFANA_USER=admin" >> .env
     echo "GRAFANA_PASSWORD=`openssl rand -hex 12`" >> .env
+    # Postgres creates the exporter's read-only role with it: see postgres/exporter-role.sh.
+    echo "EXPORTER_PASSWORD=`openssl rand -hex 32`" >> .env
+
+    # The prod secrets live here now: readable by you only.
+    chmod 600 .env
