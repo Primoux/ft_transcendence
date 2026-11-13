@@ -56,30 +56,22 @@ To see the state of the app in production, run `make prod`. This will :
 
 The app will then be accessible through `https://localhost:8443`.
 
-In production, secrets come from Vault, which starts sealed every time its container restarts. On first run, `make prod` initializes and unseals it automatically. On every later start:
-
-1. run `make prod`. It stops with `vault-init` failing, because Vault is sealed.
-2. run `./unseal_vault.sh`, and enter 3 of the 5 unseal keys when prompted.
-3. run `make prod` again.
+The certificate is self-signed, created in `certs/` by `make prod` when missing (or by `make certs`). Your browser will warn about it once: accept it to continue.
 
 ## Secrets handling
 
-Several secrets are required for MagicDle to run :
+All secrets live in the `.env` file at the root of the repo, generated on first run by `make_env.sh` (or regenerated with `make env`):
 
-+ Postgres DB root password
-+ Grafana admin password
++ `DB_PASSWORD`: Postgres password of the app's user
++ `EXPORTER_PASSWORD`: password of the read-only role the Postgres exporter uses
++ `GRAFANA_PASSWORD`: Grafana admin password, needed to log into the monitoring dashboard
 
-These secrets are generated at first run and put into vault through the `vault-init/main.ts` script. The root token and unseal keys (required for Vault handling) are then written in the `vault-init-data/vault-keys.json` file. This file needs to be read by the operators (and only them), its content saved for later use, then immediately deleted.
-
-The postgres password should not be needed by operators.
-On the other hand, the Grafana password needs to be known by admins in order to access the monitoring dashboard. To get the grafana admin password that was generated, run :
-
-`docker exec -e VAULT_TOKEN=<root token> vault vault kv get -field=GRAFANA_PASSWORD secret/grafana/config`
+`.env` is git-ignored and only readable by you. Never commit it.
 
 ### Limitations
 
-The secrets are only generated at startup by init scripts.
-Any credential change inside Vault will not update the corresponding service, and the other way around is also true : changing grafana admin password will not update the secret inside Vault. Both need to be done in order to keep Vault's data up to date.
+Postgres only reads `DB_PASSWORD` and `EXPORTER_PASSWORD` when its volume is first created. After changing them in `.env`, reset the database with `make down` (prod) or `make down-dev` (dev) for them to apply.
+Grafana likewise keeps the admin password it was first started with: changing `GRAFANA_PASSWORD` afterwards needs a reset of its volume, or a password change from Grafana's own UI.
 
 ## Monitoring
 

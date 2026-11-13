@@ -1,10 +1,10 @@
 #!/bin/sh
 # Creates the read-only role the Postgres exporter logs in with.
-# Runs only when the database is first created, like POSTGRES_PASSWORD_FILE: Vault and the database are reset together.
+# Runs only when the database is first created: a new EXPORTER_PASSWORD needs a fresh volume (`make down`).
 set -eu
 
 if [ -z "${EXPORTER_PASSWORD:-}" ]; then
-    echo "exporter-role.sh: no exporter password (no Vault, as in dev): skipping the postgres_exporter role."
+    echo "exporter-role.sh: EXPORTER_PASSWORD is not set (run make env): skipping the postgres_exporter role."
     exit 0
 fi
 
