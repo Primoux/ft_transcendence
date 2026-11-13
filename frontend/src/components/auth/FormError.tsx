@@ -5,7 +5,7 @@ function FormError({ message } : FormErrorProps) {
         return null
     }
     return (
-        <p role="alert" className="text-orange">{message}</p>
+        <p role="alert" className="text-error">{message}</p>
     )
 }
 
