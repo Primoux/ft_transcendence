@@ -1,4 +1,5 @@
 import type { User } from "../../types/user";
+import { Avatar } from "../Avatar";
 
 type ProfileSectionProps = { userToView : User}
 
@@ -10,12 +11,8 @@ export function ProfileDetails({ userToView }: ProfileSectionProps) {
 
     return (
             <>
-                <div>
-                    <img
-                        src={userToView.avatarKey ? `/api/uploads/${userToView.avatarKey}` : "/default-avatar.jpg"}
-                        alt=""
-                        className="h-24 w-24 rounded-full object-cover"
-                    />
+                <div className="flex items-center gap-4">
+                    <Avatar user={userToView} />
                     <h2>{`@${userToView.username}`}</h2>
                 </div>
                 <p>member since : {dateStr} </p>
