@@ -73,21 +73,14 @@ router.patch("/me/displayName", async (req, res) => {
 });
 
 router.patch("/me/privateProfile", async (req, res) => {
-  if (!req.userId) {
-    return res.status(401).json({ error: "no user provided" });
-  }
+if (!req.userId) {return res.status(401).json({error: "no user provided"})}
+    const currentUser = await userRepository.findById(req.userId)
 
-  try {
-    const response = await userRepository.togglePrivateProfile(req.userId);
+    if (!currentUser) {return res.status(404).json({error: "user not found"})}
 
-    return res.status(200).json(response);
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    )
-      return res.status(404).json({ error: "no such user" });
-  }
+    const response = await userRepository.updateById(req.userId, {privateProfile: !currentUser.privateProfile});
+    
+    return res.status(200).json(response)
 });
 
 router.post("/me/changePassword", async (req, res) => {
