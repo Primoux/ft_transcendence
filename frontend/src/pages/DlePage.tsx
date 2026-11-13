@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse } from "../types/game.ts";
+import Spinner from "../components/Spinner.tsx";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
 
@@ -229,7 +230,7 @@ function DlePage() {
 		<h1>MagicDLE</h1>
 		<h2>Classic mode</h2>
 		<section>
-			{loading ? (<p>Loading cards...</p>) :
+			{loading ? (<Spinner size="lg" />) :
 			guesses.length === 0 ? (
 				<div>
 					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
