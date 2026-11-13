@@ -79,9 +79,11 @@ export const cardRepository = {
       "releaseSetName" = EXCLUDED."releaseSetName";
     `;
   },
-  async findAllPlayable(maxRank: number = 5000) {
+  async findAllPlayable(maxCards: number = 5000) {
     return prisma.magicCard.findMany({
-      where: { edhrecRank: { lt: maxRank } },
+      where: { edhrecRank: { not: null } },
+      orderBy: { edhrecRank: "asc" },
+      take: maxCards,
     });
   },
   async findById(id: string) {
