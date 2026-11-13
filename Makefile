@@ -17,10 +17,10 @@ help:
 	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  dev	  - Build and start the application in dev mode (with hot reload)"
 	@echo "  prod	  - Build and start the application in production mode"
-	@echo "  prisma	  - Regenerate prisma client and run migrations"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
-	@echo "  down     - Stop the application and remove volumes"
+	@echo "  down     - Stop the application and remove volumes (the dev database is kept)"
+	@echo "  down-dev - Stop the application and remove the dev database"
 	@echo "  logs     - Show application logs"
 	@echo "  reset    - Stop the application and delete .env"
 	@echo "  env      - Regenerate .env file"
@@ -60,6 +60,12 @@ ps logs restart: %:
 down:
 	$(COMPOSE) down -v
 	rm -rf ./vault-init-data/vault-keys.json
+
+# Only the dev database is removed: `down -v` with the dev file would also take prod's volumes, Vault's included.
+.PHONY: down-dev
+down-dev:
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) down
+	docker volume rm -f transcendance_postgres_dev_data
 
 .PHONY: reset
 reset: down

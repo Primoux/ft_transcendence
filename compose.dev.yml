@@ -39,14 +39,14 @@ services:
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_PASSWORD_FILE: !reset null
+    # Dev keeps its own data: prod's volume is initialized with the Vault password, dev's with the one from .env.
     volumes: !override
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
   backend:
     environment: !override
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-      - JWT_SECRET=${JWT_SECRET}
     volumes: !reset []
     depends_on: !override
       postgres:
@@ -122,3 +122,8 @@ services:
           path: ./frontend/package.json
         - action: rebuild
           path: ./frontend/package-lock.json
+
+volumes:
+  postgres_dev_data:
+    # Fixed name, so `make down-dev` can remove it without guessing the project name.
+    name: transcendance_postgres_dev_data

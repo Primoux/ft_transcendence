@@ -1,14 +1,14 @@
 import { createInterface } from "node:readline";
 import { Readable } from "node:stream";
-import { stagingRepository } from "../../data/repositories/index.ts";
-import { isValidCardHistory, isValidOracleCard } from "./card-filter.ts";
-import { cardMapper } from "./scryfall-to-prisma-mapper.ts";
+import { stagingRepository } from "../../../data/repositories/index.ts";
+import { cardFilter } from "./card-filter.ts";
+import { cardMapper } from "./card-mapper.ts";
 import {
   SCRYFALL_BULK_TYPES,
   ScryfallBulkType,
   ScryfallCardHistory,
   ScryfallOracleCard,
-} from "./scryfall-types.ts";
+} from "./types.ts";
 
 const BATCH_SIZE = 500;
 
@@ -22,7 +22,7 @@ interface StagingOptions<TValid, TStaged> {
   stageBatch: (batch: TStaged[]) => Promise<{ count: number }>;
 }
 
-export async function processStream<TValid, TStaged>(
+async function processStream<TValid, TStaged>(
   decompressed: Readable,
   options: StagingOptions<TValid, TStaged>,
 ): Promise<void> {
@@ -66,28 +66,28 @@ export async function processStream<TValid, TStaged>(
   );
 }
 
-export async function stageOracleCards(decompressed: Readable): Promise<void> {
-  return await processStream(decompressed, {
-    bulkType: SCRYFALL_BULK_TYPES.ORACLE,
-    parseAndFilter: (line) => {
-      const card: ScryfallOracleCard = JSON.parse(line);
-      return isValidOracleCard(card) ? card : null;
-    },
-    map: cardMapper.toStagingOracle,
-    stageBatch: stagingRepository.createManyOracleCard,
-  });
-}
+export const scryfallCardLoader = {
+  async stageOracleCards(decompressed: Readable): Promise<void> {
+    return await processStream(decompressed, {
+      bulkType: SCRYFALL_BULK_TYPES.ORACLE,
+      parseAndFilter: (line) => {
+        const card: ScryfallOracleCard = JSON.parse(line);
+        return cardFilter.isValidOracleCard(card) ? card : null;
+      },
+      map: cardMapper.toStagingOracle,
+      stageBatch: stagingRepository.createManyOracleCard,
+    });
+  },
 
-export async function stageCardHistories(
-  decompressed: Readable,
-): Promise<void> {
-  return await processStream(decompressed, {
-    bulkType: SCRYFALL_BULK_TYPES.DEFAULT,
-    parseAndFilter: (line) => {
-      const cardHistory: ScryfallCardHistory = JSON.parse(line);
-      return isValidCardHistory(cardHistory) ? cardHistory : null;
-    },
-    map: cardMapper.toStagingHistory,
-    stageBatch: stagingRepository.createManyCardHistory
-  });
-}
+  async stageCardHistories(decompressed: Readable): Promise<void> {
+    return await processStream(decompressed, {
+      bulkType: SCRYFALL_BULK_TYPES.DEFAULT,
+      parseAndFilter: (line) => {
+        const cardHistory: ScryfallCardHistory = JSON.parse(line);
+        return cardFilter.isValidCardHistory(cardHistory) ? cardHistory : null;
+      },
+      map: cardMapper.toStagingHistory,
+      stageBatch: stagingRepository.createManyCardHistory,
+    });
+  },
+};

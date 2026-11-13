@@ -16,7 +16,7 @@ export const stagingRepository = {
       skipDuplicates: true,
     });
   },
-  async clear() {
+  async clear(): Promise<Prisma.BatchPayload[]> {
     return Promise.all([
       prisma.stagingOracleCard.deleteMany(),
       prisma.stagingCardHistory.deleteMany(),

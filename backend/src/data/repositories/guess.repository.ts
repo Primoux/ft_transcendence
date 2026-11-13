@@ -1,7 +1,21 @@
+import type { MagicCard } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const guessRepository = {
-  async findBySession(sessionId: string) {
+  async create(gameSessionId: string, guessedCardId: string) {
+    const existingGuessesCount = await prisma.guess.count({
+      where: { gameSessionId },
+    });
+
+    return prisma.guess.create({
+      data: {
+        gameSessionId,
+        guessedCardId,
+        attemptNumber: existingGuessesCount + 1,
+      },
+    });
+  },
+  async findGuessedCardsBySession(sessionId: string): Promise<MagicCard[]> {
     const guesses = await prisma.guess.findMany({
       where: {
         gameSessionId: sessionId,
@@ -15,17 +29,7 @@ export const guessRepository = {
     });
     return guesses.map(({ guessedCard }) => guessedCard);
   },
-  async create(gameSessionId: string, guessedCardId: string) {
-    const existingGuessesCount = await prisma.guess.count({
-      where: { gameSessionId },
-    });
-
-    return prisma.guess.create({
-      data: {
-        gameSessionId,
-        guessedCardId,
-        attemptNumber: existingGuessesCount + 1,
-      },
-    });
+  async countAll() {
+    return prisma.guess.count();
   },
 };

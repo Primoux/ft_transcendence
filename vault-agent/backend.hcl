@@ -20,7 +20,6 @@ template {
   contents             = <<-EOT
     {{ with secret "secret/data/backend/config" }}
     export DATABASE_URL='{{ .Data.data.DATABASE_URL }}'
-    export JWT_SECRET='{{ .Data.data.JWT_SECRET }}'
     {{ end }}
   EOT
 }
