@@ -27,7 +27,7 @@ app.use("/health", healthRoutes)
 app.use(requireAuth);
 app.use("/dle", gameRoutes)
 
-// sensitive endpoints : require valid jwt
+// sensitive endpoints : require a valid session
 
 app.use("/users", userRoutes)
 

@@ -52,8 +52,23 @@ model User {
     passwordHash String
     createdAt    DateTime @default(now())
     privateProfile  Boolean @default(false)
+    sessions     GameSession[]
+    authSessions AuthSession[]
+}
 
-    sessions GameSession[]
+model AuthSession {
+  id                String   @id      // sha256(token), hex. The raw token is never stored
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  expiresAt         DateTime          // idle expiry, pushed forward while the user is active
+  absoluteExpiresAt DateTime          // hard cap, never extended
+  lastSeenAt        DateTime @default(now())
+  userAgent         String?
+  ip                String?
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model GameSession {

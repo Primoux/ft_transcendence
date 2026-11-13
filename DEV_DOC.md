@@ -67,12 +67,11 @@ In production, secrets come from Vault, which starts sealed every time its conta
 Several secrets are required for MagicDle to run :
 
 + Postgres DB root password
-+ JWT Signing key for auth
 + Grafana admin password
 
 These secrets are generated at first run and put into vault through the `vault-init/main.ts` script. The root token and unseal keys (required for Vault handling) are then written in the `vault-init-data/vault-keys.json` file. This file needs to be read by the operators (and only them), its content saved for later use, then immediately deleted.
 
-The postgres password and JWT key should not be needed by operators.
+The postgres password should not be needed by operators.
 On the other hand, the Grafana password needs to be known by admins in order to access the monitoring dashboard. To get the grafana admin password that was generated, run :
 
 `docker exec -e VAULT_TOKEN=<root token> vault vault kv get -field=GRAFANA_PASSWORD secret/grafana/config`
