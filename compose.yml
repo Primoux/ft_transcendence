@@ -27,8 +27,11 @@ services:
     image: backend-prod
     container_name: backend
     environment:
-      - TZ=Europe/Paris
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      TZ: Europe/Paris
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
@@ -40,6 +43,8 @@ services:
         condition: service_healthy
       card-ingestion:
         condition: service_completed_successfully
+    volumes:
+      - ./uploads:/app/uploads
   card-ingestion:
     build:
       context: ./backend/
@@ -130,3 +135,4 @@ volumes:
   postgres_data:
   grafana_data:
   prometheus_data:
+  uploads:

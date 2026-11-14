@@ -59,4 +59,20 @@ export const userRepository = {
   async countByPrivateStatus(isPrivate: boolean) {
     return prisma.user.count({ where: { privateProfile: isPrivate } });
   },
+  async findByOAuthAccount(provider: string, providerAccountId: string) {
+    const account = await prisma.oAuthAccount.findUnique({
+      where: { provider_providerAccountId: { provider, providerAccountId } },  // the @@id([provider, providerAccountId])
+      select: { user: true },
+    });
+    return account?.user ?? null;
+  },
+
+  async createWithOAuthAccount(username: string, provider: string, providerAccountId: string) {
+    return prisma.user.create({
+      data: {
+        username,
+        oauthAccounts: { create: { provider, providerAccountId } },
+      },
+      });
+  }
 };

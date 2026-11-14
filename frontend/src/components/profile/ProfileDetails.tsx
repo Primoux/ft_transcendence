@@ -11,7 +11,11 @@ export function ProfileDetails({ userToView }: ProfileSectionProps) {
     return (
             <>
                 <div>
-                    <h2>{userToView.displayName}</h2>
+                    <img
+                        src={userToView.avatarKey ? `/api/uploads/${userToView.avatarKey}` : "/default-avatar.jpg"}
+                        alt=""
+                        className="h-24 w-24 rounded-full object-cover"
+                    />
                     <h2>{`@${userToView.username}`}</h2>
                 </div>
                 <p>member since : {dateStr} </p>

@@ -48,12 +48,23 @@ enum Rarity{
 model User {
     id           String @id @default(cuid(2))
     username     String @unique
-    displayName  String
-    passwordHash String
+    passwordHash String?
+    avatarKey    String?
     createdAt    DateTime @default(now())
     privateProfile  Boolean @default(false)
     sessions     GameSession[]
     authSessions AuthSession[]
+    oauthAccounts OAuthAccount[]
+}
+
+model OAuthAccount {
+    provider          String
+    providerAccountId String
+    userId            String
+    user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([provider, providerAccountId])
+    @@index([userId])
 }
 
 model AuthSession {

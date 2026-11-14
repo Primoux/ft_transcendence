@@ -10,12 +10,12 @@ export function AuthProvider({children} : AuthProviderProps) {
     const [authState, setAuthState] = useState<LoggedIn | LoggedOut>({user: null, authStatus: "loading"})
 
     
-    async function register({username, displayName, password, passwordConfirmation}: RegisterData): Promise<AuthSuccess | AuthFail>{
+    async function register({username, password, passwordConfirmation}: RegisterData): Promise<AuthSuccess | AuthFail>{
         try{
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({username, displayName, password, passwordConfirmation}),
+                body: JSON.stringify({username, password, passwordConfirmation}),
             })
 			const data = await response.json()
             if (!response.ok) {
