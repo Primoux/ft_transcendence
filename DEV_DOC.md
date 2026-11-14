@@ -77,9 +77,7 @@ Grafana likewise keeps the admin password it was first started with: changing `G
 
 Grafana is available at `http://localhost:3000`.
 
-1. Log in with `GRAFANA_USER` from the `.env` file, and the password:
-   + in dev: `GRAFANA_PASSWORD` from the `.env` file.
-   + in prod: the one stored in Vault (see [Secrets handling](#secrets-handling)).
+1. Log in with `GRAFANA_USER` and `GRAFANA_PASSWORD` from the `.env` file (see [Secrets handling](#secrets-handling)).
 2. Click `Dashboards` in the left menu.
 3. Three dashboards are available: `MtgDle - Server`, `MtgDle - Game` and `PostgreSQL Database`.
 
