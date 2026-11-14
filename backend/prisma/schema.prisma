@@ -85,10 +85,10 @@ model Friendship {
     updatedAt  DateTime         @updatedAt
 
     senderId   String
-    sender     User             @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+    sender     User @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
 
     receiverId String
-    receiver   User             @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+    receiver   User @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
 
     @@unique([senderId, receiverId])
 }
