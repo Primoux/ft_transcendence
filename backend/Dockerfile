@@ -36,6 +36,7 @@ RUN chmod +x ./entrypoint.sh
 
 COPY --from=build /app/dist .
 
+RUN mkdir -p /app/uploads && chown node:node /app/uploads
 USER node
 CMD ["node", "src/server.js"]
 ENTRYPOINT ["./entrypoint.sh"]

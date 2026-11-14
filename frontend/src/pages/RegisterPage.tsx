@@ -5,12 +5,12 @@ import TextField from '../components/auth/TextField'
 import PasswordField from '../components/auth/PasswordField'
 import SubmitButton from '../components/auth/SubmitButton'
 import FormError from '../components/auth/FormError'
-import { User as UserIcon, KeyRound, IdCard } from 'lucide-react'
+import DiscordButton from '../components/auth/DiscordButton'
+import { User as UserIcon, KeyRound } from 'lucide-react'
 import { useAuth } from "../useAuth";
 
 export default function RegisterPage() {
 	const [username, setUsername] = useState('');
-	const [displayName, setDisplayName] = useState('');
 	const [password, setPassword] = useState('');
 	const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -26,7 +26,7 @@ export default function RegisterPage() {
         }
         setErrorMsg(null)
         setLoading(true)
-        const response = await auth.register({username, displayName, password, passwordConfirmation})
+        const response = await auth.register({username, password, passwordConfirmation})
 
 		if (response.user === null) {setErrorMsg(response.error)}
         setLoading(false)
@@ -54,18 +54,7 @@ export default function RegisterPage() {
 					icon={<UserIcon className="h-[1em] opacity-50" />}
 					minLength={3}
 					maxLength={15}
-					hint="Must be 3 to 15 characters"
-				/>
-				<TextField
-					id="displayName"
-					label="Display name"
-					value={displayName}
-					onChange={setDisplayName}
-					placeholder="Display name"
-					autoComplete="nickname"
-					icon={<IdCard className="h-[1em] opacity-50" />}
-					maxLength={30}
-					hint="Shown to other players. At most 30 characters."
+					hint="3 to 15 letters, digits or underscores"
 				/>
 				<PasswordField
 					id="password"
@@ -94,6 +83,7 @@ export default function RegisterPage() {
 			</div>
 
 			<SubmitButton loading={loading} label="Create account" loadingLabel="Creating account…" />
+			<DiscordButton label="Sign up with Discord" />
 			<FormError message={errorMsg} />
 		</AuthLayout>
 	);
