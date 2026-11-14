@@ -1,4 +1,4 @@
-import { FriendshipStatus, Prisma } from "../../../generated/client.ts";
+import { Friendship, FriendshipStatus, Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const friendshipRepository = {
@@ -37,7 +37,7 @@ export const friendshipRepository = {
       },
     });
   },
-  async findPendingRequests(receiverId: string) {
+  async findPendingRequests(receiverId: string): Promise<Friendship[]> {
     return prisma.friendship.findMany({
       where: {
         receiverId,
