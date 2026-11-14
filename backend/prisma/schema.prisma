@@ -15,6 +15,10 @@ datasource db {
     provider = "postgresql"
 }
 
+enum FriendshipStatus{
+    PENDING
+    ACCEPTED
+}
 enum GameStatus {
     IN_PROGRESS
     WON
@@ -52,8 +56,11 @@ model User {
     passwordHash String
     createdAt    DateTime @default(now())
     privateProfile  Boolean @default(false)
-    sessions     GameSession[]
-    authSessions AuthSession[]
+
+    sentFriendships     Friendship[] @relation("SentFriendships")
+    receivedFriendships Friendship[] @relation("ReceivedFriendships")
+    authSessions        AuthSession[]
+    sessions            GameSession[]
 }
 
 model AuthSession {
@@ -69,6 +76,21 @@ model AuthSession {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Friendship {
+    id         String           @id @default(cuid(2))
+    status     FriendshipStatus @default(PENDING)
+    createdAt  DateTime         @default(now())
+    updatedAt  DateTime         @updatedAt
+
+    senderId   String
+    sender     User @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+
+    receiverId String
+    receiver   User @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+
+    @@unique([senderId, receiverId])
 }
 
 model GameSession {
