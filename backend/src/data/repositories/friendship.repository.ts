@@ -37,12 +37,17 @@ export const friendshipRepository = {
       },
     });
   },
-  async findPendingRequests(senderId: string) {
+  async findPendingRequests(receiverId: string) {
     return prisma.friendship.findMany({
       where: {
-        senderId,
+        receiverId,
         status: FriendshipStatus.ACCEPTED,
       },
+    });
+  },
+  async delete(id: string) {
+    return prisma.friendship.delete({
+      where: { id },
     });
   },
 };
