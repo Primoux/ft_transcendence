@@ -10,7 +10,7 @@
   "version": 1,
   "refresh": "15s",
   "time": {
-    "from": "now-6h",
+    "from": "now/d",
     "to": "now"
   },
   "editable": true,
@@ -149,7 +149,7 @@
     {
       "id": 4,
       "type": "timeseries",
-      "title": "Logins (200 = success, 401 = failure)",
+      "title": "Logins (success / failure)",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -166,9 +166,9 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (status) (increase(http_requests_total{route=\"/auth/login\"}[5m]))",
+          "expr": "round(sum by (result) (increase(mtgdle_auth_events_total{event=\"login\"}[5m])))",
           "refId": "A",
-          "legendFormat": "{{status}}"
+          "legendFormat": "{{result}}"
         }
       ],
       "fieldConfig": {
