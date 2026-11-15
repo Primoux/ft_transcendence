@@ -44,7 +44,7 @@ services:
       card-ingestion:
         condition: service_completed_successfully
     volumes:
-      - ./uploads:/app/uploads
+      - uploads:/app/uploads
   card-ingestion:
     build:
       context: ./backend/

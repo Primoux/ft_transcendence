@@ -13,11 +13,8 @@ import errorCatcher from './middleware/errorMiddleware.ts'
 
 import cookieParser from 'cookie-parser'
 
-import { mkdirSync } from 'node:fs'
-import path from 'node:path'
+import { UPLOADS_DIR } from './services/avatars.ts'
 
-export const UPLOADS_DIR = path.resolve("uploads")
-mkdirSync(path.join(UPLOADS_DIR, "avatars"), { recursive: true })   // no-op if it already exists
 
 const app = express();
 app.disable('x-powered-by');

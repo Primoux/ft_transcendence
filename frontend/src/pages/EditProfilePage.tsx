@@ -1,29 +1,21 @@
 import type { User } from '../types/user'
-import { useEffect } from 'react'
-import { useNavigate } from "react-router"
 import { ChangeUsernameForm } from '../components/editProfile/ChangeUsernameForm'
 import { ChangePasswordForm } from "../components/editProfile/ChangePasswordForm"
 import { TogglePrivateProfile } from "../components/editProfile/TogglePrivateProfile"
+import { ChangeAvatarForm } from '../components/editProfile/ChangeAvatarForm'
 
 type editProfileProps = {
     user: User
 }
 
 function EditProfilePage({user}: editProfileProps) {
-    const goTo = useNavigate()
 
-    useEffect(() => {
-    if (!user) {
-        goTo("/login")
-        return
-    }
-    }, [user, goTo])
-    
     return (
         <>
+            <ChangeAvatarForm user={user} />
             <ChangeUsernameForm user={user}/>
             <ChangePasswordForm />
-            <TogglePrivateProfile />
+            <TogglePrivateProfile user={user}/>
         </>
         )
 }

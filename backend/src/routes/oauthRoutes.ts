@@ -1,33 +1,15 @@
 import express from 'express'
 import * as zod from 'zod'
 import { randomBytes, randomInt, createHash } from 'node:crypto'
-import { userRepository, authRepository, SESSION_COOKIE } from '../data/repositories'
-import { Prisma } from '../../generated/client'
-import { writeFile } from 'node:fs/promises'
-import { mkdirSync } from 'node:fs'
-import path from 'node:path'
+import { userRepository, authRepository, SESSION_COOKIE } from '../data/repositories/index.ts'
+import { Prisma } from '../../generated/client.ts'
+import { copyDiscordAvatar } from '../services/avatars.ts'
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET
 const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI
 
-export const UPLOADS_DIR = path.resolve("uploads")
-mkdirSync(path.join(UPLOADS_DIR, "avatars"), { recursive: true })
 
-async function copyDiscordAvatar(discordId: string, avatarHash: string): Promise<string> {
-	// Discord's CDN converts and resizes for us: a 256px WebP, whatever the original was.
-	const url = `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.webp?size=256`
-	const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
-	if (!res.ok) throw new Error(`avatar download failed: ${res.status}`)
-	if (res.headers.get("content-type") !== "image/webp") throw new Error("avatar is not webp")
-
-	const bytes = Buffer.from(await res.arrayBuffer())
-	if (bytes.length > 1_000_000) throw new Error("avatar too large")   // a 256px webp is ~10–50 KB
-
-	const key = `avatars/${randomBytes(16).toString("base64url")}.webp`
-	await writeFile(path.join(UPLOADS_DIR, key), bytes, { flag: "wx" })  // wx: never overwrite an existing file
-	return key
-}
 
 const discordUserSchema = zod.object({
 	username: zod.string(),
