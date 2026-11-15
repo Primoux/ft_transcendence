@@ -4,6 +4,7 @@ import { ProfileDetails } from '../components/profile/ProfileDetails.tsx'
 import { useUser } from '../components/hooks/useUser.tsx'
 import { useAuth } from '../useAuth.ts'
 import MyFriendList from '../components/friends/MyFriendList.tsx'
+import AddFriendButton from '../components/friends/AddFriendButton.tsx'
 import Spinner from '../components/Spinner.tsx'
 
 function ProfilePage() {
@@ -21,6 +22,7 @@ function ProfilePage() {
         return (<p>Error while loading this profile.</p>)
     }
 
+    const isLoggedIn = auth.authState.authStatus === "logged-in"
     const isOwnProfile = auth.authState.authStatus === "logged-in"
         && auth.authState.user.username === user.user.username
 
@@ -35,6 +37,8 @@ function ProfilePage() {
                             Edit profile
                         </Link>
                     )}
+                    {/* Skeleton: no status nor onAdd until the friend request routes exist. */}
+                    {!isLoggedIn || isOwnProfile ? null : <AddFriendButton key={user.user.username} status="none" />}
                 </div>
             </section>
 			<div className="divider divider-horizontal"></div>
