@@ -3,9 +3,8 @@ import UserStats from '../components/UserStats.tsx'
 import { ProfileDetails } from '../components/profile/ProfileDetails.tsx'
 import { useUser } from '../components/hooks/useUser.tsx'
 import { useAuth } from '../useAuth.ts'
-import FriendList from '../components/friends/FriendList.tsx'
+import MyFriendList from '../components/friends/MyFriendList.tsx'
 import Spinner from '../components/Spinner.tsx'
-import { MOCK_FRIENDS } from '../components/friends/mockFriends.ts'
 
 function ProfilePage() {
     const params = useParams()
@@ -39,8 +38,7 @@ function ProfilePage() {
                 </div>
             </section>
 			<div className="divider divider-horizontal"></div>
-            {/* Skeleton: placeholder data until the friend routes exist. */}
-            {!isOwnProfile ? null : <FriendList friends={MOCK_FRIENDS} />}
+            {!isOwnProfile ? null : <MyFriendList />}
         </div>
     )
 }
