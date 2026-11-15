@@ -3,7 +3,7 @@ import { Prisma } from "../../generated/client.ts"
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'
 import { changeUsernameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
-import { userRepository, gameSessionRepository, authRepository } from '../data/repositories/index.ts';
+import { userRepository, gameSessionRepository, authRepository, friendshipRepository } from '../data/repositories/index.ts';
 import { avatarUpload } from '../middleware/uploadMiddleware.ts'
 import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
 
@@ -47,6 +47,18 @@ router.get("/me", async (req, res) => {
   }
 
   return res.status(200).json(me);
+});
+
+/**
+ * @returns the accepted friendships of the logged-in user, one FriendSummary each.
+ */
+router.get("/me/friends", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const friends = await friendshipRepository.findFriends(req.userId);
+  return res.status(200).json(friends);
 });
 
 router.patch("/me/username", async (req, res) => {
