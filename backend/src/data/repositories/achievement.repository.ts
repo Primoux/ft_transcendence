@@ -6,6 +6,15 @@ export type UnlockedAchievement = Prisma.UserAchievementGetPayload<{
 }>;
 
 export const achievementRepository = {
+  async upsert(achievement: Prisma.AchievementCreateInput) {
+    const { id, ...updateFields } = achievement;
+
+    return prisma.achievement.upsert({
+      where: { id },
+      update: updateFields,
+      create: achievement,
+    });
+  },
   async unlockForUser(
     userId: string,
     achievementId: string,
@@ -42,5 +51,5 @@ export const achievementRepository = {
   },
   async findAll() {
     return prisma.achievement.findMany();
-  }
+  },
 };

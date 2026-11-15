@@ -1,0 +1,26 @@
+import { prisma } from "../../data/prisma.ts";
+import { registry } from "./registry.ts";
+
+const seeds = [
+	{name: "achievements", run: registry.achievements},
+	{name: "magicCards", run: registry.magicCards},
+];
+
+try {
+  console.log("Starting global seed...");
+
+  for (const seed of seeds)
+  {
+	console.log(`Running: ${seed.name}...`);
+	await seed.run();
+	console.log(`${seed.name} completed.`);
+  }
+
+  console.log("All seeds executed successfully!");
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+} finally {
+  await prisma.$disconnect();
+  console.log("Prisma connection closed.");
+}
