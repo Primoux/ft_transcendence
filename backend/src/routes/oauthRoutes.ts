@@ -5,11 +5,14 @@ import { userRepository, authRepository, SESSION_COOKIE } from '../data/reposito
 import { Prisma } from '../../generated/client.ts'
 import { copyDiscordAvatar } from '../services/avatars.ts'
 
-const CLIENT_ID = process.env.DISCORD_CLIENT_ID
-const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI
-
-
+// Discord login is optional: without credentials (CI, a teammate without a Discord app) the backend
+// still starts, and the Discord routes send users back to the login page.
+const { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI } = process.env
+const discord = DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET && DISCORD_REDIRECT_URI
+	? { clientId: DISCORD_CLIENT_ID, clientSecret: DISCORD_CLIENT_SECRET, redirectUri: DISCORD_REDIRECT_URI }
+	: null
+if (!discord)
+	console.warn("Discord login disabled: set DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET and DISCORD_REDIRECT_URI to enable it")
 
 const discordUserSchema = zod.object({
 	username: zod.string(),
@@ -28,9 +31,6 @@ function withSuffix(base: string): string {
 	return base.slice(0, 15 - suffix.length) + suffix
 }
 
-if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI)
-	throw new Error("DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET and DISCORD_REDIRECT_URI must be set")
-
 const OAUTH_COOKIE = "__Host-oauth"
 const oauthCookieOptions = {
 	httpOnly: true,   // JS can't read it
@@ -44,6 +44,8 @@ const FAILURE_REDIRECT = "/login?error=oauth"
 const router = express.Router()
 
 router.get('/discord', (req, res) => {
+	if (!discord) return res.redirect(FAILURE_REDIRECT)
+
 	const state = randomBytes(32).toString("base64url")
 	const codeVerifier = randomBytes(32).toString("base64url")  // 43 chars, the minimum PKCE allows
 	const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url")
@@ -54,8 +56,8 @@ router.get('/discord', (req, res) => {
 	const url = new URL("https://discord.com/oauth2/authorize")
 	url.search = new URLSearchParams({
 		response_type: "code",
-		client_id: CLIENT_ID,
-		redirect_uri: REDIRECT_URI,
+		client_id: discord.clientId,
+		redirect_uri: discord.redirectUri,
 		scope: "identify",            // id, username, avatar: nothing more is needed
 		state,
 		code_challenge: codeChallenge,
@@ -69,6 +71,7 @@ router.get('/discord', (req, res) => {
 router.get('/discord/callback', async (req, res) => {
 	const cookie = req.cookies[OAUTH_COOKIE]
 	res.clearCookie(OAUTH_COOKIE, oauthCookieOptions)
+	if (!discord) return res.redirect(FAILURE_REDIRECT)
 
 	// Discord sends ?error=access_denied when the user clicks Cancel.
 	// The typeof checks also reject repeated params (?code=a&code=b), which Express parses as arrays.
@@ -85,12 +88,12 @@ router.get('/discord/callback', async (req, res) => {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded",   // NOT JSON: Discord rejects JSON here
-				Authorization: "Basic " + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64"),
+				Authorization: "Basic " + Buffer.from(`${discord.clientId}:${discord.clientSecret}`).toString("base64"),
 			},
 			body: new URLSearchParams({
 				grant_type: "authorization_code",
 				code,
-				redirect_uri: REDIRECT_URI,   // must be identical to the one sent in step 1
+				redirect_uri: discord.redirectUri,   // must be identical to the one sent in step 1
 				code_verifier: codeVerifier,  // Discord hashes it and compares with the step 1 challenge
 			}),
 			signal: AbortSignal.timeout(5000),
