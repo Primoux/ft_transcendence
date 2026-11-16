@@ -9,6 +9,14 @@ services:
     image: axllent/mailpit:v1.27   # pin a version, as you do for other images
     ports: ["8025:8025"]           # web inbox; SMTP 1025 stays inside the Docker network
   backend:
+    environment: !override
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NODE_ENV: dev
+    # volumes: !reset []
+    #   card-ingestion:
+    #     condition: service_completed_successfully
     build:
       target: dev
     image: backend-dev

@@ -41,6 +41,7 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       MAIL_FROM: ${MAIL_FROM}
+      FRONTEND_URL: ${FRONTEND_URL}
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
