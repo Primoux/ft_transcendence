@@ -4,7 +4,7 @@ import { ProfileDetails } from '../components/profile/ProfileDetails.tsx'
 import { useUser } from '../components/hooks/useUser.tsx'
 import { useAuth } from '../useAuth.ts'
 import MyFriendList from '../components/friends/MyFriendList.tsx'
-import AddFriendButton from '../components/friends/AddFriendButton.tsx'
+import FriendshipActions from '../components/friends/FriendshipActions.tsx'
 import Spinner from '../components/Spinner.tsx'
 
 function ProfilePage() {
@@ -37,8 +37,7 @@ function ProfilePage() {
                             Edit profile
                         </Link>
                     )}
-                    {/* Skeleton: no status nor onAdd until the friend request routes exist. */}
-                    {!isLoggedIn || isOwnProfile ? null : <AddFriendButton key={user.user.username} status="none" />}
+                    {!isLoggedIn || isOwnProfile ? null : <FriendshipActions key={user.user.username} username={user.user.username} />}
                 </div>
             </section>
 			<div className="divider divider-horizontal"></div>
