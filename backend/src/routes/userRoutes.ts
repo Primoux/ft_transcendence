@@ -2,8 +2,10 @@ import express from 'express'
 import { Prisma } from "../../generated/client.ts"
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'
-import { changeDisplayNameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
+import { changeUsernameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
 import { userRepository, gameSessionRepository, authRepository } from '../data/repositories/index.ts';
+import { avatarUpload } from '../middleware/uploadMiddleware.ts'
+import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
 
 const router = express.Router();
 
@@ -47,28 +49,30 @@ router.get("/me", async (req, res) => {
   return res.status(200).json(me);
 });
 
-router.patch("/me/displayName", async (req, res) => {
+router.patch("/me/username", async (req, res) => {
   if (!req.userId) {
     return res.status(401).json({ error: "No token provided" });
   }
-  const parsedData = zod.safeParse(changeDisplayNameSchema, req.body);
+  const parsedData = zod.safeParse(changeUsernameSchema, req.body);
   if (!parsedData.success)
     return res.status(400).send(zod.flattenError(parsedData.error));
 
-  const { newDisplayName } = parsedData.data;
+  const { newUsername } = parsedData.data;
 
   try {
     const response = await userRepository.updateById(req.userId, {
-      displayName: newDisplayName,
+      username: newUsername,
     });
 
     return res.status(200).json(response);
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    )
-      return res.status(404).json({ error: "no such user" });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002")
+        return res.status(409).json({ error: "username already taken" });
+      if (error.code === "P2025")
+        return res.status(404).json({ error: "no such user" });
+    }
+    throw error;
   }
 });
 
@@ -94,11 +98,14 @@ router.post("/me/changePassword", async (req, res) => {
     return res.status(404).json({ error: "no such user" });
   }
 
-  if (!bcrypt.compareSync(req.body.currentPassword, response.passwordHash))
+  const { currentPassword, newPassword } = parsedData.data;
+  // OAuth-only accounts have no password yet: the session alone lets them set a first one.
+  if (response.passwordHash !== null &&
+      (currentPassword === undefined || !(await bcrypt.compare(currentPassword, response.passwordHash))))
     return res.status(403).json({ error: "incorrect password" });
 
   const passwordChangeResponse = await userRepository.updateById(req.userId, {
-      passwordHash: bcrypt.hashSync(req.body.newPassword, 10)
+      passwordHash: await bcrypt.hash(newPassword, 10)
     });
     await authRepository.revokeOtherSessions(req.userId, req.sessionId!);
     return res.status(201).json(passwordChangeResponse)
@@ -130,5 +137,24 @@ router.get("/:username/stats", async (req, res) => {
 
   return res.json(userStats);
 });
+
+router.patch("/me/avatar", avatarUpload, async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "no file in field 'avatar'" })
+
+    let webp: Buffer
+    try {
+      webp = await normalizeAvatar(req.file.buffer)
+    } catch (err) {
+      if (err instanceof InvalidImageError) return res.status(400).json({ error: "PNG, JPEG, or WebP only" })
+      throw err
+    }
+
+    const previous = (await userRepository.findById(req.userId!))?.avatarKey
+    const avatarKey = await saveAvatar(webp)
+    const user = await userRepository.updateById(req.userId!, { avatarKey })
+    if (previous) await deleteAvatar(previous)
+
+    res.json(user)
+  })
 
 export default router;

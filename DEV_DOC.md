@@ -65,8 +65,15 @@ All secrets live in the `.env` file at the root of the repo, generated on first 
 + `DB_PASSWORD`: Postgres password of the app's user
 + `EXPORTER_PASSWORD`: password of the read-only role the Postgres exporter uses
 + `GRAFANA_PASSWORD`: Grafana admin password, needed to log into the monitoring dashboard
++ `DISCORD_CLIENT_ID`: Discord app ID.
++ `DISCORD_CLIENT_SECRET`: Discord app secret.
++ `DISCORD_REDIRECT_URI`: URI the user should be redirected to after discord authorisation or denial.
+    + for dev, an HTTP address is fine. HTTPS is required for production deployments.
+    + `dev` and `prod` redirect uri differ both in the http/https scheme and the port number to use.
 
-`.env` is git-ignored and only readable by you. Never commit it.
+The three `DISCORD_*` variables are required for discord login.
+
+`.env` is git-ignored and only readable by maintainers. Never commit it.
 
 ### Limitations
 

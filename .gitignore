@@ -4,6 +4,7 @@ node_modules/
 */.env
 backend/generated
 .env
+.env.discord
 .DS_Store
 .vscode/
 .DS_Store

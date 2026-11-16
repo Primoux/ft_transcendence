@@ -21,15 +21,18 @@ router.post("/login", async (req, res) => {
   const { username, password } = parsedData.data;
   try {
     const user = await userRepository.findForAuthByUsername(username);
+    // OAuth-only accounts have no hash: compare against the dummy anyway, so the response time
+    // doesn't reveal which usernames exist or how they sign in.
     const validPassword = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
-    if (!user || !validPassword) {
+    if (!user?.passwordHash || !validPassword) {
       return res.status(401).json({ error: "invalid credentials" });
     }
     const previous = req.cookies[SESSION_COOKIE];
     if (previous) await authRepository.revokeSessionByToken(previous);
 
     await authRepository.createSession(req, res, user.id);
-    res.json({ id: user.id, username: user.username, displayName: user.displayName });
+    const { passwordHash, ...publicUser } = user;  // same shape as GET /users/me
+    res.json(publicUser);
   } catch (err) {
     return res.status(500).json({ error: "Error while checking credentials" });
   }
@@ -40,13 +43,12 @@ router.post("/register", async (req, res) => {
   if (!parsedData.success) {
     return res.status(400).send(zod.flattenError(parsedData.error));
   }
-  const { username, displayName, password } = parsedData.data;
+  const { username, password } = parsedData.data;
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     newUser = await userRepository.create({
       username,
-      displayName,
       passwordHash: hashedPassword,
     });
     await authRepository.createSession(req, res, newUser.id);
