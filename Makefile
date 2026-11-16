@@ -49,6 +49,8 @@ dev: .env
 
 .PHONY: prod
 prod: .env certs
+	FRONTEND_URL=https://localhost:8443 \
+	BACKEND_URL= \
 	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
 
 # Self-signed certificate for the prod frontend, created only when missing: browsers warn about it once.
