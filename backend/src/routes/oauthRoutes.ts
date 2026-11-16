@@ -59,6 +59,7 @@ router.get('/discord', (req, res) => {
 		client_id: discord.clientId,
 		redirect_uri: discord.redirectUri,
 		scope: "identify",            // id, username, avatar: nothing more is needed
+		prompt: "none",
 		state,
 		code_challenge: codeChallenge,
 		code_challenge_method: "S256",
