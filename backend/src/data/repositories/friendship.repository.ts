@@ -67,7 +67,7 @@ export const friendshipRepository = {
     return prisma.friendship.findMany({
       where: {
         receiverId,
-        status: FriendshipStatus.ACCEPTED,
+        status: FriendshipStatus.PENDING,
       },
     });
   },
