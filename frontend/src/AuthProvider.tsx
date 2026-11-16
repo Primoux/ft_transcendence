@@ -4,6 +4,8 @@ import type { AuthProviderProps, LoggedIn, LoggedOut, RegisterData, LoginData, A
 
 import { AuthContext } from './AuthContext'
 
+import { socket } from './socket.ts'
+
 
 
 export function AuthProvider({children} : AuthProviderProps) {
@@ -23,6 +25,7 @@ export function AuthProvider({children} : AuthProviderProps) {
 			}
 			else {
                 setAuthState({user: data, authStatus: "logged-in"})
+                socket.connect()
                 return ({user: data, error: null})
             }
         }
@@ -38,6 +41,7 @@ export function AuthProvider({children} : AuthProviderProps) {
             if (response.ok) {
                 const userToLog : User = await response.json()
                 setAuthState({user: userToLog, authStatus: "logged-in"})
+                socket.connect()
             }
             else {
                 if (response.status === 401)
@@ -53,6 +57,7 @@ export function AuthProvider({children} : AuthProviderProps) {
     }, [])
 
     async function logout() {
+        socket.disconnect();
         try {
             const response = await fetch("/api/auth/logout",{ method : "POST" })
             if (response.ok || response.status === 401) {setAuthState({user: null, authStatus: "logged-out"})}
@@ -73,6 +78,7 @@ export function AuthProvider({children} : AuthProviderProps) {
             if (!response.ok) {return {user: null, error: body.error}}
             else {
                 setAuthState({user: body, authStatus: "logged-in"})
+                socket.connect();
                 return {user: body, error: null}
             }
         }

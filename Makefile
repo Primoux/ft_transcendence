@@ -42,10 +42,14 @@ ci: .env
 
 .PHONY: dev
 dev: .env
+	FRONTEND_URL=http://localhost:5173 \
+	BACKEND_URL=http://localhost:5003 \
 	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up --watch --build
 
 .PHONY: prod
 prod: .env
+	FRONTEND_URL=https://localhost:8443 \
+	BACKEND_URL= \
 	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
 
 # Convenience rule : runs docker compose with the arg provided to make.

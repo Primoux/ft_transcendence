@@ -50,7 +50,7 @@ function DlePage() {
 				 * (maybe rename getGuessEntities to getGameSessionInfo)
 				 * here setSummary(info.summary)
 				 */
-				setShowWin(guesses.some((guess: GuessResult) => guess.win));
+				setShowWin(info.history.some((guess: GuessResult) => guess.win));
 				setSuggestions(info.cards);
 			} catch (err) {
 				console.error("init failed", err);
@@ -59,7 +59,7 @@ function DlePage() {
 			}
 		}
 		initialize();
-	}, [guesses]);
+	}, []);
 
 	useEffect(() => {
 		if (!guesses.some((guess: GuessResult) => guess.win)) {

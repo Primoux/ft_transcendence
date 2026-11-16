@@ -132,10 +132,13 @@ services:
       context: ./backend/
       target: prod
     image: backend-prod
+    ports:
+      - "127.0.0.1:5003:5003"
     container_name: backend
     environment:
       - TZ=Europe/Paris
       - SECRETS_FILE=/secrets/backend.env
+      - FRONTEND_URL=${FRONTEND_URL}
     volumes:
       - backend_secrets:/secrets:ro
     healthcheck:
@@ -171,6 +174,8 @@ services:
     build:
       context: ./frontend
       target: prod
+      args:
+        VITE_BACKEND_URL: ${BACKEND_URL}
     image: frontend-prod
     container_name: frontend
     # Read by frontend/default.conf.template.
