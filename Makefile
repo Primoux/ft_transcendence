@@ -43,6 +43,8 @@ ci: .env
 
 .PHONY: dev
 dev: .env
+	FRONTEND_URL=http://localhost:5173 \
+	BACKEND_URL=http://localhost:5003 \
 	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up --watch --build
 
 .PHONY: prod

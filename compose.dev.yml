@@ -59,6 +59,8 @@ services:
     volumes: !reset []
     build:
       target: dev
+      args:
+        VITE_BACKEND_URL: ${BACKEND_URL}
     image: frontend-dev
     develop:
       watch:
