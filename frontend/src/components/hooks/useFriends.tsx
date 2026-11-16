@@ -13,8 +13,9 @@ type FriendsLoading = { status: "loading" }
 type FriendsError = { status: "error" }
 type FriendsLoaded = { status: "loaded", friends: Friend[] }
 
-export function useFriends(): FriendsLoading | FriendsError | FriendsLoaded {
+export function useFriends() {
     const [state, setState] = useState<FriendsLoading | FriendsError | FriendsLoaded>({ status: "loading" })
+    const [reloadKey, setReloadKey] = useState(0)
 
     useEffect(() => {
         const abortController = new AbortController()
@@ -47,7 +48,7 @@ export function useFriends(): FriendsLoading | FriendsError | FriendsLoaded {
 
         fetchFriends()
         return (() => abortController.abort("stale content"))
-    }, [])
+    }, [reloadKey])
 
-    return state
+    return { state, reload: () => setReloadKey((key) => key + 1) }
 }
