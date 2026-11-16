@@ -10,6 +10,8 @@ FROM base AS dev
 
 CMD ["npm", "run", "dev"]
 
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 
 # builds the production static files
 FROM base AS build

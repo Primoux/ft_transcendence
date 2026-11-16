@@ -25,6 +25,8 @@ services:
       context: ./backend/
       target: prod
     image: backend-prod
+    ports:
+      - "127.0.0.1:5003:5003"
     container_name: backend
     environment:
       TZ: Europe/Paris
@@ -33,6 +35,11 @@ services:
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
       NODE_ENV: prod
+      FRONTEND_URL: ${FRONTEND_URL}
+      # - TZ=Europe/Paris
+      # - SECRETS_FILE=/secrets/backend.env
+    # volumes:
+    #   - backend_secrets:/secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
@@ -64,6 +71,8 @@ services:
     build:
       context: ./frontend
       target: prod
+      args:
+        VITE_BACKEND_URL: ${BACKEND_URL}
     image: frontend-prod
     container_name: frontend
     # Read by frontend/default.conf.template.
