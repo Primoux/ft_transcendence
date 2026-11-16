@@ -6,6 +6,8 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
   backend:
+    environment:
+      FRONTEND_URL: ${FRONTEND_URL}
     build:
       target: dev
     image: backend-dev
@@ -40,6 +42,8 @@ services:
     volumes: !reset []
     build:
       target: dev
+      args:
+        VITE_BACKEND_URL: ${BACKEND_URL}
     image: frontend-dev
     develop:
       watch:
