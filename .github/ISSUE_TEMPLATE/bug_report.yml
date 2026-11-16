@@ -1,0 +1,52 @@
+name: Bug report
+description: Something doesn't work as expected
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What goes wrong? Point to the file and line if you know where it comes from.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /dle
+        2. Guess the same card twice
+        3. The page goes blank
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Frontend
+        - Backend / API
+        - Database
+        - Infra (Docker, nginx, CI)
+        - Monitoring (Grafana, Prometheus, alerting)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or errors
+      description: Browser console, `make logs`, `docker compose logs <service>`...
+      render: shell
+  - type: checkboxes
+    id: flags
+    attributes:
+      label: Also
+      options:
+        - label: It leaks data it shouldn't (answers, secrets, other users' info)
+        - label: It's an accessibility issue (keyboard, screen reader, contrast)
