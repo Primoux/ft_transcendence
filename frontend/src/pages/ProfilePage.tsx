@@ -40,8 +40,12 @@ function ProfilePage() {
                     {!isLoggedIn || isOwnProfile ? null : <FriendshipActions key={user.user.username} username={user.user.username} />}
                 </div>
             </section>
-			<div className="divider divider-horizontal"></div>
-            {!isOwnProfile ? null : <MyFriendList />}
+            {!isOwnProfile ? null : (
+                <>
+                    <div className="divider divider-horizontal"></div>
+                    <MyFriendList />
+                </>
+            )}
         </div>
     )
 }
