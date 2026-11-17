@@ -5,9 +5,9 @@
   "main": "src/server.ts",
   "scripts": {
     "build": "tsc -b",
-    "start": "node src/server.ts",
+    "start": "node src/server.js",
     "dev": "tsx watch src/server.ts",
-    "cards:ingest": "node src/scripts/ingest/ingest-cards.js",
+    "cards:ingest": "tsx src/scripts/ingest/ingest-cards.ts",
     "check": "prisma generate && tsc --noEmit"
   },
   "keywords": [],
