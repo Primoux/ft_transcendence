@@ -90,6 +90,11 @@ function DlePage() {
 
 		try {
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
+			if (!response.ok) {
+				console.error("Error fetching /api/dle/guess: ", response.status);
+				return ;
+			}
+
 			const result: GuessResponse = await response.json();
 
 			if (!result.result) {
