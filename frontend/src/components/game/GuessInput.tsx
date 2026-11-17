@@ -67,7 +67,6 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 				return;
 			}
 			setInput(filtered[listIndex].name);
-			console.log(filtered[listIndex].name);
 			// event.currentTarget.form?.requestSubmit();
 			submitFunc(
 				event as unknown as React.FormEvent<HTMLFormElement>,
