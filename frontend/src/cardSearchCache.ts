@@ -1,4 +1,5 @@
 import type { GuessEntity, GuessResult } from "./types/game";
+import Dexie from "dexie";
 
 type CardSearchCache = {
 	version: number;
@@ -7,22 +8,11 @@ type CardSearchCache = {
 	history: GuessResult[];
 };
 
+const db = new Dexie("search_cards");
+db.version(1).stores({cards: "id, name, artUrl"});
+
+//? IndexedDB
 export async function getGuessEntities(): Promise<CardSearchCache> {
-	//? fetch to get version
-	// if (!response.ok) {
-	// 	throw
-	// }
-
-	// const cached = localStorage.getItem("search_cards");
-	// if (cached) {
-	// 	const guesses = JSON.parse(cached);
-
-	// 	//! maybe to change if multiple routes
-		
-	// 	//? check guesses.version against fetch version
-	// 	return guesses; 
-	// }
-
 	const response = await fetch("/api/dle/classic/init");
 	if (!response.ok) {
 		throw new Error("Error: couldn't fetch cards for search bar");
@@ -37,8 +27,12 @@ export async function getGuessEntities(): Promise<CardSearchCache> {
 		history: game_info.guessResultList
 	}
 	
-	localStorage.setItem("search_cards", JSON.stringify(guesses.cards));
+	// await db.table("cards").bulkPut(guesses.cards);
+	console.log("Cards received:", guesses.cards.length);
 
+	await db.table("cards").bulkPut(guesses.cards);
+
+	console.log("Cards stored:", await db.table("cards").count());
 
 	return guesses;
 }
