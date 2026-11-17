@@ -18,11 +18,10 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		str.trim().toLowerCase().replace(/,\s*/g, " ");
 	
 	const filtered = useMemo(() => {
-		return cards.filter((card) => !guessed.includes(card.name))
-			.filter((card) => 
-				cleanInput(delayInput).length > 3
-				? cleanInput(card.name).includes(cleanInput(delayInput))
-				: cleanInput(card.name).startsWith(cleanInput(delayInput)));
+		return cards.filter((card) => !guessed.some((name) => cleanInput(name) === cleanInput(card.name)))
+					.filter((card) => cleanInput(delayInput).length > 3
+						? cleanInput(card.name).includes(cleanInput(delayInput))
+						: cleanInput(card.name).startsWith(cleanInput(delayInput)));
 	}, [cards, guessed, delayInput]);
 
 	useEffect(() => {
@@ -48,10 +47,10 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 	function handleKeyboardInput(event: React.KeyboardEvent<HTMLInputElement>) {
 		if (event.key === "ArrowDown") {
 			event.preventDefault();
-			// if (listIndex <= 0) {
-			// 	setListIndex((prev: number) => prev + 1);
-			// 	return ;
-			// }
+			if (!delayInput.trim() || filtered.length === 0) {
+				setListIndex(-1);
+				return ;
+			}
 			setListIndex((prev: number) => Math.min(prev + 1, filtered.length - 1));
 		}
 		if (event.key === "ArrowUp") {
@@ -63,14 +62,16 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		}
 		if (event.key === "Enter") {
 			event.preventDefault();
-			if (listIndex < 0 || !filtered[listIndex]) {
+			const selected = listIndex >= 0 ? filtered[listIndex] : undefined;
+			const card = selected?.name ?? input;
+			if (!card.trim()) {
 				return;
 			}
-			setInput(filtered[listIndex].name);
+			setInput(card);
 			// event.currentTarget.form?.requestSubmit();
 			submitFunc(
 				event as unknown as React.FormEvent<HTMLFormElement>,
-				filtered[listIndex].name
+				card
 			);
 			setListIndex(-1);
 		}
@@ -88,7 +89,7 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		// }
 		submitFunc(
 			event as unknown as React.FormEvent<HTMLFormElement>,
-			filtered[listIndex].name
+			card.name
 		);
 		// setDelayInput(card.name);
 		setListIndex(-1);
@@ -98,7 +99,7 @@ function GuessInput({input, setInput, submitFunc, cards, guessed} : IGuessInput)
 		<form onSubmit={submitFunc}>
 			<input
 				value={input}
-				onChange={(e) => setInput(e.target.value)}
+				onChange={(e) => {setInput(e.target.value); setListIndex(-1);}}
 				placeholder="Enter card name..."
 				onKeyDown={handleKeyboardInput}
 				autoFocus

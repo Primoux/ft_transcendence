@@ -73,8 +73,10 @@ function DlePage() {
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>, name?: string) {
 		event.preventDefault();
-		const guess = name ?? input;
-		const entity = gameInfo.cards.find((item: GuessEntity) => item.name === guess );
+
+		const cleanInput = (str: string) =>	str.trim().toLowerCase().replace(/,\s*/g, " ");
+		const guess = cleanInput(name ?? input);
+		const entity = gameInfo.cards.find((item: GuessEntity) => cleanInput(item.name) === guess );
 
 		if (!entity) {
 			console.error("Card not found");
@@ -89,6 +91,10 @@ function DlePage() {
 		try {
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const result: GuessResponse = await response.json();
+
+			if (!result.result) {
+				return ;
+			}
 
 			setGuesses((prev: GuessResult[]) => [...prev, result.result]);
 			setSummary((guess: SummaryEntity) => updateSummary(guess, result.result));
