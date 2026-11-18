@@ -14,7 +14,7 @@ COMPOSE_DEV_FILE = compose.dev.yml
 help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
-	@echo "  ingest   - Run the card ingestion pipeline"
+	@echo "  ingest   - Run the card ingestion pipeline in dev mode"
 	@echo "  dev	  - Build and start the application in dev mode (with hot reload)"
 	@echo "  prod	  - Build and start the application in production mode"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
@@ -30,7 +30,7 @@ help:
 
 .PHONY: ingest
 ingest:
-	docker compose run --rm card-ingestion
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) --profile manual-only run --rm --build card-ingestion
 
 # Runs the same checks as .github/workflows/ci.yml, in the containers.
 # Each check list lives in its own package.json, so both run the same thing.

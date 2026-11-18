@@ -11,6 +11,11 @@ services:
     image: backend-dev
     ports:
       - "127.0.0.1:5003:5003"
+    environment:
+      NODE_ENV: dev
+    depends_on: !override
+      postgres:
+        condition: service_healthy
     develop:
       watch:
         - action: sync
@@ -26,6 +31,13 @@ services:
           path: ./backend/prisma/migrations
         - action: rebuild
           path: ./backend/prisma.config.ts
+  card-ingestion:
+    build:
+      target: dev
+    image: card-ingestion-dev
+    command: ["npm", "run", "cards:ingest"]
+    profiles:
+      - manual-only
   frontend:
     healthcheck: !override
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5173/"]

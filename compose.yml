@@ -32,6 +32,7 @@ services:
       DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
+      NODE_ENV: prod
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
@@ -51,9 +52,11 @@ services:
       target: prod
     image: card-ingestion
     container_name: card-ingestion
-    command: npm run cards:ingest
+    entrypoint: ["./ingest-entrypoint.sh"]
+    command: ["node", "src/scripts/ingest/ingest-cards.js"]
     environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      NODE_ENV: prod
     depends_on:
       postgres:
         condition: service_healthy

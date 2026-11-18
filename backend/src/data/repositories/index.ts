@@ -5,5 +5,6 @@ export * from "./scryfall-sync.repository.ts";
 export * from "./guess.repository.ts"
 export * from "./staging.repository.ts";
 export * from "./game-session.repository.ts";
+export * from "./achievement.repository.ts"
 export * from "./auth.repository.ts";
 export * from "./friendship.repository.ts";
