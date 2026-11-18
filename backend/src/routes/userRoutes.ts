@@ -1,44 +1,34 @@
 import express from 'express'
-import { prisma } from '../data/prisma.ts'
 import { Prisma } from "../../generated/client.ts"
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'
-import { changeDisplayNameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
-import { userRepository } from '../data/repositories/index.ts';
+import { changeUsernameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
+import { userRepository, gameSessionRepository, authRepository } from '../data/repositories/index.ts';
+import { avatarUpload } from '../middleware/uploadMiddleware.ts'
+import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
 
-const router = express.Router()
+const router = express.Router();
 
 async function getStatData(userId: string) {
-    const sessions = await prisma.gameSession.findMany({
-        where: {
-           userId,
-           status: "WON"
-        },
-        select: {
-            _count: {
-                select: { guesses: true }
-            }
-        }
-    })
-    const wonSessionsCount = sessions.length
-    const totalGuessCount = sessions.reduce((accumulator, session) => accumulator + session._count.guesses, 0);
-    const avgGuessCount = wonSessionsCount > 0 ? totalGuessCount / wonSessionsCount : null
+  const wonSession = await gameSessionRepository.findWonSessionsSummary(userId);
+  const wonSessionsCount = wonSession.length;
+  const totalGuessCount = wonSession.reduce(
+    (accumulator, guessCount) => accumulator + guessCount,
+    0,
+  );
+  const avgGuessCount =
+    wonSessionsCount > 0 ? totalGuessCount / wonSessionsCount : null;
 
-    return {wonSessionsCount, avgGuessCount}
+  return { wonSessionsCount, avgGuessCount };
 }
 
 /**
  * @returns all users.
  */
 router.get("/", async (req, res) => {
-    const users = await prisma.user.findMany({
-        select: {
-            id: true,
-            displayName: true
-        }
-    });
-    res.json(users);
-})
+  const users = await userRepository.findAll();
+  res.json(users);
+});
 
 /**
  * NOTE : the existence of this route makes any user with the username 'me' unable to access their profile.
@@ -47,95 +37,77 @@ router.get("/", async (req, res) => {
  */
 
 router.get("/me", async (req, res) => {
-    if (!req.userId) { return res.status(401).json({error: "No token provided"}) }
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
 
-    const me = await userRepository.findById(req.userId)
-    if (!me) { return res.status(404).json({error: "no such user"})}
+  const me = await userRepository.findById(req.userId);
+  if (!me) {
+    return res.status(404).json({ error: "no such user" });
+  }
 
-    return res.status(200).json(me)
+  return res.status(200).json(me);
+});
 
-})
+router.patch("/me/username", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+  const parsedData = zod.safeParse(changeUsernameSchema, req.body);
+  if (!parsedData.success)
+    return res.status(400).send(zod.flattenError(parsedData.error));
 
-router.patch("/me/displayName", async (req, res) => {
-    if (!req.userId) { return res.status(401).json({error: "No token provided"}) }
-    const parsedData = zod.safeParse(changeDisplayNameSchema, req.body)
-    if (!parsedData.success)
-        return res.status(400).send(zod.flattenError(parsedData.error))
+  const { newUsername } = parsedData.data;
 
-    const { newDisplayName } = parsedData.data
+  try {
+    const response = await userRepository.updateById(req.userId, {
+      username: newUsername,
+    });
 
-    try {
-    const response = await prisma.user.update({
-        where: {
-            id: req.userId
-        },
-        data: {
-            displayName: newDisplayName,
-        },
-        select: {
-            id: true,
-            displayName: true,
-            username: true
-        }
-    })
-    return res.status(200).json(response)
-    } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025")
-            return res.status(404).json({error: "no such user"})
+    return res.status(200).json(response);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002")
+        return res.status(409).json({ error: "username already taken" });
+      if (error.code === "P2025")
+        return res.status(404).json({ error: "no such user" });
     }
-})
+    throw error;
+  }
+});
 
 router.patch("/me/privateProfile", async (req, res) => {
-    if (!req.userId) {return res.status(401).json({error: "no user provided"})}
+if (!req.userId) {return res.status(401).json({error: "no user provided"})}
     const currentUser = await userRepository.findById(req.userId)
 
     if (!currentUser) {return res.status(404).json({error: "user not found"})}
 
-    const response = await prisma.user.update({
-        where: {
-            id: req.userId
-        },
-        data : {
-            privateProfile: !currentUser.privateProfile
-        },
-        select: {
-            id: true,
-            privateProfile: true
-        }
-    })
+    const response = await userRepository.updateById(req.userId, {privateProfile: !currentUser.privateProfile});
+    
     return res.status(200).json(response)
-})
+});
 
 router.post("/me/changePassword", async (req, res) => {
-    if (!req.userId)
-        return res.status(401).json({error: "no user provided"})
-    const parsedData = zod.safeParse(changePasswordSchema, req.body)
-    if (!parsedData.success)
-        return res.status(400).send(zod.flattenError(parsedData.error))
+  if (!req.userId) return res.status(401).json({ error: "no user provided" });
+  const parsedData = zod.safeParse(changePasswordSchema, req.body);
+  if (!parsedData.success)
+    return res.status(400).send(zod.flattenError(parsedData.error));
 
-    const response = await prisma.user.findUnique({
-        where: {
-            id: req.userId
-        },
-        select: {
-            id: true,
-            username: true,
-            passwordHash: true
-        }
-    })
-    if (!response) {return res.status(404).json({error: "no such user"})}
+  const response = await userRepository.findForAuthById(req.userId);
+  if (!response) {
+    return res.status(404).json({ error: "no such user" });
+  }
 
-    if (!bcrypt.compareSync(req.body.currentPassword, response.passwordHash))
-        return res.status(403).json({error: "incorrect password"})
+  const { currentPassword, newPassword } = parsedData.data;
+  // OAuth-only accounts have no password yet: the session alone lets them set a first one.
+  if (response.passwordHash !== null &&
+      (currentPassword === undefined || !(await bcrypt.compare(currentPassword, response.passwordHash))))
+    return res.status(403).json({ error: "incorrect password" });
 
-    const passwordChangeResponse = await prisma.user.update({
-        where: {
-            id: req.userId
-        },
-        data: {
-            passwordHash: bcrypt.hashSync(req.body.newPassword, 10)
-        }
-    })
+  const passwordChangeResponse = await userRepository.updateById(req.userId, {
+      passwordHash: await bcrypt.hash(newPassword, 10)
+    });
+    await authRepository.revokeOtherSessions(req.userId, req.sessionId!);
     return res.status(201).json(passwordChangeResponse)
 })
 
@@ -143,27 +115,46 @@ router.post("/me/changePassword", async (req, res) => {
  * @returns the public profile data of specified user
  */
 router.get("/:username", async (req, res) => {
-    const user = await userRepository.findByUsername(req.params.username)
+  const user = await userRepository.findByUsername(req.params.username);
 
-    if (user === null) {
-        res.status(404).json({error: "User not found"});
-    } else {
-        res.json(user);
+  if (user === null) {
+    res.status(404).json({ error: "User not found" });
+  } else {
+    res.json(user);
+  }
+});
+
+router.get("/:username/stats", async (req, res) => {
+  const user = await userRepository.findByUsername(req.params.username);
+
+  if (user === null) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  if (user.id !== req.userId && user.privateProfile) {
+    return res.status(403).json({ error: "This user's profile is private." });
+  }
+  const userStats = await getStatData(user.id);
+
+  return res.json(userStats);
+});
+
+router.patch("/me/avatar", avatarUpload, async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "no file in field 'avatar'" })
+
+    let webp: Buffer
+    try {
+      webp = await normalizeAvatar(req.file.buffer)
+    } catch (err) {
+      if (err instanceof InvalidImageError) return res.status(400).json({ error: "PNG, JPEG, or WebP only" })
+      throw err
     }
-})
 
-router.get("/:username/stats", async (req, res) =>{
-    const user = await userRepository.findByUsername(req.params.username)
-    
-    if (user === null) {
-        return res.status(404).json({error: "User not found"});
-    }
-    if (user.id !== req.userId && user.privateProfile) {
-        return res.status(403).json({error: "This user's profile is private."})
-    }
-    const userStats = await getStatData(user.id);
+    const previous = (await userRepository.findById(req.userId!))?.avatarKey
+    const avatarKey = await saveAvatar(webp)
+    const user = await userRepository.updateById(req.userId!, { avatarKey })
+    if (previous) await deleteAvatar(previous)
 
-    return res.json(userStats);
-})
+    res.json(user)
+  })
 
-export default router
+export default router;

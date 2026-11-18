@@ -1,7 +1,16 @@
-import { GameMode } from "../../../generated/client.ts";
+import type { GameMode, MagicCard } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const dailyGameRepository = {
+  async create(targetCardId: string, date: Date, mode: GameMode) {
+    return prisma.dailyGame.create({
+      data: {
+        date,
+        mode,
+        targetCardId,
+      },
+    });
+  },
   async findByDateAndMode(date: Date, mode: GameMode) {
     return prisma.dailyGame.findUnique({
       where: {
@@ -12,21 +21,12 @@ export const dailyGameRepository = {
       },
     });
   },
-  async findTargetCard(id: string) {
+  async findTargetCard(id: string): Promise<MagicCard | null> {
     const dailyGame = await prisma.dailyGame.findUnique({
       where: { id },
       select: { targetCard: true },
     });
     return dailyGame?.targetCard ?? null;
-  },
-  async create(targetCardId: string, date: Date, mode: GameMode) {
-    return prisma.dailyGame.create({
-      data: {
-        date,
-        mode,
-        targetCardId,
-      },
-    });
   },
   async findOrCreate(targetCardId: string, date: Date, mode: GameMode) {
     return prisma.dailyGame.upsert({
@@ -42,6 +42,12 @@ export const dailyGameRepository = {
         mode,
         targetCardId,
       },
+    });
+  },
+  async countByMode() {
+    return prisma.dailyGame.groupBy({
+      by: ["mode"],
+      _count: true,
     });
   },
 };

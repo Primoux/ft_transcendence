@@ -17,13 +17,14 @@ help:
 	@echo "  ingest   - Run the card ingestion pipeline"
 	@echo "  dev	  - Build and start the application in dev mode (with hot reload)"
 	@echo "  prod	  - Build and start the application in production mode"
-	@echo "  prisma	  - Regenerate prisma client and run migrations"
 	@echo "  ci       - Run the CI checks (lint + build) locally"
 	@echo "  restart  - Restart the application"
-	@echo "  down     - Stop the application and remove volumes"
+	@echo "  down     - Stop the application and remove volumes (the dev database is kept)"
+	@echo "  down-dev - Stop the application and remove the dev database"
 	@echo "  logs     - Show application logs"
 	@echo "  reset    - Stop the application and delete .env"
 	@echo "  env      - Regenerate .env file"
+	@echo "  certs    - Create the self-signed HTTPS certificate if missing (done by prod)"
 	@echo "  prisma   - Create a migration from schema.prisma and regenerate the Prisma client"
 
 
@@ -44,13 +45,26 @@ ci: .env
 dev: .env
 	FRONTEND_URL=http://localhost:5173 \
 	BACKEND_URL=http://localhost:5003 \
+	DISCORD_REDIRECT_URI=http://localhost:5173/api/auth/discord/callback \
 	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up --watch --build
 
 .PHONY: prod
-prod: .env
+prod: .env certs
 	FRONTEND_URL=https://localhost:8443 \
 	BACKEND_URL= \
+	DISCORD_REDIRECT_URI=https://localhost:8443/api/auth/discord/callback \
 	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
+
+# Self-signed certificate for the prod frontend, created only when missing: browsers warn about it once.
+# The key is readable by all, as nginx reads it as its own user (uid 101) from the bind mount.
+.PHONY: certs
+certs: certs/cert.pem
+certs/cert.pem:
+	mkdir -p certs
+	openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+		-keyout certs/key.pem -out certs/cert.pem \
+		-subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+	chmod 644 certs/key.pem
 
 # Convenience rule : runs docker compose with the arg provided to make.
 # Exemple : 'make logs' -> 'docker compose logs'
@@ -63,7 +77,12 @@ ps logs restart: %:
 .PHONY: down
 down:
 	$(COMPOSE) down -v
-	rm -rf ./vault-init-data/vault-keys.json
+
+# Only the dev database is removed: `down -v` with the dev file would also take prod's volumes.
+.PHONY: down-dev
+down-dev:
+	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) down
+	docker volume rm -f transcendance_postgres_dev_data
 
 .PHONY: reset
 reset: down

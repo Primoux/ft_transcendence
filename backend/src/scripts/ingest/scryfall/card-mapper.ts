@@ -1,8 +1,8 @@
-import { Color, Rarity, type Prisma } from "../../../generated/client.ts";
+import { Color, Rarity, type Prisma } from "../../../../generated/client.ts";
 import type {
   ValidScryfallCardHistory,
   ValidScryfallOracleCard,
-} from "./scryfall-types.ts";
+} from "./types.ts";
 
 const SUPERTYPES = new Set(["Basic", "Legendary", "Ongoing", "Snow", "World"]);
 
