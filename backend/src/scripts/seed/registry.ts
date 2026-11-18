@@ -82,7 +82,7 @@ export const registry = {
         edhrecRank: 10,
       },
       {
-        oracleId: "24c251d5-bc4e-4f51-8cf9-c3017a6a4e1e",
+        oracleId: "6ad8011d-3471-4369-9d68-b264cc027487",
         name: "Sol Ring",
         manaValue: 1,
         types: ["Artifact"],
@@ -102,7 +102,7 @@ export const registry = {
         edhrecRank: 1,
       },
       {
-        oracleId: "f0d2d3e2-8924-42b7-a35b-17937409cd8b",
+        oracleId: "550c74d4-1fcb-406a-b02a-639a760a4380",
         name: "Ancestral Recall",
         manaValue: 1,
         types: ["Instant"],
@@ -122,7 +122,7 @@ export const registry = {
         edhrecRank: 15000,
       },
       {
-        oracleId: "a5026ff8-3c3e-4ec6-8961-4c7b848c4cfb",
+        oracleId: "d3a0b660-358c-41bd-9cd2-41fbf3491b1a",
         name: "Birds of Paradise",
         manaValue: 1,
         types: ["Creature"],
@@ -142,7 +142,7 @@ export const registry = {
         edhrecRank: 12,
       },
       {
-        oracleId: "8f74a813-fdfd-4299-92c2-805a8b7c4b31",
+        oracleId: "45900b2f-f6a9-4c42-9642-008f3c1cf6dd",
         name: "Tarmogoyf",
         manaValue: 2,
         types: ["Creature"],
@@ -162,7 +162,7 @@ export const registry = {
         edhrecRank: 3500,
       },
       {
-        oracleId: "f467554f-124b-4b2a-a53c-1b777cf8977c",
+        oracleId: "82004860-e589-4e38-8d61-8c0210e4ea39",
         name: "Demonic Tutor",
         manaValue: 2,
         types: ["Sorcery"],
@@ -182,7 +182,7 @@ export const registry = {
         edhrecRank: 2,
       },
       {
-        oracleId: "0b0800b2-8411-4f1c-99d7-5674c1537b0b",
+        oracleId: "956381ba-6d37-4a8a-846c-bad79222dbee",
         name: "Force of Will",
         manaValue: 5,
         types: ["Instant"],
