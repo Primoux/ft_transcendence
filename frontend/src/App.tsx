@@ -7,13 +7,14 @@ import ProfilePage from './pages/ProfilePage'
 import DlePage from './pages/DlePage'
 import EditProfilePage from './pages/EditProfilePage';
 import { useAuth } from './useAuth';
+import Spinner from './components/Spinner';
 
 function App() {
 	const auth = useAuth()
 
 
 	if (auth.authState.authStatus === "loading") {
-		return (<p>loading</p>)
+		return (<Spinner size="lg" />)
 	}
 
 	let loginElement, registerElement, profileElement, editProfileElement, dleElement;

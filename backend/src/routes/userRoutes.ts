@@ -1,9 +1,9 @@
 import express from 'express'
-import { Prisma } from "../../generated/client.ts"
+import { Prisma, FriendshipStatus, type Friendship } from "../../generated/client.ts"
 import bcrypt from 'bcryptjs'
 import * as zod from 'zod'
 import { changeUsernameSchema, changePasswordSchema } from '../utils/validation/zodSchema.ts';
-import { userRepository, gameSessionRepository, authRepository } from '../data/repositories/index.ts';
+import { userRepository, gameSessionRepository, authRepository, friendshipRepository } from '../data/repositories/index.ts';
 import { avatarUpload } from '../middleware/uploadMiddleware.ts'
 import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
 
@@ -47,6 +47,63 @@ router.get("/me", async (req, res) => {
   }
 
   return res.status(200).json(me);
+});
+
+/**
+ * @returns the accepted friendships of the logged-in user, one FriendSummary each.
+ */
+router.get("/me/friends", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const friends = await friendshipRepository.findFriends(req.userId);
+  return res.status(200).json(friends);
+});
+
+router.get("/me/friend-requests", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const requests = await friendshipRepository.findPendingRequests(req.userId);
+  return res.status(200).json(requests);
+});
+
+router.post("/me/friend-requests/:friendshipId/accept", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const friendship = await friendshipRepository.findById(req.params.friendshipId);
+  if (!friendship || friendship.receiverId !== req.userId) {
+    return res.status(404).json({ error: "no such friend request" });
+  }
+  if (friendship.status !== FriendshipStatus.PENDING) {
+    return res.status(409).json({ error: "friend request already accepted" });
+  }
+
+  const accepted = await friendshipRepository.updateById(friendship.id, {
+    status: FriendshipStatus.ACCEPTED,
+  });
+  return res.status(200).json(friendshipStateFor(req.userId, accepted));
+});
+
+router.delete("/me/friendships/:friendshipId", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const friendship = await friendshipRepository.findById(req.params.friendshipId);
+  if (
+    !friendship ||
+    (friendship.senderId !== req.userId && friendship.receiverId !== req.userId)
+  ) {
+    return res.status(404).json({ error: "no such friendship" });
+  }
+
+  await friendshipRepository.delete(friendship.id);
+  return res.status(204).end();
 });
 
 router.patch("/me/username", async (req, res) => {
@@ -156,5 +213,79 @@ router.patch("/me/avatar", avatarUpload, async (req, res) => {
 
     res.json(user)
   })
+
+type FriendshipState =
+  | { status: "none" }
+  | { status: "pending-sent" | "pending-received" | "friends"; friendshipId: string };
+
+function friendshipStateFor(viewerId: string, friendship: Friendship | null): FriendshipState {
+  if (!friendship) {
+    return { status: "none" };
+  }
+  if (friendship.status === FriendshipStatus.ACCEPTED) {
+    return { status: "friends", friendshipId: friendship.id };
+  }
+  return {
+    status: friendship.senderId === viewerId ? "pending-sent" : "pending-received",
+    friendshipId: friendship.id,
+  };
+}
+
+router.get("/:username/friendship", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const user = await userRepository.findByUsername(req.params.username);
+  if (user === null) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  if (user.id === req.userId) {
+    return res.status(400).json({ error: "cannot be friends with yourself" });
+  }
+
+  const friendship = await friendshipRepository.findByUsers(req.userId, user.id);
+  return res.status(200).json(friendshipStateFor(req.userId, friendship));
+});
+
+router.post("/:username/friend-request", async (req, res) => {
+  if (!req.userId) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const user = await userRepository.findByUsername(req.params.username);
+  if (user === null) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  if (user.id === req.userId) {
+    return res.status(400).json({ error: "cannot be friends with yourself" });
+  }
+
+  const existing = await friendshipRepository.findByUsers(req.userId, user.id);
+  if (existing) {
+    const isReverseRequest =
+      existing.status === FriendshipStatus.PENDING && existing.receiverId === req.userId;
+    if (!isReverseRequest) {
+      return res.status(409).json(friendshipStateFor(req.userId, existing));
+    }
+    const accepted = await friendshipRepository.updateById(existing.id, {
+      status: FriendshipStatus.ACCEPTED,
+    });
+    return res.status(200).json(friendshipStateFor(req.userId, accepted));
+  }
+
+  try {
+    const created = await friendshipRepository.create(req.userId, user.id);
+    return res.status(201).json(friendshipStateFor(req.userId, created));
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return res.status(409).json({ error: "friend request already sent" });
+    }
+    throw error;
+  }
+});
 
 export default router;

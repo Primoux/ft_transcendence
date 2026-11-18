@@ -1,15 +1,22 @@
 import {
   User,
-  Friendship,
   FriendshipStatus,
   Prisma,
 } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
+type PublicUser = Omit<User, "passwordHash">;
+
 export interface FriendSummary {
   friendshipId: string;
-  friend: Omit<User, "passwordHash">;
+  friend: PublicUser;
   connectedAt: Date;
+}
+
+export interface FriendRequestSummary {
+  friendshipId: string;
+  sender: PublicUser;
+  sentAt: Date;
 }
 
 export const friendshipRepository = {
@@ -63,13 +70,20 @@ export const friendshipRepository = {
       };
     });
   },
-  async findPendingRequests(receiverId: string): Promise<Friendship[]> {
-    return prisma.friendship.findMany({
+  async findPendingRequests(receiverId: string): Promise<FriendRequestSummary[]> {
+    const requests = await prisma.friendship.findMany({
       where: {
         receiverId,
-        status: FriendshipStatus.ACCEPTED,
+        status: FriendshipStatus.PENDING,
       },
+      include: { sender: true },
+      orderBy: { createdAt: "desc" },
     });
+    return requests.map((request): FriendRequestSummary => ({
+      friendshipId: request.id,
+      sender: request.sender,
+      sentAt: request.createdAt,
+    }));
   },
   async delete(id: string) {
     return prisma.friendship.delete({
