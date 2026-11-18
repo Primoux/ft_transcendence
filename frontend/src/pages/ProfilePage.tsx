@@ -1,38 +1,53 @@
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import UserStats from '../components/UserStats.tsx'
-import { Link } from 'react-router'
-import { ProfileDetails} from '../components/profile/ProfileDetails.tsx'
+import { ProfileDetails } from '../components/profile/ProfileDetails.tsx'
 import { useUser } from '../components/hooks/useUser.tsx'
 import { useAuth } from '../useAuth.ts'
+import MyFriendList from '../components/friends/MyFriendList.tsx'
+import FriendshipActions from '../components/friends/FriendshipActions.tsx'
+import Spinner from '../components/Spinner.tsx'
 
 function ProfilePage() {
-    const params = useParams();
-    const auth = useAuth();
-    const user = useUser(params.username);
+    const params = useParams()
+    const auth = useAuth()
+    const user = useUser(params.username)
 
-    if (user.status !== "loaded")
-    {
-        if (user.status === "notFound")
-        {
-            if (user.status === "notFound")
-                return (<p> this user does not exist </p>)
-            return (<p>error loading user</p>)
-        }
-        else if (user.status === "loading")
-            return (<p> loading </p>)
-
-        return (<p> error </p>)
+    if (user.status === "loading") {
+        return (<Spinner />)
+    }
+    if (user.status === "notFound") {
+        return (<p>This user does not exist.</p>)
+    }
+    if (user.status === "error") {
+        return (<p>Error while loading this profile.</p>)
     }
 
+    const isLoggedIn = auth.authState.authStatus === "logged-in"
+    const isOwnProfile = auth.authState.authStatus === "logged-in"
+        && auth.authState.user.username === user.user.username
+
     return (
-                <section className="flex flex-col justify-center items-center rounded-md border-2 bg-white shadow-2xl h-2/3 w-2/3">
-                    <div>
-                        <ProfileDetails userToView={user.user}/>
-                        <UserStats username={user.user.username} />
-                        {auth.authState.authStatus!== "logged-in" || auth.authState.user.username !== user.user.username? null : <Link to="/editProfile"> edit profile </Link>}
-                    </div>
-                </section>
-        )
+        <div className="flex flex-col lg:flex-row gap-4 items-start justify-center w-full max-w-4xl">
+            <section className="card bg-base-100 border border-base-300 shadow-xl w-full lg:flex-1">
+                <div className="card-body gap-4">
+                    <ProfileDetails userToView={user.user} />
+                    <UserStats username={user.user.username} />
+                    {!isOwnProfile ? null : (
+                        <Link to="/editProfile" className="btn btn-primary btn-sm self-start">
+                            Edit profile
+                        </Link>
+                    )}
+                    {!isLoggedIn || isOwnProfile ? null : <FriendshipActions key={user.user.username} username={user.user.username} />}
+                </div>
+            </section>
+            {!isOwnProfile ? null : (
+                <>
+                    <div className="divider divider-horizontal"></div>
+                    <MyFriendList />
+                </>
+            )}
+        </div>
+    )
 }
 
 export default ProfilePage

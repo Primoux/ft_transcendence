@@ -1,4 +1,5 @@
 import { useUserStats } from "./hooks/useUser"
+import Spinner from "./Spinner"
 
 type userStatProps = { username: string }
 
@@ -9,7 +10,7 @@ function UserStats({username} : userStatProps) {
     if (stats.status === "private")
         return ( <h2>This user has made their stats private.</h2> )
     if (stats.status === "loading")
-        return ( <h2>Stats loading</h2> )
+        return ( <Spinner /> )
     if (stats.status === "error")
         return (<h2> Error while fetching user's stats</h2>)
 

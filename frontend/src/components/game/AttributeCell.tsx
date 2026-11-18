@@ -11,8 +11,10 @@ interface IAttributeCell {
   delay: number;
 };
 
+// (<>{value.includes("White")}<img className="w-10 h-10" src="../../public/color/mtg-white.png" title="White" alt="white"/></>)
+
 function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : IAttributeCell) {
-  const color = comp === "correct" && (value3 === undefined)
+  const color = comp === "correct" || comp === undefined && (value3 === undefined)
 								? "bg-green-100 text-green-900"
 								: comp === "incorrect"
 									? "bg-red-100 text-red-900"
@@ -21,7 +23,11 @@ function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : 
   const content = value3 === undefined ? (
     <div className={`rounded-md p-3 text-sm ${color}`}>
 		  {Array.isArray(value)
-      ? value.length > 0 ? value.join(", ") : "N/A"
+      ? value.length > 0
+        ? value.every((v) => ["White", "Blue", "Black", "Red", "Green"].includes(v))
+          ? <div className="flex flex-wrap items-center justify-center gap-0.5"> {value.map((color) => (
+            <img key={color} className="w-5 h-5" src={`/color/mtg-${color.toLowerCase()}.png`} title={color} alt={color}/>
+          ))}</div> : value.join(", ") : "N/A"
       : value2 !== undefined && value !== undefined && value2 !== value
         ? `${Number(value) + 1} - ${Number(value2) - 1}`
         : (<>

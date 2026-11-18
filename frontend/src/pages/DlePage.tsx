@@ -1,21 +1,15 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse } from "../types/game.ts";
+import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse, CardSearchCache } from "../types/game.ts";
+import Spinner from "../components/Spinner.tsx";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
-
 import {getGuessEntities} from "../cardSearchCache.ts";
 
-	type CardSearchCache = {
-		version: number;
-		cards: GuessEntity[];
-		session: string;
-		history: GuessResult[];
-	};
 function DlePage() {
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(true);
-	const [game_info, setGameInfo] = useState<CardSearchCache>({
+	const [gameInfo, setGameInfo] = useState<CardSearchCache>({
 		version: 0,
 		cards: [],
 		session: "",
@@ -23,62 +17,95 @@ function DlePage() {
 	});
 	const [summary, setSummary] = useState<SummaryEntity>({
 		legStatus: false,
-		comp: {}
+		comp: {
+			"manaValue": "incorrect",
+			"colorIdentity": "incorrect",
+			"types": "incorrect",
+			"subtypes": "incorrect",
+			"power": "incorrect",
+			"toughness": "incorrect",
+			"legStatus": "incorrect",
+			"rarity": "incorrect",
+			"releaseSet": "incorrect",
+			"releaseYear": "incorrect"
+		}
 	});
 	const [refreshKey, setRefreshKey] = useState(0);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
+	const [suggestions, setSuggestions] = useState<GuessEntity[]>([]);
+	const [showWin, setShowWin] = useState(false);
+	// TODO: delay for "gg" message
+	// TODO: load history
 
 	useEffect(() => {
-		// async function initialize() {
-		// 	try {
-		// 		await initGameSession();
-		// 		const cards = await getGuessEntities();
-		// 		setSearch(cards);
-		// 	} catch (err) {
-		// 		console.error("init failed", err);
-		// 	} finally {
-		// 		setLoading(false);
-		// 	}
-		// }
-
-		// initialize();
-		getGuessEntities().then(setGameInfo).finally(() => setLoading(false));
+		async function initialize() {
+			try {
+				const info = await getGuessEntities();
+				setGameInfo(info);
+				setGuesses(info.history);
+				// updateSummary(summary, info.history[info.history.length - 1]); // TODO: fix summary
+				/**
+				 * send summary to the backend
+				 * back stores in the database
+				 * add summary to info returned
+				 * (maybe rename getGuessEntities to getGameSessionInfo)
+				 * here setSummary(info.summary)
+				 */
+				setShowWin(info.history.some((guess: GuessResult) => guess.win));
+				setSuggestions(info.cards);
+			} catch (err) {
+				console.error("init failed", err);
+			} finally {
+				setLoading(false);
+			}
+		}
+		initialize();
 	}, []);
 
+	useEffect(() => {
+		if (!guesses.some((guess: GuessResult) => guess.win)) {
+			return ;
+		}
+		const timeout = setTimeout(() => {
+			setShowWin(true);
+		}, 3900);
+		return () => clearTimeout(timeout);
+	}, [guesses]);
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+	async function handleSubmit(event: FormEvent<HTMLFormElement>, name?: string) {
 		event.preventDefault();
 
-		const entity = game_info.cards.find((item: GuessEntity) => item.name === input );
+		const cleanInput = (str: string) =>	str.trim().toLowerCase().replace(/,\s*/g, " ");
+		const guess = cleanInput(name ?? input);
+		const entity = gameInfo.cards.find((item: GuessEntity) => cleanInput(item.name) === guess );
 
 		if (!entity) {
 			console.error("Card not found");
 			return;
 		}
 
-
 		const params = new URLSearchParams({
-			session: game_info.session,
+			session: gameInfo.session,
 			card: entity.id
-		})
+		});
 
 		try {
-			// const params = new URLSearchParams({guess: input});
-
-			// const response = await fetch(`/api/dle/guess?${params.toString()}`);
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
+			if (!response.ok) {
+				console.error("Error fetching /api/dle/guess: ", response.status);
+				return ;
+			}
+
 			const result: GuessResponse = await response.json();
 
-			// setGuesses((guess) => [...guess, result]);
+			if (!result.result) {
+				return ;
+			}
+
 			setGuesses((prev: GuessResult[]) => [...prev, result.result]);
-			// guesses.push(result.result);
-
-			setSummary((guess) => updateSummary(guess, result.result));
-
-			setRefreshKey(guess => guess + 1);
-
+			setSummary((guess: SummaryEntity) => updateSummary(guess, result.result));
+			setRefreshKey((guess: number) => guess + 1);
 			setInput("");
-			console.log("Comparison result:", result);
 		} catch (error) {
 			console.error("Error in handleSubmit", error);
 		}
@@ -158,8 +185,8 @@ function DlePage() {
 			case "rarity":
 				dst.rarity = src.rarity;
 				break;
-			case "set":
-				dst.set = src.set;
+			case "releaseSet":
+				dst.releaseSet = src.releaseSet;
 				break;
 			case "releaseYear":
 			{
@@ -169,40 +196,18 @@ function DlePage() {
 			}
 				break;
 			default:
+				dst.comp[key] = "correct";
 				break;
 		}
 	}
 
-	// function initSummary(guess: GuessResult): SummaryEntity {
-	// 	const summary: SummaryEntity = {
-	// 		legStatus: guess.card.legStatus,
-	// 		comp: {...guess.comp}
-	// 	};
-
-	// 	const keys = Object.keys(guess.card) as (keyof CardEntity)[];
-	// 	for (const key of keys) {
-	// 		summary.comp[key] = guess.comp[key];
-	// 		if (key === "legStatus" && summary.comp["legStatus"] !== "correct") {
-	// 			summary.legStatus = !summary.legStatus;
-	// 			summary.comp[key] = "correct";
-	// 			continue ;
-	// 		}
-	// 		if (summary.comp[key] !== "incorrect")	{
-	// 			updateAttribute(summary, guess.card, key);
-	// 		}
-	// 	}
-	// 	return summary;
-	// }
-
 	function updateSummary(summary: SummaryEntity, guess: GuessResult): SummaryEntity {
-		// if (summary === undefined) {
-		// 	return initSummary(guess); 
-		// }
 		const updatedSummary: SummaryEntity = {
 			...summary, comp: {...summary.comp}
 		};
-
-		const keys = Object.keys(guess.card) as (keyof CardEntity)[];
+		
+		// const keys = Object.keys(guess.card) as (keyof CardEntity)[];
+		const keys = Object.keys(summary.comp) as (keyof CardEntity)[];
 		for (const key of keys) {
 			if (summary.comp[key] === "correct") {
 				continue ;
@@ -229,10 +234,10 @@ function DlePage() {
 		<h1>MagicDLE</h1>
 		<h2>Classic mode</h2>
 		<section>
-			{loading ? (<p>Loading cards...</p>) :
+			{loading ? (<Spinner size="lg" />) :
 			guesses.length === 0 ? (
 				<div>
-					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
+					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit} cards={[...suggestions].sort((c1, c2) => c1.name.localeCompare(c2.name))} guessed={guesses.map(guess => guess.card.name)} />
 				</div>
 			) : null}
 		</section>
@@ -241,67 +246,68 @@ function DlePage() {
 			{guesses.length > 0 && (
 			<div>
 				<div>
-					{guesses.at(-1)!.win 
-					? (	<p>GG!<br/>You've won in {guesses.length} guesses!<br/><img src={guesses[guesses.length - 1].fullCardUrl} alt={guesses[guesses.length - 1].card.name} /></p>)
+					{/* {guesses.at(-1)!.win  */}
+					{showWin
+					? (	<p>GG!<br/>You've won in {guesses.length} guesses!<br/><img src={guesses.find(guess => guess.win)?.fullCardUrl} alt={guesses.find(guess => guess.win)?.card.name} /></p>)
 					: (	<div>
-							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit}/>
+							<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit} cards={[...suggestions].sort((c1, c2) => c1.name.localeCompare(c2.name))} guessed={guesses.map(guess => guess.card.name)} />
 							
 							<table className="table-auto">
 								<tbody key={refreshKey}>
 									<tr>
-									<td key="summary">Summary</td>
-									<td className="p-2">
+									<td key="summary" className="w-23">Summary</td>
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.manaLow} value2={summary.manaHigh}
 										comp={summary.comp["manaValue"]}
 										delay={0} lastGuess/>
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.colorIdentity}
 										comp={summary.comp["colorIdentity"]}
 										delay={400 * 1} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.types}
 										comp={summary.comp["types"]}
 										delay={400 * 2} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.subtypes}
 										comp={summary.comp["subtypes"]}
 										delay={400 * 3} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.powerLow} value2={summary.powerHigh}
 										comp={summary.comp["power"]}
 										delay={400 * 4} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.toughnessLow} value2={summary.toughnessHigh}
 										comp={summary.comp["toughness"]}
 										delay={400 * 5} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.legStatus}
 										comp={summary.comp["legStatus"]}
 										delay={400 * 6} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.rarity}
 										comp={summary.comp["rarity"]}
 										delay={400 * 7} />
 									</td>
-									<td className="p-2">
+									<td className="p-2 w-26">
 									<AttributeCell
 										value={summary.releaseYearLow} value2={summary.releaseYearHigh}
-										value3={summary.set}
+										value3={summary.releaseSet}
 										comp={summary.comp["releaseYear"]}
 										delay={400 * 8} />
 									</td>
@@ -338,20 +344,20 @@ function DlePage() {
 										toughness: guess.card.toughness,
 										legStatus: guess.card.legStatus,
 										rarity: guess.card.rarity,
-										set: guess.card.set
+										releaseSet: guess.card.releaseSet
 								}
 
 								return (
 								<tr key={guess.card.name}>
 									{/* <td className="p-2">{guess.card.name}</td> */}
-									<td className="p-2"><img className="h-14" src={guess.card.artUrl} title={guess.card.name} alt={guess.card.name} /></td>
+									<td className="p-2"><img className="h-14 max-w-19" src={guess.card.artUrl} title={guess.card.name} alt={guess.card.name} /></td>
 									{Object.entries(card).map(([name, value], i) => {
 										return (
-											<td key={name} className="p-2">
-												{name === "set" ? (
+											<td key={name} className="p-2 w-26">
+												{name === "releaseSet" ? (
 													<AttributeCell 
 														value={guess.card.releaseYear}
-														value3={guess.card.set}
+														value3={guess.card.releaseSet}
 														comp={guess.comp["releaseYear"]} lastGuess={isLastGuess}
 														delay={400 * i} />
 												) : (

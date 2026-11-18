@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router'
 import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../useAuth'
+import { Avatar } from './Avatar'
 
 // the dropdown is CSS-only and stays open as long as focus is inside it,
 // so every item has to drop the focus on its way out
@@ -23,6 +24,7 @@ function NavBar() {
         accountElement =
         <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="btn btn-ghost gap-2">
+                <Avatar user={user} className="h-8 w-8" />
                 <span>{user.username}</span>
                 <ChevronDown className="size-3 opacity-60" />
             </div>
