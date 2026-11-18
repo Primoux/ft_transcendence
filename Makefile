@@ -45,12 +45,14 @@ ci: .env
 dev: .env
 	FRONTEND_URL=http://localhost:5173 \
 	BACKEND_URL=http://localhost:5003 \
+	DISCORD_REDIRECT_URI=http://localhost:5173/api/auth/discord/callback \
 	$(COMPOSE) -f $(COMPOSE_FILE) -f $(COMPOSE_DEV_FILE) up --watch --build
 
 .PHONY: prod
 prod: .env certs
 	FRONTEND_URL=https://localhost:8443 \
 	BACKEND_URL= \
+	DISCORD_REDIRECT_URI=https://localhost:8443/api/auth/discord/callback \
 	$(COMPOSE) -f $(COMPOSE_FILE) up -d --build
 
 # Self-signed certificate for the prod frontend, created only when missing: browsers warn about it once.
