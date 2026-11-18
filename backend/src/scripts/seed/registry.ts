@@ -76,9 +76,9 @@ export const registry = {
         releaseSet: "lea",
         releaseSetName: "Limited Edition Alpha",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/c/5/c54508cf-255d-4f13-b541-ddf571348b48.jpg",
+          "https://cards.scryfall.io/normal/front/4/f/4f616706-ec97-4923-bb1e-11a69fbaa1f8.jpg?1783909630",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/c/5/c54508cf-255d-4f13-b541-ddf571348b48.jpg",
+          "https://cards.scryfall.io/art_crop/front/4/f/4f616706-ec97-4923-bb1e-11a69fbaa1f8.jpg?1783909630",
         edhrecRank: 10,
       },
       {
@@ -96,9 +96,9 @@ export const registry = {
         releaseSet: "lea",
         releaseSetName: "Limited Edition Alpha",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/c/a/caec9815-4afb-49d9-bb43-7f897f26c6d0.jpg",
+          "https://cards.scryfall.io/normal/front/f/c/fc817e07-c1f3-469f-9cf7-0945dea7400f.jpg?1793021181",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/c/a/caec9815-4afb-49d9-bb43-7f897f26c6d0.jpg",
+          "https://cards.scryfall.io/art_crop/front/f/c/fc817e07-c1f3-469f-9cf7-0945dea7400f.jpg?1793021181",
         edhrecRank: 1,
       },
       {
@@ -116,9 +116,9 @@ export const registry = {
         releaseSet: "lea",
         releaseSetName: "Limited Edition Alpha",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/2/f/2f3a61f3-e59e-4e64-9b57-c812908f51a4.jpg",
+          "https://cards.scryfall.io/normal/front/2/3/2398892d-28e9-4009-81ec-0d544af79d2b.jpg?1783939333",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/2/f/2f3a61f3-e59e-4e64-9b57-c812908f51a4.jpg",
+          "https://cards.scryfall.io/art_crop/front/2/3/2398892d-28e9-4009-81ec-0d544af79d2b.jpg?1783939333",
         edhrecRank: 15000,
       },
       {
@@ -136,9 +136,9 @@ export const registry = {
         releaseSet: "lea",
         releaseSetName: "Limited Edition Alpha",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/f/e/feify0f9-2c70-4665-9851-93339f408990.jpg",
+          "https://cards.scryfall.io/normal/front/4/9/492c2f9a-51e7-4e0f-9899-23bf43ea988b.jpg?1783903230",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/f/e/feify0f9-2c70-4665-9851-93339f408990.jpg",
+          "https://cards.scryfall.io/art_crop/front/4/9/492c2f9a-51e7-4e0f-9899-23bf43ea988b.jpg?1783903230",
         edhrecRank: 12,
       },
       {
@@ -156,30 +156,10 @@ export const registry = {
         releaseSet: "fut",
         releaseSetName: "Future Sight",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/4/2/42e56bc7-7098-406a-867c-6c1704944443.jpg",
+          "https://cards.scryfall.io/normal/front/8/b/8be5ee47-8f8a-4e3c-b1a1-9ca0e1fdec7f.jpg?1789127270",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/4/2/42e56bc7-7098-406a-867c-6c1704944443.jpg",
+          "https://cards.scryfall.io/art_crop/front/8/b/8be5ee47-8f8a-4e3c-b1a1-9ca0e1fdec7f.jpg?1789127270",
         edhrecRank: 3500,
-      },
-      {
-        oracleId: "6a4a1599-2e1c-4b5c-a1c1-4c4f346b7a5a",
-        name: "Jace, the Mind Sculptor",
-        manaValue: 4,
-        types: ["Planeswalker"],
-        supertypes: ["Legendary"],
-        subtypes: ["Jace"],
-        colorIdentity: [Color.BLUE],
-        power: null,
-        toughness: null,
-        rarity: Rarity.MYTHIC,
-        releaseDate: new Date("2010-02-05"),
-        releaseSet: "wwk",
-        releaseSetName: "Worldwake",
-        imageUrl:
-          "https://cards.scryfall.io/normal/front/c/0/c0571d58-1392-4217-ac43-7f722a45d05c.jpg",
-        artUrl:
-          "https://cards.scryfall.io/art_crop/front/c/0/c0571d58-1392-4217-ac43-7f722a45d05c.jpg",
-        edhrecRank: 850,
       },
       {
         oracleId: "f467554f-124b-4b2a-a53c-1b777cf8977c",
@@ -196,9 +176,9 @@ export const registry = {
         releaseSet: "lea",
         releaseSetName: "Limited Edition Alpha",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/3/b/3b763aa1-970e-4205-9d3w-50f9361a6b0c.jpg",
+          "https://cards.scryfall.io/normal/front/a/2/a24b4cb6-cebb-428b-8654-74347a6a8d63.jpg?1783915679",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/3/b/3b763aa1-970e-4205-9d3w-50f9361a6b0c.jpg",
+          "https://cards.scryfall.io/art_crop/front/a/2/a24b4cb6-cebb-428b-8654-74347a6a8d63.jpg?1783915679",
         edhrecRank: 2,
       },
       {
@@ -216,9 +196,9 @@ export const registry = {
         releaseSet: "all",
         releaseSetName: "Alliances",
         imageUrl:
-          "https://cards.scryfall.io/normal/front/d/s/ds920f97-3b12-45ad-a2fb-6d87131a4782.jpg",
+          "https://cards.scryfall.io/normal/front/8/9/89f612d6-7c59-4a7b-a87d-45f789e88ba5.jpg?1789015964",
         artUrl:
-          "https://cards.scryfall.io/art_crop/front/d/s/ds920f97-3b12-45ad-a2fb-6d87131a4782.jpg",
+          "https://cards.scryfall.io/art_crop/front/8/9/89f612d6-7c59-4a7b-a87d-45f789e88ba5.jpg?1789015964",
         edhrecRank: 300,
       },
     ];
