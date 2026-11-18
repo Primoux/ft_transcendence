@@ -4,31 +4,32 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-    provider = "prisma-client"
-    output = "../generated"
+  provider = "prisma-client"
+  output   = "../generated"
 
-    generatedFileExtension = "ts"
-    importFileExtension    = "ts"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
-enum FriendshipStatus{
-    PENDING
-    ACCEPTED
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
 }
+
 enum GameStatus {
-    IN_PROGRESS
-    WON
-    LOST
+  IN_PROGRESS
+  WON
+  LOST
 }
 
 enum GameMode {
-    CLASSIC
-    HARDCORE
-    ARTWORK
+  CLASSIC
+  HARDCORE
+  ARTWORK
 }
 
 enum Color {
@@ -40,7 +41,7 @@ enum Color {
   COLORLESS
 }
 
-enum Rarity{
+enum Rarity {
   COMMON
   UNCOMMON
   RARE
@@ -50,38 +51,62 @@ enum Rarity{
 }
 
 model User {
-    id           String @id @default(cuid(2))
-    username     String @unique
-    passwordHash String?
-    avatarKey    String?
-    createdAt    DateTime @default(now())
-    privateProfile  Boolean @default(false)
+  id                String             @id @default(cuid(2))
+  username          String             @unique
+  passwordHash      String?
+  avatarKey         String?
+  createdAt         DateTime           @default(now())
+  privateProfile    Boolean            @default(false)
+  email             String?            @unique
+  emailVerifiedAt   DateTime?
+  emailVerification EmailVerification?
 
-    sentFriendships     Friendship[] @relation("SentFriendships")
-    receivedFriendships Friendship[] @relation("ReceivedFriendships")
-    authSessions        AuthSession[]
-    sessions            GameSession[]
-    oauthAccounts       OAuthAccount[]
-    userAchievements    UserAchievement[]
+  sentFriendships     Friendship[]      @relation("SentFriendships")
+  receivedFriendships Friendship[]      @relation("ReceivedFriendships")
+  authSessions        AuthSession[]
+  sessions            GameSession[]
+  oauthAccounts       OAuthAccount[]
+  userAchievements    UserAchievement[]
+  loginChallenges     LoginChallenge[]
+}
+
+model EmailVerification {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String // the address being proven: same as User.email at signup, the new one on a change
+  codeHash  String // HMAC-SHA256(code, CODE_HMAC_KEY)
+  expiresAt DateTime // sentAt + 5 min
+  sentAt    DateTime // for the resend cooldown: set it explicitly on every upsert
+  attempts  Int      @default(0)
+}
+
+model LoginChallenge {
+  id        String   @id // sha256(token), same pattern as AuthSession
+  userId    String
+  expiresAt DateTime // about 5 minutes
+  attempts  Int      @default(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model OAuthAccount {
-    provider          String
-    providerAccountId String
-    userId            String
-    user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  userId            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@id([provider, providerAccountId])
-    @@index([userId])
+  @@id([provider, providerAccountId])
+  @@index([userId])
 }
 
 model AuthSession {
-  id                String   @id      // sha256(token), hex. The raw token is never stored
+  id                String   @id // sha256(token), hex. The raw token is never stored
   userId            String
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt         DateTime @default(now())
-  expiresAt         DateTime          // idle expiry, pushed forward while the user is active
-  absoluteExpiresAt DateTime          // hard cap, never extended
+  expiresAt         DateTime // idle expiry, pushed forward while the user is active
+  absoluteExpiresAt DateTime // hard cap, never extended
   lastSeenAt        DateTime @default(now())
   userAgent         String?
   ip                String?
@@ -91,22 +116,22 @@ model AuthSession {
 }
 
 model Friendship {
-    id         String           @id @default(cuid(2))
-    status     FriendshipStatus @default(PENDING)
-    createdAt  DateTime         @default(now())
-    updatedAt  DateTime         @updatedAt
+  id        String           @id @default(cuid(2))
+  status    FriendshipStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
-    senderId   String
-    sender     User @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
 
-    receiverId String
-    receiver   User @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User   @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
 
-    @@unique([senderId, receiverId])
+  @@unique([senderId, receiverId])
 }
 
 model Achievement {
-  id          String @id
+  id          String  @id @default(cuid(2))
   title       String
   description String
   icon        String
@@ -115,81 +140,81 @@ model Achievement {
 }
 
 model UserAchievement {
-    unlockedAt DateTime @default(now())
+  unlockedAt DateTime @default(now())
 
-    userId String
-    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    achievementId String
-    achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
-    @@id([userId, achievementId])
+  @@id([userId, achievementId])
 }
 
 model GameSession {
-    id        String     @id @default(cuid(2))
-    createdAt DateTime   @default(now())
-    status    GameStatus @default(IN_PROGRESS)
+  id        String     @id @default(cuid(2))
+  createdAt DateTime   @default(now())
+  status    GameStatus @default(IN_PROGRESS)
 
-    userId String?
-    user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    dailyGameId String
-    dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
+  dailyGameId String
+  dailyGame   DailyGame @relation(fields: [dailyGameId], references: [id], onDelete: Cascade)
 
-    guesses Guess[]
+  guesses Guess[]
 
-    @@unique([userId, dailyGameId])
+  @@unique([userId, dailyGameId])
 }
 
 model DailyGame {
-    id   String   @id @default(cuid(2))
-    date DateTime @db.Date
-    mode GameMode @default(CLASSIC)
+  id   String   @id @default(cuid(2))
+  date DateTime @db.Date
+  mode GameMode @default(CLASSIC)
 
-    targetCardId String
-    targetCard  MagicCard @relation(fields: [targetCardId], references: [oracleId])
+  targetCardId String
+  targetCard   MagicCard @relation(fields: [targetCardId], references: [oracleId])
 
-    sessions GameSession[]
+  sessions GameSession[]
 
-    @@unique([date, mode])
+  @@unique([date, mode])
 }
 
 model MagicCard {
-    oracleId      String @id
-    edhrecRank    Int?
-    imageUrl      String
-    artUrl        String
-    name          String
-    manaValue     Int
-    types         String[]
-    supertypes    String[] // scryfall catalog endpoints lists existing supertypes
-    subtypes      String[] // Split after the dash
-    colorIdentity Color[]
-    power         String?
-    toughness     String?
-    rarity        Rarity
-    releaseDate   DateTime
-    releaseSet    String
-    releaseSetName    String
+  oracleId       String   @id
+  edhrecRank     Int?
+  imageUrl       String
+  artUrl         String
+  name           String
+  manaValue      Int
+  types          String[]
+  supertypes     String[] // scryfall catalog endpoints lists existing supertypes
+  subtypes       String[] // Split after the dash
+  colorIdentity  Color[]
+  power          String?
+  toughness      String?
+  rarity         Rarity
+  releaseDate    DateTime
+  releaseSet     String
+  releaseSetName String
 
-    dailyGames  DailyGame[]
-    guesses     Guess[]
+  dailyGames DailyGame[]
+  guesses    Guess[]
 
-    @@index([edhrecRank])
+  @@index([edhrecRank])
 }
 
 model Guess {
-    attemptNumber Int
+  attemptNumber Int
 
-    gameSessionId String
-    gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  gameSessionId String
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
 
-    guessedCardId String
-    guessedCard   MagicCard @relation(fields: [guessedCardId], references: [oracleId])
+  guessedCardId String
+  guessedCard   MagicCard @relation(fields: [guessedCardId], references: [oracleId])
 
-    @@id([gameSessionId, attemptNumber])
-    @@unique([gameSessionId, guessedCardId])
+  @@id([gameSessionId, attemptNumber])
+  @@unique([gameSessionId, guessedCardId])
 }
 
 model ScryfallSyncCard {
@@ -198,25 +223,25 @@ model ScryfallSyncCard {
 }
 
 model StagingOracleCard {
-    oracleId      String @id
-    edhrecRank    Int?
-    imageUrl      String
-    artUrl        String
-    name          String
-    manaValue     Int
-    types         String[]
-    supertypes    String[]
-    subtypes      String[]
-    colorIdentity Color[]
-    power         String?
-    toughness     String?
-    rarity        Rarity
+  oracleId      String   @id
+  edhrecRank    Int?
+  imageUrl      String
+  artUrl        String
+  name          String
+  manaValue     Int
+  types         String[]
+  supertypes    String[]
+  subtypes      String[]
+  colorIdentity Color[]
+  power         String?
+  toughness     String?
+  rarity        Rarity
 }
 
 model StagingCardHistory {
-    id            String @id
-    oracleId      String
-    releaseDate   DateTime
-    releaseSet    String
-    releaseSetName    String
+  id             String   @id
+  oracleId       String
+  releaseDate    DateTime
+  releaseSet     String
+  releaseSetName String
 }

@@ -26,6 +26,12 @@ fi
     echo "GRAFANA_PASSWORD=`openssl rand -hex 12`" >> .env
     # Postgres creates the exporter's read-only role with it: see postgres/exporter-role.sh.
     echo "EXPORTER_PASSWORD=`openssl rand -hex 32`" >> .env
+    echo "CODE_HMAC_KEY=`openssl rand -hex 32`" >> .env
 
-    # The prod secrets live here now: readable by you only.
+    echo "MAIL_FROM=noreply@mtg-dle.com" >> .env
+    echo "SMTP_HOST=" >> .env
+    echo "SMTP_PORT=" >> .env
+    echo "SMTP_USER=" >> .env
+    echo "SMTP_PASS=" >> .env
+
     chmod 600 .env

@@ -6,8 +6,8 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 export const prisma = new PrismaClient({
   adapter,
   log:
-    process.env.NODE_ENV === "dev"
+    process.env.NODE_ENV === "development"
       ? ["error", "warn"]
       : ["error"],
-  omit: { user: { passwordHash: true } },
+  omit: { user: { passwordHash: true, email: true} },
 });

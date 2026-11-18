@@ -11,6 +11,15 @@ export const userRepository = {
   async findByUsername(username: string) {
     return prisma.user.findUnique({ where: { username } });
   },
+
+  // user.email only set once verified : no need to filter
+  async findByEmail(email: string) {
+    return prisma.user.findUnique({
+      where: {email},
+      omit: {email: false}
+    })
+  },
+
   async findForAuthByUsername(username: string) {
     return prisma.user.findUnique({
       where: { username },
@@ -52,6 +61,34 @@ export const userRepository = {
         username,
         oauthAccounts: { create: { provider, providerAccountId } },
       },
-      });
+    });
+  },
+
+  async findMe(userId: string) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      omit: { email: false }
+    });
+  },
+
+  async confirmEmail(userId: string, email: string) {
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { email, emailVerifiedAt: new Date() }
+      }),
+      prisma.emailVerification.delete({ where: { userId } })
+    ])
+  },
+
+  async purgeUnverified(olderThan: Date) {
+    await prisma.user.deleteMany({
+      where: {
+        emailVerifiedAt: null,
+        createdAt: {
+          lt: new Date(olderThan)
+        }
+      }
+    })
   }
 };
