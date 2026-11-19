@@ -8,7 +8,6 @@ services:
   backend:
     environment: !override
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
       # FRONTEND_URL: ${FRONTEND_URL}
       NODE_ENV: dev
     # volumes: !reset []
