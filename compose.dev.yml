@@ -12,9 +12,20 @@ services:
     environment: !override
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       JWT_SECRET: ${JWT_SECRET}
-      FRONTEND_URL: ${FRONTEND_URL}
+      # FRONTEND_URL: ${FRONTEND_URL}
       NODE_ENV: dev
     # volumes: !reset []
+    #   card-ingestion:
+    #     condition: service_completed_successfully
+      TZ: Europe/Paris
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_REDIRECT_URI: http://localhost:5173/api/auth/discord/callback
+      FRONTEND_URL: http://localhost:5173
+    # volumes: !reset []
+    # depends_on: !override
+    #   postgres:
+    #     condition: service_healthy
     #   card-ingestion:
     #     condition: service_completed_successfully
     build:
@@ -67,8 +78,8 @@ services:
     volumes: !reset []
     build:
       target: dev
-      args:
-        VITE_BACKEND_URL: ${BACKEND_URL}
+      args: !override
+        VITE_BACKEND_URL: http://localhost:5003
     image: frontend-dev
     develop:
       watch:
