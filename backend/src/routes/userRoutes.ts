@@ -6,6 +6,7 @@ import { changeUsernameSchema, changePasswordSchema } from '../utils/validation/
 import { userRepository, gameSessionRepository, authRepository, friendshipRepository } from '../data/repositories/index.ts';
 import { avatarUpload } from '../middleware/uploadMiddleware.ts'
 import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
+import { requireVerifiedEmail } from '../middleware/authMiddleware.ts';
 
 const router = express.Router();
 
@@ -21,14 +22,6 @@ async function getStatData(userId: string) {
 
   return { wonSessionsCount, avgGuessCount };
 }
-
-/**
- * @returns all users.
- */
-router.get("/", async (req, res) => {
-  const users = await userRepository.findAll();
-  res.json(users);
-});
 
 /**
  * NOTE : the existence of this route makes any user with the username 'me' unable to access their profile.
@@ -47,6 +40,16 @@ router.get("/me", async (req, res) => {
   }
 
   return res.status(200).json(me);
+});
+
+router.use(requireVerifiedEmail)
+
+/**
+ * @returns all users.
+ */
+router.get("/", async (req, res) => {
+  const users = await userRepository.findAll();
+  res.json(users);
 });
 
 /**

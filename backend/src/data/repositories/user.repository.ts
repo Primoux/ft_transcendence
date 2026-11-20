@@ -1,4 +1,4 @@
-import type { Prisma } from "../../../generated/client.ts";
+import { OtpType, type Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const userRepository = {
@@ -77,7 +77,7 @@ export const userRepository = {
         where: { id: userId },
         data: { email, emailVerifiedAt: new Date() }
       }),
-      prisma.emailVerification.delete({ where: { userId } })
+      prisma.otpVerification.deleteMany({ where: { userId, type: OtpType.EMAIL_IS_VALID } })
     ])
   },
 
@@ -87,7 +87,8 @@ export const userRepository = {
         emailVerifiedAt: null,
         createdAt: {
           lt: new Date(olderThan)
-        }
+        },
+        oauthAccounts: {none: {}}
       }
     })
   }

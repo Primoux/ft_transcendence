@@ -9,7 +9,7 @@ import metricsRoutes from './routes/metricsRoutes.ts'
 import confirmEmailRoutes from './routes/confirmEmailRoutes.ts'
 import metricsMiddleware from './middleware/metricsMiddleware.ts'
 
-import requireAuth from './middleware/authMiddleware.ts'
+import requireAuth, { requireVerifiedEmail } from './middleware/authMiddleware.ts'
 import errorCatcher from './middleware/errorMiddleware.ts'
 
 import cookieParser from 'cookie-parser'
@@ -39,10 +39,13 @@ app.use("/health", healthRoutes)
 
 // sensitive endpoints : require a valid session
 app.use(requireAuth);
-app.use("/dle", gameRoutes)
-app.use("/auth", confirmEmailRoutes)
 
 app.use("/users", userRoutes)
+app.use("/auth", confirmEmailRoutes)
+
+app.use(requireVerifiedEmail)
+app.use("/dle", gameRoutes)
+
 
 app.use(errorCatcher);
 
