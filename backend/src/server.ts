@@ -4,6 +4,7 @@ import gameRoutes from './routes/gameRoutes.ts'
 import authRoutes from './routes/authRoutes.ts'
 import oauthRoutes from './routes/oauthRoutes.ts'
 import userRoutes from './routes/userRoutes.ts'
+import adminRoutes from './routes/adminRoutes.ts'
 import healthRoutes from './routes/healthRoutes.ts'
 import metricsRoutes from './routes/metricsRoutes.ts'
 import metricsMiddleware from './middleware/metricsMiddleware.ts'
@@ -42,6 +43,7 @@ app.use("/dle", gameRoutes)
 // sensitive endpoints : require a valid session
 
 app.use("/users", userRoutes)
+app.use("/admin", adminRoutes)
 
 app.use(errorCatcher);
 

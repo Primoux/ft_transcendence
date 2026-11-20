@@ -23,14 +23,6 @@ async function getStatData(userId: string) {
 }
 
 /**
- * @returns all users.
- */
-router.get("/", async (req, res) => {
-  const users = await userRepository.findAll();
-  res.json(users);
-});
-
-/**
  * NOTE : the existence of this route makes any user with the username 'me' unable to access their profile.
  * Indeed, "/me" shadows "/:username where 'username' is 'me'. "
  * The issue is alrady handled by the minimum of 3 characters for all usernames.
