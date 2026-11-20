@@ -25,7 +25,12 @@ function App() {
 		profileElement = <ProfilePage />
 		editProfileElement= <EditProfilePage user={auth.authState.user} />
 		dleElement = <DlePage />
-		adminElement = <AdminPage />
+		const role = auth.authState.user.role
+		if (role === "MODERATOR" || role === "ADMIN" || role === "OWNER") {
+			adminElement = <AdminPage />
+		} else {
+			adminElement = <Navigate to="/" replace />
+		}
 	} else {
 		loginElement = <LoginPage/>
 		registerElement = <RegisterPage/>
