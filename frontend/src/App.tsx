@@ -6,6 +6,7 @@ import NavBar from './components/NavBar'
 import ProfilePage from './pages/ProfilePage'
 import DlePage from './pages/DlePage'
 import EditProfilePage from './pages/EditProfilePage';
+import AdminPage from './pages/AdminPage';
 import { useAuth } from './useAuth';
 import Spinner from './components/Spinner';
 
@@ -17,19 +18,21 @@ function App() {
 		return (<Spinner size="lg" />)
 	}
 
-	let loginElement, registerElement, profileElement, editProfileElement, dleElement;
+	let loginElement, registerElement, profileElement, editProfileElement, dleElement, adminElement;
 	if (auth.authState.authStatus == "logged-in") {
 		loginElement = <Navigate to="/" replace />
 		registerElement = <Navigate to="/" replace />
 		profileElement = <ProfilePage />
 		editProfileElement= <EditProfilePage user={auth.authState.user} />
 		dleElement = <DlePage />
+		adminElement = <AdminPage />
 	} else {
 		loginElement = <LoginPage/>
 		registerElement = <RegisterPage/>
 		profileElement = <Navigate to="/login" replace />
 		editProfileElement= <Navigate to="/login" replace />
 		dleElement = <Navigate to="/login" replace />
+		adminElement = <Navigate to="/login" replace />
 	}
 	return (
 		<div className="App min-h-dvh w-full flex flex-col">
@@ -43,6 +46,7 @@ function App() {
 					<Route path="/" element={<HomePage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 					<Route path="/dle" element={dleElement} />
+					<Route path="/admin" element={adminElement} />
 				</Routes>
 			</div>
 		</div>
