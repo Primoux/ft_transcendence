@@ -19,6 +19,13 @@ enum FriendshipStatus{
     PENDING
     ACCEPTED
 }
+
+enum Role {
+    USER
+    MODERATOR
+    ADMIN
+    OWNER
+}
 enum GameStatus {
     IN_PROGRESS
     WON
@@ -56,6 +63,7 @@ model User {
     avatarKey    String?
     createdAt    DateTime @default(now())
     privateProfile  Boolean @default(false)
+    role         Role @default(USER)
 
     sentFriendships     Friendship[] @relation("SentFriendships")
     receivedFriendships Friendship[] @relation("ReceivedFriendships")
