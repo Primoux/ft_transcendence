@@ -2,15 +2,25 @@ import {
   achievementRepository,
   cardRepository,
 } from "../../data/repositories/index.ts";
-import { Rarity, Color } from "../../../generated/client.ts";
+import { Rarity, Color, Category } from "../../../generated/client.ts";
 
 export const registry = {
   async achievements() {
     const achievements = [
       {
-        id: "first_win",
-        title: "First win",
-        description: "Win your first game",
+        id: "1st_win",
+        category: Category.WIN,
+        targetValue: 1,
+        title: "1st win",
+        description: "Win your 1st game",
+        icon: "path",
+      },
+      {
+        id: "5th_win",
+        category: Category.WIN,
+        targetValue: 5,
+        title: "5th win",
+        description: "Win your 5th game",
         icon: "path",
       },
     ];

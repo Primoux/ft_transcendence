@@ -1,4 +1,8 @@
-import type { Prisma, UserAchievement } from "../../../generated/client.ts";
+import type {
+  Category,
+  Prisma,
+  UserAchievement,
+} from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export type UnlockedAchievement = Prisma.UserAchievementGetPayload<{
@@ -47,6 +51,12 @@ export const achievementRepository = {
     return prisma.userAchievement.findMany({
       where: { userId },
       include: { achievement: true },
+    });
+  },
+  async findByCategory(category: Category) {
+    return prisma.achievement.findMany({
+      where: { category },
+      orderBy: { targetValue: "asc" },
     });
   },
   async findAll() {

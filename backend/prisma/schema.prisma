@@ -19,6 +19,13 @@ enum FriendshipStatus{
     PENDING
     ACCEPTED
 }
+
+enum Category{
+    WIN
+    GUESS
+    OTHER
+}
+
 enum GameStatus {
     IN_PROGRESS
     WON
@@ -107,6 +114,8 @@ model Friendship {
 
 model Achievement {
   id          String @id
+  category    Category @default(OTHER)
+  targetValue Int?
   title       String
   description String
   icon        String
