@@ -50,6 +50,15 @@ enum Rarity {
   BONUS
 }
 
+enum OtpType {
+  EMAIL_IS_VALID
+  CAN_LOGIN
+  CAN_DELETE_ACCOUNT
+  CAN_REQUEST_DATA
+  CAN_DISABLE_2FA
+  CAN_CHANGE_EMAIL
+}
+
 model User {
   id                String             @id @default(cuid(2))
   username          String             @unique
@@ -59,7 +68,7 @@ model User {
   privateProfile    Boolean            @default(false)
   email             String?            @unique
   emailVerifiedAt   DateTime?
-  emailVerification EmailVerification?
+  otpVerifications OtpVerification[]
 
   sentFriendships     Friendship[]      @relation("SentFriendships")
   receivedFriendships Friendship[]      @relation("ReceivedFriendships")
@@ -67,28 +76,22 @@ model User {
   sessions            GameSession[]
   oauthAccounts       OAuthAccount[]
   userAchievements    UserAchievement[]
-  loginChallenges     LoginChallenge[]
 }
 
-model EmailVerification {
-  userId    String   @id
+model OtpVerification {
+  loginTokenHash String? @unique   
+  type      OtpType 
+  userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email     String // the address being proven: same as User.email at signup, the new one on a change
+  email     String? // new email, if it's being changed
   codeHash  String // HMAC-SHA256(code, CODE_HMAC_KEY)
   expiresAt DateTime // sentAt + 5 min
   sentAt    DateTime // for the resend cooldown: set it explicitly on every upsert
   attempts  Int      @default(0)
+
+  @@id([type, userId])
 }
 
-model LoginChallenge {
-  id        String   @id // sha256(token), same pattern as AuthSession
-  userId    String
-  expiresAt DateTime // about 5 minutes
-  attempts  Int      @default(0)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-}
 
 model OAuthAccount {
   provider          String

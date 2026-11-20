@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import express from "express";
-import { Prisma } from "../../generated/client.ts";
+import { OtpType, Prisma } from "../../generated/client.ts";
 import * as zod from 'zod'
 import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
 import {SESSION_COOKIE, authRepository, userRepository} from '../data/repositories/index.ts'
 import { requireAuth } from '../middleware/authMiddleware.ts'
-import { start } from "../services/emailVerification.ts";
+import { startOtpVerification } from "../services/emailVerification.ts";
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ router.post("/login", async (req, res) => {
     if (previous) await authRepository.revokeSessionByToken(previous);
 
     await authRepository.createSession(req, res, user.id);
-    const { passwordHash, ...publicUser } = user;  // same shape as GET /users/me
+    const publicUser = await userRepository.findMe(user.id)
     res.json(publicUser);
   } catch (err) {
     return res.status(500).json({ error: "Error while checking credentials" });
@@ -58,7 +58,7 @@ router.post("/register", async (req, res) => {
       passwordHash: hashedPassword,
     });
     await authRepository.createSession(req, res, newUser.id);
-    await start(newUser.id, email)
+    await startOtpVerification(newUser.id, email, OtpType.EMAIL_IS_VALID)
 
     return res.status(201).json(newUser);
   } catch (error) {

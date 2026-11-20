@@ -2,8 +2,10 @@ import express from 'express'
 import * as zod from 'zod'
 import { randomBytes, randomInt, createHash } from 'node:crypto'
 import { userRepository, authRepository, SESSION_COOKIE } from '../data/repositories/index.ts'
-import { Prisma } from '../../generated/client.ts'
+import { OtpType, Prisma } from '../../generated/client.ts'
 import { copyDiscordAvatar } from '../services/avatars.ts'
+import { emailSchema } from '../utils/validation/zodSchema.ts'
+import { startOtpVerification } from '../services/emailVerification.ts'
 
 // Discord login is optional: without credentials (CI, a teammate without a Discord app) the backend
 // still starts, and the Discord routes send users back to the login page.
@@ -18,6 +20,8 @@ const discordUserSchema = zod.object({
 	username: zod.string(),
 	id: zod.string().regex(/^\d+$/),
 	avatar: zod.string().regex(/^(a_)?[0-9a-f]{32}$/).nullable(),   // "a_" = animated; .webp returns the first frame
+	email: emailSchema.nullish().catch(null),
+	verified: zod.boolean()
 })
 
 function baseUsername(discordName: string): string {
@@ -58,7 +62,7 @@ router.get('/discord', (req, res) => {
 		response_type: "code",
 		client_id: discord.clientId,
 		redirect_uri: discord.redirectUri,
-		scope: "identify",            // id, username, avatar: nothing more is needed
+		scope: "identify email", // identify: id + username + avatar. email to pre-verify the account's address
 		prompt: "none",
 		state,
 		code_challenge: codeChallenge,
@@ -137,6 +141,27 @@ router.get('/discord/callback', async (req, res) => {
 				await userRepository.updateById(user.id, { avatarKey })
 			} catch (err) {
 				console.error("could not copy discord avatar", err)   // the user just gets the default avatar
+			}
+		}
+		if (isNew && profile.email)
+		{
+			const existingEmailUser = await userRepository.findByEmail(profile.email)
+			if (!existingEmailUser && profile.verified) {
+				try {
+					await userRepository.confirmEmail(user.id, profile.email)
+				}
+				catch(err) {
+					console.error("could not set user email", err)
+				}
+			}
+			else if (!existingEmailUser) {
+				try {
+					const startEmailVerifResult =  await startOtpVerification(user.id, profile.email, OtpType.EMAIL_IS_VALID)
+					if (startEmailVerifResult.status === "error")
+						throw new Error(startEmailVerifResult.error)
+				} catch (err) {
+					console.error("could not send verification email", err)
+				}
 			}
 		}
 		await authRepository.createSession(req, res, user.id)

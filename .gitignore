@@ -10,3 +10,4 @@ backend/generated
 .DS_Store
 # Self-signed HTTPS certificate and its private key, created by `make certs`.
 certs/
+cookies.txt
