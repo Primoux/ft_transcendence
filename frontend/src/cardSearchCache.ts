@@ -11,7 +11,6 @@ type CardSearchCache = {
 const db = new Dexie("search_cards");
 db.version(1).stores({cards: "id, name, artUrl"});
 
-//? IndexedDB
 export async function getGuessEntities(): Promise<CardSearchCache> {
 	const response = await fetch("/api/dle/classic/init");
 	if (!response.ok) {

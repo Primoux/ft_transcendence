@@ -5,6 +5,7 @@ import Spinner from "../components/Spinner.tsx";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
 import {getGuessEntities} from "../cardSearchCache.ts";
+import { getSummaryEntity, setSummaryEntity } from "../summaryCache.ts";
 
 function DlePage() {
 	const [input, setInput] = useState("");
@@ -15,27 +16,11 @@ function DlePage() {
 		session: "",
 		history: []
 	});
-	const [summary, setSummary] = useState<SummaryEntity>({
-		legStatus: false,
-		comp: {
-			"manaValue": "incorrect",
-			"colorIdentity": "incorrect",
-			"types": "incorrect",
-			"subtypes": "incorrect",
-			"power": "incorrect",
-			"toughness": "incorrect",
-			"legStatus": "incorrect",
-			"rarity": "incorrect",
-			"releaseSet": "incorrect",
-			"releaseYear": "incorrect"
-		}
-	});
+	const [summary, setSummary] = useState<SummaryEntity>(() => getSummaryEntity());
 	const [refreshKey, setRefreshKey] = useState(0);
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 	const [suggestions, setSuggestions] = useState<GuessEntity[]>([]);
 	const [showWin, setShowWin] = useState(false);
-	// TODO: delay for "gg" message
-	// TODO: load history
 
 	useEffect(() => {
 		async function initialize() {
@@ -43,14 +28,6 @@ function DlePage() {
 				const info = await getGuessEntities();
 				setGameInfo(info);
 				setGuesses(info.history);
-				// updateSummary(summary, info.history[info.history.length - 1]); // TODO: fix summary
-				/**
-				 * send summary to the backend
-				 * back stores in the database
-				 * add summary to info returned
-				 * (maybe rename getGuessEntities to getGameSessionInfo)
-				 * here setSummary(info.summary)
-				 */
 				setShowWin(info.history.some((guess: GuessResult) => guess.win));
 				setSuggestions(info.cards);
 			} catch (err) {
@@ -103,7 +80,11 @@ function DlePage() {
 			}
 
 			setGuesses((prev: GuessResult[]) => [...prev, result.result]);
-			setSummary((guess: SummaryEntity) => updateSummary(guess, result.result));
+			const updatedSummary = updateSummary(summary, result.result);
+			setSummary(updatedSummary);
+			setSummaryEntity(updatedSummary);
+			// setSummary((guess: SummaryEntity) => updateSummary(guess, result.result));
+			// setSummaryEntity(summary);
 			setRefreshKey((guess: number) => guess + 1);
 			setInput("");
 		} catch (error) {
