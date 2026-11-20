@@ -21,6 +21,7 @@ function NavBar() {
 
     let accountElement;
     if (user) {
+        const canSeeAdmin = user.role === "MODERATOR" || user.role === "ADMIN" || user.role === "OWNER"
         accountElement =
         <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="btn btn-ghost gap-2">
@@ -30,6 +31,7 @@ function NavBar() {
             </div>
             <ul tabIndex={0} className="menu dropdown-content bg-base-100 border border-base-300 rounded-box mt-2 w-44 p-2 shadow-xl">
                 <li><Link to={`/users/${user.username}`} onClick={closeMenu}>Profile</Link></li>
+                {canSeeAdmin && <li><Link to="/admin" onClick={closeMenu}>Admin</Link></li>}
                 <li><button onClick={() => {closeMenu(); logout()}} className="text-error">Log out</button></li>
             </ul>
         </div>
