@@ -10,23 +10,13 @@ services:
     ports: ["8025:8025"]           # web inbox; SMTP 1025 stays inside the Docker network
   backend:
     environment: !override
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-      # FRONTEND_URL: ${FRONTEND_URL}
-      NODE_ENV: dev
-    # volumes: !reset []
-    #   card-ingestion:
-    #     condition: service_completed_successfully
       TZ: Europe/Paris
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       DISCORD_REDIRECT_URI: http://localhost:5173/api/auth/discord/callback
       FRONTEND_URL: http://localhost:5173
-    # volumes: !reset []
-    # depends_on: !override
-    #   postgres:
-    #     condition: service_healthy
-    #   card-ingestion:
-    #     condition: service_completed_successfully
+      NODE_ENV: dev
     build:
       target: dev
     image: backend-dev

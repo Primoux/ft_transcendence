@@ -24,10 +24,8 @@ import { startCleanupJob } from './services/cleanup.ts';
 const app = express();
 app.disable('x-powered-by');
 const server = createServer(app); 
-const io = new Server(server, {
+export const io = new Server(server, {
     cors: {
-        // origin: 'http://localhost:5173', // dev
-        // origin: 'https://localhost:8443', // prod
         origin: process.env.FRONTEND_URL,
         credentials: true
     }
