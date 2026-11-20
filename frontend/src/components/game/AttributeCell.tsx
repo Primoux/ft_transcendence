@@ -11,9 +11,16 @@ interface IAttributeCell {
   delay: number;
 };
 
-// (<>{value.includes("White")}<img className="w-10 h-10" src="../../public/color/mtg-white.png" title="White" alt="white"/></>)
-
 function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : IAttributeCell) {
+  if (comp !== "correct" && !isNaN(Number(value)) && value2 !== undefined && !isNaN(Number(value2)) && value3 === undefined) {
+    console.log("lol");
+    value = Number(value) + 1;
+    value2 = Number(value2) - 1;
+    if (value === value2) {
+      comp = "correct"
+    }
+  }
+
   const color = comp === "correct" || comp === undefined && (value3 === undefined)
 								? "bg-green-100 text-green-900"
 								: comp === "incorrect"
@@ -29,7 +36,7 @@ function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : 
             <img key={color} className="w-5 h-5" src={`../../public/color/mtg-${color.toLowerCase()}.png`} title={color} alt={color}/>
           ))}</div> : value.join(", ") : "N/A"
       : value2 !== undefined && value !== undefined && value2 !== value
-        ? `${Number(value) + 1} - ${Number(value2) - 1}`
+        ? `${value} - ${value2}`
         : (<>
           {value?.toString() ?? value2?.toString() ?? "N/A"}
           {
@@ -46,7 +53,7 @@ function AttributeCell({value, value2, value3, comp, lastGuess = true, delay} : 
       {value3}
       <br/>
 		  {value2 !== undefined && value !== undefined && value2 !== value
-        ? `${Number(value) + 1} - ${Number(value2) - 1}`
+        ? `${value} - ${value2}`
         : (<>
           {value ?? value2}
           {
