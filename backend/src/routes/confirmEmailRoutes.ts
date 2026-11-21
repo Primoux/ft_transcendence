@@ -1,7 +1,7 @@
 import express from 'express'
 import { otpVerificationRepository, userRepository } from '../data/repositories/index.ts'
 import * as zod from 'zod'
-import { attemptCode, startOtpVerification } from '../services/emailVerification.ts';
+import { attemptCode, startEmailVerification } from '../services/emailVerification.ts';
 import { emailSchema, otpSchema } from '../utils/validation/zodSchema.ts';
 import { OtpType } from '../../generated/enums.ts';
 import { Prisma } from '../../generated/client.ts';
@@ -16,7 +16,7 @@ router.post("/email", async (req, res) => {
   if (result.error)
     return res.status(400).json({ error: "bad request" })
 
-  const startResult = await startOtpVerification(req.userId, result.data, OtpType.EMAIL_IS_VALID)
+  const startResult = await startEmailVerification(req.userId, result.data)
   if (startResult.status === "error")
     return res.status(startResult.code).json({ error: startResult.error })
   return res.status(200).send()
@@ -30,7 +30,7 @@ router.post("/email/resend", async (req, res) => {
 
   if (!pending?.email)
     return res.status(404).json({ error: "no email to confirm" })
-  const result = await startOtpVerification(req.userId, pending.email, OtpType.EMAIL_IS_VALID)
+  const result = await startEmailVerification(req.userId, pending.email)
   if (result.status === "error")
     return res.status(result.code).json({ error: result.error })
   return res.status(200).send()

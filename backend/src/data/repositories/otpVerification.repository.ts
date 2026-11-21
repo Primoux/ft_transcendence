@@ -3,13 +3,13 @@ import { OtpType } from "../../../generated/enums.ts"
 import { CODE_TTL_MS, MAX_ATTEMPTS } from "../../services/codes.ts"
 
 export const otpVerificationRepository = {
-    async upsert(userId: string, email: string, codeHash: string, type: OtpType) {
+    async upsert(userId: string, codeHash: string, type: OtpType, email?: string) {
         const now = new Date()
         const expiresAt = new Date(now.getTime() + CODE_TTL_MS)
         await prisma.otpVerification.upsert({
             where: { type_userId: { userId, type } },
             create: { userId, type, expiresAt, sentAt: now, email, codeHash },
-            update: { email, codeHash, expiresAt, sentAt: now, attempts: 0 }
+            update: { email: email ?? undefined, codeHash, expiresAt, sentAt: now, attempts: 0 }
         })
     },
 
