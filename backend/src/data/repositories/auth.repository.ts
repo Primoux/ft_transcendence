@@ -70,9 +70,11 @@ export const authRepository = {
 
     async purgeExpiredSessions() {
         const now = new Date();
-        await prisma.authSession.deleteMany({
+        const result = await prisma.authSession.deleteMany({
             where: { OR: [{ expiresAt: { lt: now } }, { absoluteExpiresAt: { lt: now } }] },
         });
+
+        return result
     },
 
 };
