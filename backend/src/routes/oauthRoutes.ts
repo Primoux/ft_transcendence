@@ -1,11 +1,12 @@
 import express from 'express'
 import * as zod from 'zod'
 import { randomBytes, randomInt, createHash } from 'node:crypto'
-import { userRepository, authRepository, SESSION_COOKIE } from '../data/repositories/index.ts'
+import { userRepository } from '../data/repositories/index.ts'
 import { Prisma } from '../../generated/client.ts'
 import { copyDiscordAvatar } from '../services/avatars.ts'
 import { emailSchema } from '../utils/validation/zodSchema.ts'
 import { startEmailVerification } from '../services/emailVerification.ts'
+import { completeLogin } from '../services/login.ts'
 
 // Discord login is optional: without credentials (CI, a teammate without a Discord app) the backend
 // still starts, and the Discord routes send users back to the login page.
@@ -133,8 +134,6 @@ router.get('/discord/callback', async (req, res) => {
 			if (!user) throw new Error("could not find a free username")
 			isNew = true;
 		}
-		const previous = req.cookies[SESSION_COOKIE]
-		if (previous) await authRepository.revokeSessionByToken(previous)
 		if (isNew && profile.avatar) {
 			try {
 				const avatarKey = await copyDiscordAvatar(profile.id, profile.avatar)
@@ -164,7 +163,7 @@ router.get('/discord/callback', async (req, res) => {
 				}
 			}
 		}
-		await authRepository.createSession(req, res, user.id)
+		const loginResult = await completeLogin(req, res, user.id)
 		return res.redirect("/")
 	}
 	catch (err) {

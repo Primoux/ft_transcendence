@@ -1,11 +1,12 @@
 import bcrypt from "bcryptjs";
 import express from "express";
-import { OtpType, Prisma } from "../../generated/client.ts";
+import { Prisma } from "../../generated/client.ts";
 import * as zod from 'zod'
 import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
-import {SESSION_COOKIE, authRepository, userRepository} from '../data/repositories/index.ts'
+import { SESSION_COOKIE, authRepository, userRepository } from '../data/repositories/index.ts'
 import { requireAuth } from '../middleware/authMiddleware.ts'
 import { startEmailVerification } from "../services/emailVerification.ts";
+import { completeLogin } from "../services/login.ts";
 
 const router = express.Router();
 
@@ -28,10 +29,7 @@ router.post("/login", async (req, res) => {
     if (!user?.passwordHash || !validPassword) {
       return res.status(401).json({ error: "invalid credentials" });
     }
-    const previous = req.cookies[SESSION_COOKIE];
-    if (previous) await authRepository.revokeSessionByToken(previous);
-
-    await authRepository.createSession(req, res, user.id);
+    const result = await completeLogin(req, res, user.id)
     const publicUser = await userRepository.findMe(user.id)
     res.json(publicUser);
   } catch (err) {
@@ -44,12 +42,12 @@ router.post("/register", async (req, res) => {
   if (!parsedData.success) {
     return res.status(400).send(zod.flattenError(parsedData.error));
   }
-  const { username, password, email} = parsedData.data;
+  const { username, password, email } = parsedData.data;
 
   const existingEmailuser = await userRepository.findByEmail(email)
 
   if (existingEmailuser)
-    return res.status(409).json({error: "email already in use"})
+    return res.status(409).json({ error: "email already in use" })
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -57,7 +55,8 @@ router.post("/register", async (req, res) => {
       username,
       passwordHash: hashedPassword,
     });
-    await authRepository.createSession(req, res, newUser.id);
+
+    const loginResult = await completeLogin(req, res, newUser.id)
     await startEmailVerification(newUser.id, email)
 
     return res.status(201).json(newUser);
