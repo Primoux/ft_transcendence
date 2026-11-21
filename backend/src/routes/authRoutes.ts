@@ -5,7 +5,7 @@ import * as zod from 'zod'
 import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
 import {SESSION_COOKIE, authRepository, userRepository} from '../data/repositories/index.ts'
 import { requireAuth } from '../middleware/authMiddleware.ts'
-import { startOtpVerification } from "../services/emailVerification.ts";
+import { startEmailVerification } from "../services/emailVerification.ts";
 
 const router = express.Router();
 
@@ -58,7 +58,7 @@ router.post("/register", async (req, res) => {
       passwordHash: hashedPassword,
     });
     await authRepository.createSession(req, res, newUser.id);
-    await startOtpVerification(newUser.id, email, OtpType.EMAIL_IS_VALID)
+    await startEmailVerification(newUser.id, email)
 
     return res.status(201).json(newUser);
   } catch (error) {

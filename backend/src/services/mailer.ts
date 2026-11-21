@@ -1,6 +1,13 @@
 import nodemailer from "nodemailer"
-export const CONFIRM_EMAIL_SUBJECT = "Your validation code is "
-export const CONFIRM_EMAIL_BODY = "Use it to confirm your email address."
+import { OtpType } from "../../generated/enums.ts"
+export const emailDetails: Record<OtpType, { subject: string, body: string }> = {
+    EMAIL_IS_VALID: { subject: "Confirm your email address", body: "Use this code to confirm your email address." },
+    CAN_LOGIN: { subject: "Your login code", body: "Use this code to finish logging in." },
+    CAN_DELETE_ACCOUNT: { subject: "Confirm account deletion", body: "Use this code to confirm the deletion of your account." },
+    CAN_REQUEST_DATA: { subject: "Confirm your data request", body: "Use this code to confirm your personal data request." },
+    CAN_DISABLE_2FA: { subject: "Confirm disabling 2FA", body: "Use this code to turn off two-factor authentication." },
+    CAN_CHANGE_EMAIL: { subject: "Confirm your email change", body: "Use this code to confirm changing your email address." },
+}
 
 const from = process.env['MAIL_FROM']
 const host = process.env['SMTP_HOST']

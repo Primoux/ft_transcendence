@@ -2,10 +2,10 @@ import express from 'express'
 import * as zod from 'zod'
 import { randomBytes, randomInt, createHash } from 'node:crypto'
 import { userRepository, authRepository, SESSION_COOKIE } from '../data/repositories/index.ts'
-import { OtpType, Prisma } from '../../generated/client.ts'
+import { Prisma } from '../../generated/client.ts'
 import { copyDiscordAvatar } from '../services/avatars.ts'
 import { emailSchema } from '../utils/validation/zodSchema.ts'
-import { startOtpVerification } from '../services/emailVerification.ts'
+import { startEmailVerification } from '../services/emailVerification.ts'
 
 // Discord login is optional: without credentials (CI, a teammate without a Discord app) the backend
 // still starts, and the Discord routes send users back to the login page.
@@ -156,7 +156,7 @@ router.get('/discord/callback', async (req, res) => {
 			}
 			else if (!existingEmailUser) {
 				try {
-					const startEmailVerifResult =  await startOtpVerification(user.id, profile.email, OtpType.EMAIL_IS_VALID)
+					const startEmailVerifResult =  await startEmailVerification(user.id, profile.email)
 					if (startEmailVerifResult.status === "error")
 						throw new Error(startEmailVerifResult.error)
 				} catch (err) {
