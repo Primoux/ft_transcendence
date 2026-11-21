@@ -1,6 +1,7 @@
 import { prisma } from "../prisma.ts"
 import { OtpType } from "../../../generated/enums.ts"
 import { CODE_TTL_MS, MAX_ATTEMPTS } from "../../services/codes.ts"
+import { PURGE_DELAY } from "../../services/cleanup.ts"
 
 export const otpVerificationRepository = {
     async upsert(userId: string, codeHash: string, type: OtpType, email?: string) {
@@ -40,5 +41,14 @@ export const otpVerificationRepository = {
         })
 
         return (result.count === 1);
+    },
+
+    async purgeExpired() {
+        const now = new Date();
+        const then = new Date(now.getTime() - PURGE_DELAY)
+        const result = await prisma.otpVerification.deleteMany({
+            where: { expiresAt: { lt: then } },
+        });
+        return result
     }
 }

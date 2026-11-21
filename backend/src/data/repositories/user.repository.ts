@@ -82,14 +82,15 @@ export const userRepository = {
   },
 
   async purgeUnverified(olderThan: Date) {
-    await prisma.user.deleteMany({
+    const result = await prisma.user.deleteMany({
       where: {
         emailVerifiedAt: null,
         createdAt: {
-          lt: new Date(olderThan)
+          lt: olderThan
         },
         oauthAccounts: {none: {}}
       }
     })
+    return result
   }
 };

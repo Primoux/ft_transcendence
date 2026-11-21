@@ -15,6 +15,7 @@ import errorCatcher from './middleware/errorMiddleware.ts'
 import cookieParser from 'cookie-parser'
 
 import { UPLOADS_DIR } from './services/avatars.ts'
+import { startCleanupJob } from './services/cleanup.ts';
 
 
 const app = express();
@@ -48,6 +49,8 @@ app.use("/dle", gameRoutes)
 
 
 app.use(errorCatcher);
+
+startCleanupJob()
 
 app.listen(5003, () => {
     console.log("server running");
