@@ -55,6 +55,7 @@ enum OtpType {
   CAN_LOGIN
   CAN_DELETE_ACCOUNT
   CAN_REQUEST_DATA
+  CAN_ENABLE_2FA
   CAN_DISABLE_2FA
   CAN_CHANGE_EMAIL
 }
@@ -68,6 +69,7 @@ model User {
   privateProfile    Boolean            @default(false)
   email             String?            @unique
   emailVerifiedAt   DateTime?
+  twoFactorEnabledAt  DateTime?
   otpVerifications OtpVerification[]
 
   sentFriendships     Friendship[]      @relation("SentFriendships")
