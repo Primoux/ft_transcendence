@@ -15,6 +15,10 @@ datasource db {
     provider = "postgresql"
 }
 
+enum FriendshipStatus{
+    PENDING
+    ACCEPTED
+}
 enum GameStatus {
     IN_PROGRESS
     WON
@@ -48,12 +52,78 @@ enum Rarity{
 model User {
     id           String @id @default(cuid(2))
     username     String @unique
-    displayName  String
-    passwordHash String
+    passwordHash String?
+    avatarKey    String?
     createdAt    DateTime @default(now())
     privateProfile  Boolean @default(false)
 
-    sessions GameSession[]
+    sentFriendships     Friendship[] @relation("SentFriendships")
+    receivedFriendships Friendship[] @relation("ReceivedFriendships")
+    authSessions        AuthSession[]
+    sessions            GameSession[]
+    oauthAccounts       OAuthAccount[]
+    userAchievements    UserAchievement[]
+}
+
+model OAuthAccount {
+    provider          String
+    providerAccountId String
+    userId            String
+    user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([provider, providerAccountId])
+    @@index([userId])
+}
+
+model AuthSession {
+  id                String   @id      // sha256(token), hex. The raw token is never stored
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  expiresAt         DateTime          // idle expiry, pushed forward while the user is active
+  absoluteExpiresAt DateTime          // hard cap, never extended
+  lastSeenAt        DateTime @default(now())
+  userAgent         String?
+  ip                String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Friendship {
+    id         String           @id @default(cuid(2))
+    status     FriendshipStatus @default(PENDING)
+    createdAt  DateTime         @default(now())
+    updatedAt  DateTime         @updatedAt
+
+    senderId   String
+    sender     User @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+
+    receiverId String
+    receiver   User @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+
+    @@unique([senderId, receiverId])
+}
+
+model Achievement {
+  id          String @id
+  title       String
+  description String
+  icon        String
+
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+    unlockedAt DateTime @default(now())
+
+    userId String
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    achievementId String
+    achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+    @@id([userId, achievementId])
 }
 
 model GameSession {
@@ -105,10 +175,11 @@ model MagicCard {
 
     dailyGames  DailyGame[]
     guesses     Guess[]
+
+    @@index([edhrecRank])
 }
 
 model Guess {
-    id            String @id @default(cuid(2))
     attemptNumber Int
 
     gameSessionId String
@@ -117,11 +188,11 @@ model Guess {
     guessedCardId String
     guessedCard   MagicCard @relation(fields: [guessedCardId], references: [oracleId])
 
-    @@unique([gameSessionId, attemptNumber])
+    @@id([gameSessionId, attemptNumber])
     @@unique([gameSessionId, guessedCardId])
 }
 
-model CardSync {
+model ScryfallSyncCard {
   key        String   @id
   lastSyncAt DateTime
 }

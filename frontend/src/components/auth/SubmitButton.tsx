@@ -1,3 +1,5 @@
+import Spinner from "../Spinner"
+
 type SubmitButtonProps = {
     loading: boolean
     label: string
@@ -7,7 +9,7 @@ type SubmitButtonProps = {
 function SubmitButton({ loading, label, loadingLabel } : SubmitButtonProps) {
     return (
         	<button className="btn btn-primary btn-block" disabled={loading}>
-            	{loading ? loadingLabel : label}
+            	{!loading ? label : (<><Spinner />{loadingLabel}</>)}
         	</button>
     )
 }

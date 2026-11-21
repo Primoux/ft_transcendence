@@ -2,13 +2,14 @@ import type { Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const cardRepository = {
-  async findAllPlayable(maxRank: number = 5000) {
-    return prisma.magicCard.findMany({
-      where: { edhrecRank: { lt: maxRank } },
+  async upsert(card: Prisma.MagicCardCreateInput) {
+    const { oracleId, ...updateFields } = card;
+
+    return prisma.magicCard.upsert({
+      where: { oracleId},
+      update: updateFields,
+      create: card,
     });
-  },
-  async findById(id: string) {
-    return prisma.magicCard.findUnique({ where: { oracleId: id } });
   },
   async upsertMany(cards: Prisma.MagicCardCreateManyInput[]) {
     const operations = cards.map((card) => {
@@ -21,8 +22,7 @@ export const cardRepository = {
     });
     return prisma.$transaction(operations);
   },
-
-  async insertFromStaging() : Promise<number> {
+  async insertFromStaging(): Promise<number> {
     return prisma.$executeRaw`
     WITH OldestCardHistory AS (
       SELECT
@@ -87,5 +87,24 @@ export const cardRepository = {
       "releaseSet" = EXCLUDED."releaseSet",
       "releaseSetName" = EXCLUDED."releaseSetName";
     `;
+  },
+  async findAllPlayable(maxCards: number = 5000) {
+    return prisma.magicCard.findMany({
+      where: { edhrecRank: { not: null } },
+      orderBy: { edhrecRank: "asc" },
+      take: maxCards,
+    });
+  },
+  async findById(id: string) {
+    return prisma.magicCard.findUnique({ where: { oracleId: id } });
+  },
+  async countAll() {
+    return prisma.magicCard.count();
+  },
+  async countByRarity() {
+    return prisma.magicCard.groupBy({
+      by: ["rarity"],
+      _count: true,
+    });
   },
 };

@@ -10,6 +10,7 @@ COPY . .
 
 RUN npx prisma generate
 RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./ingest-entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 
 
@@ -28,14 +29,17 @@ WORKDIR /app
 COPY package.json package-lock.json .
 RUN npm ci --omit=dev
 
-COPY prisma /app/prisma/ 
+COPY prisma /app/prisma/
 COPY prisma.config.ts /app
 
 COPY --from=base /app/entrypoint.sh .
+COPY --from=base /app/ingest-entrypoint.sh .
 RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./ingest-entrypoint.sh
 
 COPY --from=build /app/dist .
 
+RUN mkdir -p /app/uploads && chown node:node /app/uploads
 USER node
 CMD ["node", "src/server.js"]
 ENTRYPOINT ["./entrypoint.sh"]

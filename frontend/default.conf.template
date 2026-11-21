@@ -24,7 +24,7 @@ server {
     location /         { try_files $uri $uri/ /index.html; }
     location /assets/  { try_files $uri $uri/ =404; }
     # BACKEND ends with a slash, so nginx strips the /api prefix.
-    location /api/     { proxy_pass ${BACKEND}; }
+    location /api/     { client_max_body_size 3m; proxy_pass ${BACKEND}; }
     location /socket.io/ {
         modsecurity_rules '
             SecRuleRemoveById 920420

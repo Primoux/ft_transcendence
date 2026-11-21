@@ -32,7 +32,6 @@ export type LoginData = {
 
 export type RegisterData = {
     username: string
-    displayName: string
     password: string
     passwordConfirmation: string
 }

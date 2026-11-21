@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import type { GuessEntity, CardEntity, GuessResult, SummaryEntity, AttributeStatus, GuessResponse, CardSearchCache } from "../types/game.ts";
+import Spinner from "../components/Spinner.tsx";
 import GuessInput from "../components/game/GuessInput.tsx";
 import AttributeCell from "../components/game/AttributeCell.tsx";
 import {getGuessEntities} from "../cardSearchCache.ts";
@@ -73,8 +74,10 @@ function DlePage() {
 
 	async function handleSubmit(event: FormEvent<HTMLFormElement>, name?: string) {
 		event.preventDefault();
-		const guess = name ?? input;
-		const entity = gameInfo.cards.find((item: GuessEntity) => item.name === guess );
+
+		const cleanInput = (str: string) =>	str.trim().toLowerCase().replace(/,\s*/g, " ");
+		const guess = cleanInput(name ?? input);
+		const entity = gameInfo.cards.find((item: GuessEntity) => cleanInput(item.name) === guess );
 
 		if (!entity) {
 			console.error("Card not found");
@@ -88,7 +91,16 @@ function DlePage() {
 
 		try {
 			const response = await fetch(`/api/dle/guess?${params.toString()}`);
+			if (!response.ok) {
+				console.error("Error fetching /api/dle/guess: ", response.status);
+				return ;
+			}
+
 			const result: GuessResponse = await response.json();
+
+			if (!result.result) {
+				return ;
+			}
 
 			setGuesses((prev: GuessResult[]) => [...prev, result.result]);
 			setSummary((guess: SummaryEntity) => updateSummary(guess, result.result));
@@ -222,7 +234,7 @@ function DlePage() {
 		<h1>MagicDLE</h1>
 		<h2>Classic mode</h2>
 		<section>
-			{loading ? (<p>Loading cards...</p>) :
+			{loading ? (<Spinner size="lg" />) :
 			guesses.length === 0 ? (
 				<div>
 					<GuessInput input={input} setInput={setInput} submitFunc={handleSubmit} cards={[...suggestions].sort((c1, c2) => c1.name.localeCompare(c2.name))} guessed={guesses.map(guess => guess.card.name)} />

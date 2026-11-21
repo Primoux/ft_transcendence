@@ -1,11 +1,9 @@
-import express from "express";
 import type { Request, Response } from 'express';
-import { cardRepository, dailyGameRepository, gameSessionRepository } from "../data/repositories/index.ts";
-import { CardEntity, GuessEntity, GuessResult, AttributeStatus, ColorIdentity, Rarity as FrontRarity } from "../types/game.types.ts"
-import { Prisma, GameMode, DailyGame, MagicCard, Rarity as DatabaseRarity, GameSession, GameStatus, Guess } from "../../generated/client.ts"
-import { guessSchema } from "../utils/validation/zodSchema.ts"
-import { guessRepository } from '../data/repositories/guess.repository.ts';
-import { prisma } from "../data/prisma.ts"
+import express from "express";
+import { DailyGame, Rarity as DatabaseRarity, GameMode, GameStatus, GameSession, MagicCard, Prisma } from "../../generated/client.ts";
+import { cardRepository, dailyGameRepository, gameSessionRepository, guessRepository } from "../data/repositories/index.ts";
+import { AttributeStatus, CardEntity, ColorIdentity, Rarity as FrontRarity, GuessEntity, GuessResult } from "../types/game.types.ts";
+import { guessSchema } from "../utils/validation/zodSchema.ts";
 
 const router = express.Router();
 
@@ -33,7 +31,7 @@ router.get("/classic/init", async (req: Request, res: Response) => {
 			throw new Error("could not retrieve daily solution for this mode");
 		var dailyCardEntity: CardEntity = buildCardEntity(dailyCard);
 		console.log(dailyCard.name);
-		var guessCardList: MagicCard[] = await guessRepository.findBySession(session.id);
+		var guessCardList: MagicCard[] = await guessRepository.findGuessedCardsBySession(session.id);
 	}
 	catch (err) {
 		return res.status(500).json({err: "database issue"});
@@ -104,14 +102,7 @@ router.get("/guess", async (req: Request, res: Response) => {
 		comp: buildGuessComp(guessEntity, answerEntity)
 	}
 	if (result.win) {
-		session = await prisma.gameSession.update({
-			where: {
-				id: session.id
-			},
-			data: {
-				status: GameStatus.WON
-			}
-		});
+		session = await gameSessionRepository.updateById(session.id, {status: GameStatus.WON});
 		if (!session) {
 			return res.status(404).json({err: "cannot find game session to update status"});
 		}
