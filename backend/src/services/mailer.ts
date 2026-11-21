@@ -5,6 +5,7 @@ export const emailDetails: Record<OtpType, { subject: string, body: string }> = 
     CAN_LOGIN: { subject: "Your login code", body: "Use this code to finish logging in." },
     CAN_DELETE_ACCOUNT: { subject: "Confirm account deletion", body: "Use this code to confirm the deletion of your account." },
     CAN_REQUEST_DATA: { subject: "Confirm your data request", body: "Use this code to confirm your personal data request." },
+    CAN_ENABLE_2FA: { subject: "Confirm enabling 2FA", body: "Use this code to turn on two-factor authentication." },
     CAN_DISABLE_2FA: { subject: "Confirm disabling 2FA", body: "Use this code to turn off two-factor authentication." },
     CAN_CHANGE_EMAIL: { subject: "Confirm your email change", body: "Use this code to confirm changing your email address." },
 }

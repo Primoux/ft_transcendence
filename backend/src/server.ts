@@ -6,6 +6,7 @@ import oauthRoutes from './routes/oauthRoutes.ts'
 import userRoutes from './routes/userRoutes.ts'
 import healthRoutes from './routes/healthRoutes.ts'
 import metricsRoutes from './routes/metricsRoutes.ts'
+import twoFactorRoutes from './routes/twoFactorRoutes.ts'
 import confirmEmailRoutes from './routes/confirmEmailRoutes.ts'
 import metricsMiddleware from './middleware/metricsMiddleware.ts'
 
@@ -46,6 +47,7 @@ app.use("/auth", confirmEmailRoutes)
 
 app.use(requireVerifiedEmail)
 app.use("/dle", gameRoutes)
+app.use("/auth/2fa", twoFactorRoutes)
 
 
 app.use(errorCatcher);
