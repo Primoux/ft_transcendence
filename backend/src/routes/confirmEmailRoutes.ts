@@ -37,7 +37,7 @@ router.post("/email", async (req, res) => {
   const startResult = await startEmailVerification(req.userId, newEmail.data)
   if (startResult.status === "error")
     return res.status(startResult.code).json({ error: startResult.error })
-  return res.status(200).send()
+  return res.status(200).json({ status: "success" })
 
 })
 
@@ -51,7 +51,7 @@ router.post("/email/resend", async (req, res) => {
   const result = await startEmailVerification(req.userId, pending.email)
   if (result.status === "error")
     return res.status(result.code).json({ error: result.error })
-  return res.status(200).send()
+  return res.status(200).json({ status: "success" })
 })
 
 router.post("/email/verify", async (req, res) => {
@@ -76,7 +76,7 @@ router.post("/email/verify", async (req, res) => {
     }
     throw err
   }
-  return res.status(200).send()
+  return res.status(200).json({ status: "success" })
 })
 
 router.post("/email/send-change-otp", async (req, res) => {
@@ -87,6 +87,6 @@ router.post("/email/send-change-otp", async (req, res) => {
 
   if (result.status === "error")
     return res.status(result.code).json({ error: result.error })
-  return res.status(200).send()
+  return res.status(200).json({ status: "success" })
 })
 export default router

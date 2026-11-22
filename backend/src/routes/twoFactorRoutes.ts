@@ -18,7 +18,7 @@ router.post("/enable", async (req, res) => {
     const result = await startOtp(req.userId, OtpType.CAN_ENABLE_2FA)
     if (result.status === "error")
         return (res.status(result.code).json({error: result.error}))
-    return res.status(200).send()
+    return res.status(200).json({ status: "success" })
 
 })
 
@@ -34,7 +34,7 @@ router.post("/enable/verify", async (req, res) => {
     if (otpResult.status === "error")
         return (res.status(otpResult.code).json({error: otpResult.error}))
     await userRepository.updateById(req.userId, {twoFactorEnabledAt: new Date()})
-    return res.status(200).send()
+    return res.status(200).json({ status: "success" })
 })
 
 router.post("/disable", async (req, res) => {
@@ -48,7 +48,7 @@ router.post("/disable", async (req, res) => {
     const result = await startOtp(req.userId, OtpType.CAN_DISABLE_2FA)
     if (result.status === "error")
         return (res.status(result.code).json({error: result.error}))
-    return res.status(200).send()
+    return res.status(200).json({ status: "success" })
 })
 
 router.post("/disable/verify", async (req, res) => {
@@ -63,7 +63,7 @@ router.post("/disable/verify", async (req, res) => {
     if (otpResult.status === "error")
         return (res.status(otpResult.code).json({error: otpResult.error}))
     await userRepository.updateById(req.userId, {twoFactorEnabledAt: null})
-    return res.status(200).send()
+    return res.status(200).json({ status: "success" })
 })
 
 export default router
