@@ -49,6 +49,10 @@ app.use(requireVerifiedEmail)
 app.use("/dle", gameRoutes)
 app.use("/auth/2fa", twoFactorRoutes)
 
+// No route matched: answer in JSON like every other response, instead of Express's HTML page.
+app.use((req, res) => {
+    res.status(404).json({ error: "not found" })
+})
 
 app.use(errorCatcher);
 
