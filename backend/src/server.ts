@@ -20,6 +20,8 @@ import cookieParser from 'cookie-parser'
 import { UPLOADS_DIR } from './services/avatars.ts'
 import { startCleanupJob } from './services/cleanup.ts';
 
+import { statusSocketHandlers } from './socket/socketHandlers.ts'
+
 
 const app = express();
 app.disable('x-powered-by');
@@ -67,14 +69,7 @@ app.use(errorCatcher);
 
 startCleanupJob()
 
-io.on('connection', (socket) => {
-    console.log('a user connected: ', socket.id);
-    
-    socket.on('disconnect', (reason) => {
-        console.log('a user disconnected: ', socket.id);
-        console.log('reason: ', reason);
-    });
-});
+statusSocketHandlers(io);
 
 server.listen(5003, () => {
     console.log("server running");

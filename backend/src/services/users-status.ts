@@ -1,26 +1,34 @@
-import { io } from '../server.ts'
-import { Server } from 'socket.io';
-
-// type UserId = string;
-// type SocketId = string;
-
 const onlineUsers = new Map<string, Set<string>>();
 
-io.on("connection", (socket: Server) => {
-  const userId = socket.data.userId;
-  const userSockets = onlineUsers.get(userId) ?? new Set();
-  
-  socket.on("new-user-add", (newUserId: string) => {
-    if (!onlineUsers.some((user) => user === newUserId)) {
-      onlineUsers.push(newUserId); //, socketId: socket.id});
-      console.log("new user online: ", newUserId);
-      console.log("all users: ", onlineUsers);
-    }
-    // to everyone for now, should be to friends
-    io.emit("get-users", onlineUsers);
-  });
+export function addUser(userId: string, socketId: string): boolean {
+  const userSockets = onlineUsers.get(userId) ?? new Set<string>();
+  const wasOffline = userSockets.size === 0; // prevent duplicate notifications when multiple tabs
 
-  socket.on("disconnect", () => {
-    onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id)
-  })
-});
+  userSockets.add(socketId);
+  onlineUsers.set(userId, userSockets);
+
+  return wasOffline;
+}
+
+export function deleteUser(userId: string, socketId: string): boolean {
+  const userSockets = onlineUsers.get(userId);
+  if (!userSockets) {
+    return false;
+  }
+
+  userSockets.delete(socketId);
+  if (userSockets.size === 0) {
+    onlineUsers.delete(userId);
+    return true;
+  }
+
+  return false;
+}
+
+export function isUserOnline(userId: string): boolean {
+  return onlineUsers.has(userId);
+}
+
+export function getOnlineUsers(): string[] {
+  return [...onlineUsers.keys()];
+}

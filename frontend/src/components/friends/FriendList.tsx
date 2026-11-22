@@ -1,5 +1,6 @@
 import { Link } from "react-router"
 import { Avatar } from "../Avatar"
+import { usePresence } from "../../SocketProvider"
 
 export type Friend = {
     id: string
@@ -9,6 +10,8 @@ export type Friend = {
 }
 
 function FriendList({ friends }: { friends: Friend[] }) {
+    const { onlineFriends } = usePresence();
+
     return (
         <div className="card bg-base-100 border border-base-300 w-full max-w-sm">
             <div className="card-body">
@@ -17,14 +20,19 @@ function FriendList({ friends }: { friends: Friend[] }) {
                     <p className="text-base-content/60">No friends yet.</p>
                 ) : (
                     <ul className="list">
-                        {friends.map((friend) => (
-                            <li key={friend.id} className="list-row items-center">
-                                <Avatar user={friend} className="h-8 w-8" presence={friend.presence} />
-                                <Link to={`/users/${encodeURIComponent(friend.username)}`} className="link link-hover">
-                                    {friend.username}
-                                </Link>
-                            </li>
-                        ))}
+                        {friends.map((friend) => {
+                            const presence = onlineFriends.has(friend.id)
+                                ? "online"
+                                : "offline"
+                            return (
+                                <li key={friend.id} className="list-row items-center">
+                                    <Avatar user={friend} className="h-8 w-8" presence={presence} />
+                                    <Link to={`/users/${encodeURIComponent(friend.username)}`} className="link link-hover">
+                                        {friend.username}
+                                    </Link>
+                                </li>
+                            )
+                        })}
                     </ul>
                 )}
             </div>

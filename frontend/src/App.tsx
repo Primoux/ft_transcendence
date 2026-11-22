@@ -10,6 +10,7 @@ import { useAuth } from './useAuth';
 import Spinner from './components/Spinner';
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import TwoFactorLoginPage from './pages/TwoFactorLoginPage'
+import { Toaster } from 'sonner';
 
 function App() {
 	const auth = useAuth()
@@ -51,6 +52,7 @@ function App() {
 	}
 	return (
 		<div className="App min-h-dvh w-full flex flex-col">
+			<Toaster position="bottom-right" />
 			<NavBar></NavBar>
 			<div className="flex flex-col flex-1 justify-center items-center p-4">
 				<Routes>

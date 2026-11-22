@@ -1,6 +1,6 @@
-import { io } from '../server.ts'
-import { Server } from 'socket.io'
-import type { NextFunction } from 'express'
+import { Socket } from 'socket.io'
+import { SESSION_COOKIE, authRepository } from "../data/repositories/auth.repository.ts";
+import { parse } from 'cookie';
 
 /**
  * intercept handshake
@@ -11,10 +11,29 @@ import type { NextFunction } from 'express'
  * else -> next(new Error)
  */
 
-io.use((socket: Server, next: NextFunction) => {
-  if (isValid(socket.request)) {
-    next();
-  } else {
-    next(new Error("invalid"));
+export async function socketMiddleware(socket: Socket, next: (error?: Error) => void) {
+  try {
+    const cookieHeader = socket.handshake.headers.cookie;
+    if (!cookieHeader) {
+      return next(new Error('not auth (socket)'));
+    }
+    
+    const cookies = parse(cookieHeader);
+    const token = cookies[SESSION_COOKIE];
+    if (!token) {
+      return next(new Error('not auth (socket)'));
+    }
+
+    const session = await authRepository.validateSession(token);
+    if (!session) {
+      return next(new Error("Invalid or expired session (socket)"));
+    }
+
+    socket.data.userId = session.userId;
+    socket.data.sessionId = session.id;
+    return next();
+  } catch (error) {
+    console.error('Socket auth error: ', error);
+    return next(new Error('auth failed (socket)'));
   }
-});
+}
