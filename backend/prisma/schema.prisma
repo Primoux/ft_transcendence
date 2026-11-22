@@ -59,6 +59,8 @@ model User {
 
     sentFriendships     Friendship[] @relation("SentFriendships")
     receivedFriendships Friendship[] @relation("ReceivedFriendships")
+    sentMessages        Message[] @relation("SentMessages")
+    receivedMessages    Message[] @relation("ReceivedMessages")
     authSessions        AuthSession[]
     sessions            GameSession[]
     oauthAccounts       OAuthAccount[]
@@ -103,6 +105,21 @@ model Friendship {
     receiver   User @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
 
     @@unique([senderId, receiverId])
+}
+
+model Message {
+    id         String   @id @default(cuid(2))
+    createdAt  DateTime @default(now())
+    content    String
+
+    senderId   String
+    sender     User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+    receiverId String
+    receiver   User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+    @@index([senderId, receiverId, createdAt])
+    @@index([receiverId, senderId, createdAt])
 }
 
 model Achievement {
