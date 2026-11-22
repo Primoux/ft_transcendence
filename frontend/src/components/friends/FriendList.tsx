@@ -1,6 +1,6 @@
 import { Link } from "react-router"
 import { Avatar } from "../Avatar"
-import { usePresence } from "../../SocketProvider"
+import { usePresence } from "../../SocketContext"
 
 export type Friend = {
     id: string
