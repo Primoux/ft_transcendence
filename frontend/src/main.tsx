@@ -9,11 +9,11 @@ import { SocketProvider } from './SocketProvider.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <SocketProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <SocketProvider>
           <App />
-        </BrowserRouter>
-      </SocketProvider>
+        </SocketProvider>
+      </BrowserRouter>
     </AuthProvider>
   </StrictMode>,
 )
