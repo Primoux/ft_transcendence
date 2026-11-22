@@ -164,7 +164,12 @@ router.get('/discord/callback', async (req, res) => {
 			}
 		}
 		const loginResult = await completeLogin(req, res, user.id)
-		return res.redirect("/")
+		if (loginResult.status === "error")
+			return res.redirect(FAILURE_REDIRECT)
+		else if (loginResult.status === "logged_in")
+			return res.redirect("/")
+		else if (loginResult.status === "2fa_required")
+			return res.redirect("/2fa/verify")
 	}
 	catch (err) {
 		console.error("discord oath failed", err)
