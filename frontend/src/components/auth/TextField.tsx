@@ -6,6 +6,7 @@ type TextFieldProps = {
     value: string
     onChange: (value: string) => void
     placeholder: string
+    type?: string
     autoComplete?: string
     icon?: ReactNode
     minLength?: number
@@ -13,7 +14,7 @@ type TextFieldProps = {
     hint?: string
 }
 
-function TextField({ id, label, value, onChange, placeholder, autoComplete, icon, minLength, maxLength, hint } : TextFieldProps) {
+function TextField({ id, label, value, onChange, placeholder, type = "text", autoComplete, icon, minLength, maxLength, hint } : TextFieldProps) {
     return (
         <div className="flex flex-col gap-1">
             <label htmlFor={id}>{label}</label>
@@ -22,6 +23,7 @@ function TextField({ id, label, value, onChange, placeholder, autoComplete, icon
                 <input
                     id={id}
                     name={id}
+                    type={type}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     autoComplete={autoComplete}

@@ -7,7 +7,7 @@ export type AuthProviderProps = {
 
 export type LoggedIn = {
     user: User
-    authStatus: "logged-in"
+    authStatus: "logged-in" | "2fa-required"
 }
 
 export type LoggedOut = {
@@ -32,6 +32,7 @@ export type LoginData = {
 
 export type RegisterData = {
     username: string
+    email:    string
     password: string
     passwordConfirmation: string
 }
