@@ -34,7 +34,7 @@ router.get("/me", async (req, res) => {
     return res.status(401).json({ error: "No token provided" });
   }
 
-  const me = await userRepository.findById(req.userId);
+  const me = await userRepository.findMe(req.userId);
   if (!me) {
     return res.status(404).json({ error: "no such user" });
   }

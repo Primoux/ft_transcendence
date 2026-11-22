@@ -47,7 +47,7 @@ router.post("/login/verify", async (req, res) => {
   if (!req.cookies[LOGIN_COOKIE])
     return res.status(401).json({ error: "No login cookie" })
 
-  const providedOTP = zod.safeParse(otpSchema, req.body)
+  const providedOTP = zod.safeParse(otpSchema, req.body?.code)
   if (providedOTP.error)
     return res.status(400).json({ error: "Invalid OTP" })
 
@@ -57,7 +57,7 @@ router.post("/login/verify", async (req, res) => {
   if (!otpRow)
     return res.status(401).json({ error: "No pending OTP" })
 
-  const result = await attemptCode(otpRow.userId, providedOTP.data.code, OtpType.CAN_LOGIN)
+  const result = await attemptCode(otpRow.userId, providedOTP.data, OtpType.CAN_LOGIN)
 
   if (result.status === "error")
     return res.status(result.code).json({ error: result.error })

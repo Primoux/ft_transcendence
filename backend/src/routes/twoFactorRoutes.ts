@@ -25,12 +25,12 @@ router.post("/enable", async (req, res) => {
 router.post("/enable/verify", async (req, res) => {
 	if (!req.userId)
 		return res.status(401).json({error: "no user logged"});
-    const data = zod.safeParse(otpSchema, req.body)
+    const otp = zod.safeParse(otpSchema, req.body?.code)
 
-    if (data.error)
+    if (otp.error)
         return (res.status(400).json({error: "missing or invalid OTP"}))
     
-    const otpResult = await attemptCode(req.userId, data.data.code, OtpType.CAN_ENABLE_2FA)
+    const otpResult = await attemptCode(req.userId, otp.data, OtpType.CAN_ENABLE_2FA)
     if (otpResult.status === "error")
         return (res.status(otpResult.code).json({error: otpResult.error}))
     await userRepository.updateById(req.userId, {twoFactorEnabledAt: new Date()})
@@ -54,12 +54,12 @@ router.post("/disable", async (req, res) => {
 router.post("/disable/verify", async (req, res) => {
 	if (!req.userId)
 		return res.status(401).json({error: "no user logged"});
-    const data = zod.safeParse(otpSchema, req.body)
+    const otp = zod.safeParse(otpSchema, req.body?.code)
 
-    if (data.error)
+    if (otp.error)
         return (res.status(400).json({error: "missing or invalid OTP"}))
     
-    const otpResult = await attemptCode(req.userId, data.data.code, OtpType.CAN_DISABLE_2FA)
+    const otpResult = await attemptCode(req.userId, otp.data, OtpType.CAN_DISABLE_2FA)
     if (otpResult.status === "error")
         return (res.status(otpResult.code).json({error: otpResult.error}))
     await userRepository.updateById(req.userId, {twoFactorEnabledAt: null})

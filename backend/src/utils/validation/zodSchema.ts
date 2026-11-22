@@ -14,6 +14,7 @@ export const usernameSchema = zod.string().trim().toLowerCase()
 
 const passwordSchema = zod.string().min(minPasswordLength).max(maxPasswordLength)
 export const emailSchema = zod.string().trim().toLowerCase().pipe(zod.email())
+export const otpSchema = zod.string().trim().regex(/^\d{6}$/)
 
 export const registerSchema = zod.object({
   username: usernameSchema,
@@ -46,8 +47,4 @@ export const changePasswordSchema = zod.object({
 export const guessSchema = zod.object({
   session: zod.string().nonempty(),
   card: zod.string().nonempty()
-})
-
-export const otpSchema = zod.object({
-  code: zod.string().trim().regex(/^\d{6}$/)
 })
