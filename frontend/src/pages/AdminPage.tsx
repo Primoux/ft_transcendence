@@ -4,8 +4,18 @@ import { useAuth } from "../useAuth"
 
 function AdminPage() {
     const me = useAuth().authState.user
-    // same rule as the backend: only the owner can promote to admin or demote an admin
+    // same rules as the backend: moderators can't change roles,
+    // and only the owner can promote to admin or demote an admin
+    const canChangeRoles = me?.role === "ADMIN" || me?.role === "OWNER"
     const canManageAdmins = me?.role === "OWNER"
+
+    function canEditRole(user: User) {
+        if (!canChangeRoles) return false
+        if (user.role === "OWNER") return false
+        if (user.id === me?.id) return false
+        if (user.role === "ADMIN" && !canManageAdmins) return false
+        return true
+    }
     const [users, setUsers] = useState<User[]>([])
     const [error, setError] = useState(false)
     const [roleError, setRoleError] = useState(false)
@@ -70,8 +80,7 @@ function AdminPage() {
                         <tr key={user.id}>
                             <td>{user.username}</td>
                             <td>
-                                {/* no select when the role can't be changed: the owner, yourself, or an admin if you aren't the owner */}
-                                {user.role === "OWNER" || user.id === me?.id || (user.role === "ADMIN" && !canManageAdmins) ? user.role : (
+                                {!canEditRole(user) ? user.role : (
                                     <select
                                         className="select select-sm"
                                         value={user.role}
