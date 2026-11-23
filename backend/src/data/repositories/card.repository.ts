@@ -1,12 +1,14 @@
 import type { Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
+const DEFAULT_PLAYABLE_CARDS_LIMIT = 5000;
+
 export const cardRepository = {
   async upsert(card: Prisma.MagicCardCreateInput) {
     const { oracleId, ...updateFields } = card;
 
     return prisma.magicCard.upsert({
-      where: { oracleId},
+      where: { oracleId },
       update: updateFields,
       create: card,
     });
@@ -88,7 +90,7 @@ export const cardRepository = {
       "releaseSetName" = EXCLUDED."releaseSetName";
     `;
   },
-  async findAllPlayable(maxCards: number = 5000) {
+  async findAllPlayable(maxCards: number = DEFAULT_PLAYABLE_CARDS_LIMIT) {
     return prisma.magicCard.findMany({
       where: { edhrecRank: { not: null } },
       orderBy: { edhrecRank: "asc" },
