@@ -45,6 +45,7 @@ const oauthCookieOptions = {
 } as const
 // Absolute path: the browser resolves it against the site, so this lands on the React login page.
 const FAILURE_REDIRECT = "/login?error=oauth"
+const RATE_LIMIT_REDIRECT= "/login?error=rate_limit"
 
 const router = express.Router()
 
@@ -166,10 +167,12 @@ router.get('/discord/callback', async (req, res) => {
 		const loginResult = await completeLogin(req, res, user.id)
 		if (loginResult.status === "error")
 			return res.redirect(FAILURE_REDIRECT)
+		else if (loginResult.status === "2fa_rate_limit")
+			return res.redirect(RATE_LIMIT_REDIRECT)
 		else if (loginResult.status === "logged_in")
 			return res.redirect("/")
 		else if (loginResult.status === "2fa_required")
-			return res.redirect("/2fa/verify")
+			return res.redirect(loginResult.codeSent ? "/2fa/verify" : "/2fa/verify?reused=1")
 	}
 	catch (err) {
 		console.error("discord oath failed", err)

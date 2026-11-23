@@ -71,7 +71,7 @@ export function AuthProvider({children} : AuthProviderProps) {
             })
             const body = await response.json()
             if (!response.ok) {return {status: "error", error: body.error}}
-            if (body.code === "2FA_REQUIRED") {return {status: "2fa-required"}}
+            if (body.code === "2FA_REQUIRED") {return {status: "2fa-required", codeSent: body.codeSent}}
             else {
                 setAuthState({user: body, authStatus: "logged-in"})
                 return {user: body, status: "success"}
