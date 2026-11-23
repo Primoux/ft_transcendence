@@ -1,7 +1,6 @@
 import { prisma } from "../prisma.ts"
 import { OtpType } from "../../../generated/enums.ts"
-import { CODE_TTL_MS, MAX_ATTEMPTS } from "../../services/codes.ts"
-import { PURGE_DELAY } from "../../services/codes.ts"
+import { CODE_TTL_MS, MAX_ATTEMPTS, PURGE_DELAY } from "../../services/otp.constants.ts"
 
 export const otpVerificationRepository = {
     async upsert(userId: string, codeHash: string, type: OtpType, email?: string) {

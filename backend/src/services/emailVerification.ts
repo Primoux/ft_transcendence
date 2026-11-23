@@ -1,7 +1,8 @@
 import { userRepository, otpVerificationRepository } from "../data/repositories/index.ts";
-import { codeMatches, generateCode, hashCode, RESEND_COOLDOWN_MS } from "./codes.ts";
+import { codeMatches, generateCode, hashCode } from "./codes.ts";
 import { OtpType, OtpVerification } from "../../generated/client.ts";
 import { sendMail, emailDetails } from "./mailer.ts";
+import { RESEND_COOLDOWN_MS } from "./otp.constants.ts"
 
 type SuccessType = { status: "success"; }
 type SuccessTypeWithOTP<T> = SuccessType & { data: T }
@@ -15,7 +16,7 @@ export async function sendOtp(userId: string, to: string, type: OtpType, pending
     if (existingCode && (new Date().getTime() - existingCode.sentAt.getTime()) < RESEND_COOLDOWN_MS)
         return ({ status: "error", code: 429, error: "too many requests" })
     const code = generateCode();
-    await otpVerificationRepository.upsert(userId,hashCode(code), type, pendingEmail)
+    await otpVerificationRepository.upsert(userId, hashCode(code), type, pendingEmail)
     const { subject, body } = emailDetails[type]
     await sendMail(to, `${subject}: ${code}`, `${body}\n\nYour code: ${code}\nIt expires in 5 minutes.`)
     return { status: "success" }
@@ -48,8 +49,8 @@ export async function startEmailVerification(userId: string, newEmail: string): 
 
 export async function startOtp(userId: string, type: OtpType): Promise<ResultType> {
     const user = await userRepository.findMe(userId)
-    
+
     if (!user?.email)
-        return ({status: "error", code: 403, error: "no user / email"})
-    return (await(sendOtp(userId, user.email, type)))
+        return ({ status: "error", code: 403, error: "no user / email" })
+    return (await (sendOtp(userId, user.email, type)))
 }

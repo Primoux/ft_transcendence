@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
 import { prisma } from "../../data/prisma.ts";
-import { CODE_TTL_MS } from "../../services/codes.ts";
+import { CODE_TTL_MS } from "../../services/otp.constants.ts";
 
 export const SESSION_COOKIE = "__Host-session";
 export const LOGIN_COOKIE = "__Host-login";
