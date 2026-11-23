@@ -14,7 +14,7 @@ fi
     DB_USER=`whoami`
     DB_PASSWORD=`openssl rand -hex 32`
     DB_NAME="dev_db"
-    
+
     echo "DB_USER=$DB_USER" > .env
     echo "DB_PASSWORD=$DB_PASSWORD" >> .env
     echo "DB_NAME=$DB_NAME" >> .env
@@ -26,6 +26,16 @@ fi
     echo "GRAFANA_PASSWORD=`openssl rand -hex 12`" >> .env
     # Postgres creates the exporter's read-only role with it: see postgres/exporter-role.sh.
     echo "EXPORTER_PASSWORD=`openssl rand -hex 32`" >> .env
+
+    # The seed creates this account with the OWNER role on startup: see backend/src/scripts/seed/registry.ts.
+    echo "OWNER_USERNAME=Owner" >> .env
+    echo "OWNER_PASSWORD=`openssl rand -hex 32`" >> .env
+
+    echo "DISCORD_CLIENT_ID=CHANGEME" >> .env
+    echo "DISCORD_CLIENT_SECRET=CHANGEME" >> .env
+    echo "DISCORD_REDIRECT_URI=CHANGEME" >> .env
+    # Left empty on purpose: compose.yml then falls back to a placeholder URL for Grafana alerts.
+    echo "DISCORD_WEBHOOK_URL=" >> .env
 
     # The prod secrets live here now: readable by you only.
     chmod 600 .env
