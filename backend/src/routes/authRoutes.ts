@@ -31,13 +31,22 @@ router.post("/login", async (req, res) => {
     }
     const result = await completeLogin(req, res, user.id)
 
-    if (result.status === "2fa_required")
-      return res.status(200).json({ status: "success", code: "2FA_REQUIRED" })
-    else if (result.status === "error")
-      return res.status(500).json({ status: "error", error: "couldn't authenticate user" })
-
-    const publicUser = await userRepository.findMe(user.id)
-    return res.json(publicUser);
+    switch(result.status) {
+      case "logged_in": {
+        const publicUser = await userRepository.findMe(user.id)
+        return res.json(publicUser);
+      }
+      case "2fa_required":
+        return res.status(200).json({ status: "success", code: "2FA_REQUIRED", codeSent: result.codeSent })
+      case "2fa_rate_limit":
+        return res.status(429).json({ status: "error", code: "2FA_RATE_LIMITED", error: "Too many attempts, wait a minute and log in again" })
+      case "error":
+        return res.status(500).json({ status: "error", error: "couldn't authenticate user" })
+      default: {
+        const unhandled: never = result
+        throw new Error(`unhandled login result: ${JSON.stringify(unhandled)}`)
+      }
+    }
   } catch (err) {
     return res.status(500).json({ status: "error", error: "Error while checking credentials" });
   }

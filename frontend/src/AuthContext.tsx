@@ -22,6 +22,7 @@ export type AuthSuccess = {
 
 export type AuthPending = {
     status: "2fa-required"
+    codeSent: boolean
 }
 
 export type AuthFail = {
