@@ -20,12 +20,13 @@ export function statusSocketHandlers(io: Server) {
 			await socket.join(`user:${userId}`); // create room to be send notification
 			const changedStatus = addUser(userId, socket.id);
 
-			socket.on('disconnect', async () => {
-				const changedStatus = deleteUser(userId, socket.id);
-				const friends = await friendshipRepository.findFriends(userId);
-				for (const friend of friends) {
-					io.to(`user:${friend.friend.id}`).emit('friend:offline', {userId});
-				}
+			socket.on('disconnect', () => {
+				deleteUser(userId, socket.id, async () => {
+					const friends = await friendshipRepository.findFriends(userId);
+					for (const friend of friends) {
+						io.to(`user:${friend.friend.id}`).emit('friend:offline', {userId});
+					}
+				});
 			});
 			
 			const friends = await friendshipRepository.findFriends(userId);
