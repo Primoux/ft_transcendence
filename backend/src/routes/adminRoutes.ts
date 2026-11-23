@@ -40,8 +40,14 @@ router.patch("/users/:id/role", requireRole("ADMIN", "OWNER"), async (req, res) 
 
   // requireRole already checked the role, but doesn't hand it over: read it again
   const me = await userRepository.findById(req.userId!);
+  if (!me) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+  if (target.id === me.id) {
+    return res.status(403).json({ error: "You can't change your own role" });
+  }
   const touchesAdmin = target.role === "ADMIN" || role === "ADMIN";
-  if (touchesAdmin && me?.role !== "OWNER") {
+  if (touchesAdmin && me.role !== "OWNER") {
     return res.status(403).json({ error: "Only the owner can manage admins" });
   }
 
