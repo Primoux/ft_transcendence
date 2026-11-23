@@ -15,7 +15,7 @@ export function statusSocketHandlers(io: Server) {
 			socket.disconnect(true);
 			return ;
 		}
-		const { username } = user;
+		// const { username, avatarKey } = user;
 		// const {username} = await userRepository.findById(userId);
 
 		await socket.join(`user:${userId}`); // create room to be send notification
@@ -29,7 +29,7 @@ export function statusSocketHandlers(io: Server) {
 		
 		if (changedStatus) {
 			for (const friend of friendsIds) {
-				io.to(`user:${friend}`).emit('friend:online', {userId, username});
+				io.to(`user:${friend}`).emit('friend:online', user);
 			}
 		}
 
@@ -41,7 +41,7 @@ export function statusSocketHandlers(io: Server) {
 
 			const friends = await friendshipRepository.findFriends(userId);
 			for (const friend of friends) {
-				io.to(`user:${friend.friend.id}`).emit('friend:offline', {userId, username});
+				io.to(`user:${friend.friend.id}`).emit('friend:offline', {userId});
 			}
 		});
 	});

@@ -4,6 +4,8 @@ import { useAuth } from "./useAuth";
 import { socket } from "./socket";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import { Avatar } from "./components/Avatar";
+import type { User } from "./types/user";
 
 export function SocketProvider({children} : SocketProviderProps) {
 	const { authState } = useAuth();
@@ -13,7 +15,6 @@ export function SocketProvider({children} : SocketProviderProps) {
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		// const userId = authState.authStatus;
 		if (!userId) {
 			socket.disconnect();
 			return;
@@ -23,32 +24,32 @@ export function SocketProvider({children} : SocketProviderProps) {
 			setOnlineFriends(new Set(friendsIds));
 		}
 
-		function friendGoesOnline (data: {userId: string; username: string}) {
+		function friendGoesOnline (user: User) {
 			setOnlineFriends((prev: Set<string>) => {
 				const cpy = new Set(prev);
-				cpy.add(data.userId);
+				cpy.add(user.id);
 				return cpy;
 			});
 			toast.info(
-				<span>
+				<div className="flex items-center gap-1">
 					<button
-						className="link link-hover font-semibold"
-						onClick={() => navigate(`/users/${encodeURIComponent(data.username)}`)}
+						className="flex items-center gap-1 link link-hover font-bold"
+						onClick={() => navigate(`/users/${encodeURIComponent(user.username)}`)}
 					>
-						{data.username}
+						<Avatar user={user} className="h-6 w-6" />
+						{user.username}
 					</button>
 					{' logged in!'}
-				</span>	
+				</div>	
 			);
 		}
 		
-		function friendGoesOffline (data: {userId: string; username: string}) {
+		function friendGoesOffline (data: {userId: string}) {
 			setOnlineFriends((prev: Set<string>) => {
 				const cpy = new Set(prev);
 				cpy.delete(data.userId);
 				return cpy;
 			});
-			// toast.info(`${data.username} went offline`);
 		}
 		
 		socket.on('presence:sync', presenceSync);
