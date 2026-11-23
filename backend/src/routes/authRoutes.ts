@@ -31,7 +31,7 @@ router.post("/login", async (req, res) => {
     }
     const result = await completeLogin(req, res, user.id)
 
-    switch(result.status) {
+    switch (result.status) {
       case "logged_in": {
         const publicUser = await userRepository.findMe(user.id)
         return res.json(publicUser);
@@ -94,10 +94,8 @@ router.post("/register", async (req, res) => {
       passwordHash: hashedPassword,
     });
 
-    const loginResult = await completeLogin(req, res, newUser.id)
-    await startEmailVerification(newUser.id, email)
+    await completeLogin(req, res, newUser.id)
 
-    return res.status(201).json(newUser);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
@@ -106,6 +104,12 @@ router.post("/register", async (req, res) => {
     }
     throw error;
   }
+  try {
+    await startEmailVerification(newUser.id, email)
+  } catch (error) {
+    console.error(error)
+  }
+  return res.status(201).json(newUser);
 });
 
 router.post("/logout", async (req, res) => {

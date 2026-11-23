@@ -2,7 +2,7 @@ import { OtpType } from "../../generated/enums.ts";
 import { authRepository, otpVerificationRepository, SESSION_COOKIE, userRepository } from "../data/repositories/index.ts";
 import type { Request, Response } from "express";
 import { startOtp } from "./emailVerification.ts";
-import { MAX_ATTEMPTS } from "./codes.ts";
+import { MAX_ATTEMPTS } from "./otp.constants.ts";
 
 type CompleteLoginReturnType =  {status: "logged_in"}
                             | {status: "2fa_required", codeSent: boolean}

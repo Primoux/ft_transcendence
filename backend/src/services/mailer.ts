@@ -14,11 +14,18 @@ const from = process.env['MAIL_FROM']
 const host = process.env['SMTP_HOST']
 const port = process.env['SMTP_PORT']
 
+const smtpUser = process.env['SMTP_USER']
+const smtpPass = process.env['SMTP_PASS']
+
+if (process.env['NODE_ENV'] === "production" && (!smtpUser || !smtpPass))
+    throw new Error("SMTP_USER and SMTP_PASS must be defined in production.")
+
+const requireTLS = Boolean(smtpUser && smtpPass)
 if (!from || !host || !port) {
     throw new Error("MAIL_FROM, SMTP_HOST and SMTP_PORT must be defined")
 }
 
-const transport = nodemailer.createTransport({host, port: Number(port), secure: false})
+const transport = nodemailer.createTransport({host, port: Number(port), secure: false, auth: requireTLS ? {user: smtpUser, pass: smtpPass} : undefined,requireTLS})
 
 export async function sendMail(to: string, subject: string, text: string) {
     await transport.sendMail({from, to, subject, text})

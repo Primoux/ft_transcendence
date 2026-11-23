@@ -1,5 +1,5 @@
 import { authRepository, otpVerificationRepository, userRepository } from "../data/repositories/index.ts"
-import { PURGE_DELAY } from "./codes.ts";
+import { PURGE_DELAY } from "./otp.constants.ts";
 
 const CLEANUP_INTERVAL = 5 * 60 * 1000
 async function runCleanup() {
