@@ -2,6 +2,7 @@ import { prisma } from "../../data/prisma.ts";
 import { registry } from "./registry.ts";
 
 const seeds = [
+  { name: "owner", run: registry.owner },
   { name: "achievements", run: registry.achievements },
   { name: "magicCards", run: registry.magicCards },
 ];

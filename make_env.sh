@@ -27,9 +27,9 @@ fi
     # Postgres creates the exporter's read-only role with it: see postgres/exporter-role.sh.
     echo "EXPORTER_PASSWORD=`openssl rand -hex 32`" >> .env
 
-    # The seed creates this account with the OWNER role on startup: see backend/src/scripts/seed/registry.ts.
+    # The seed creates this account with the OWNER role on first startup and prints its password
+    # in the backend logs: see backend/src/scripts/seed/registry.ts.
     echo "OWNER_USERNAME=Owner" >> .env
-    echo "OWNER_PASSWORD=`openssl rand -hex 32`" >> .env
 
     echo "DISCORD_CLIENT_ID=CHANGEME" >> .env
     echo "DISCORD_CLIENT_SECRET=CHANGEME" >> .env

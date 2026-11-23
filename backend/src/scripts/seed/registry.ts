@@ -1,10 +1,28 @@
+import { randomBytes } from "node:crypto";
+import bcrypt from "bcryptjs";
 import {
   achievementRepository,
   cardRepository,
+  userRepository,
 } from "../../data/repositories/index.ts";
 import { Rarity, Color } from "../../../generated/client.ts";
 
 export const registry = {
+  // The password is generated here and only ever shown once, in the logs of the first startup:
+  // the database keeps the hash, nothing keeps the clear text.
+  async owner() {
+    const username = process.env.OWNER_USERNAME?.toLowerCase();
+    if (!username) {
+      console.log("OWNER_USERNAME not set: no owner account created.");
+      return;
+    }
+    if (await userRepository.findByUsername(username)) return;
+
+    const password = randomBytes(32).toString("hex");
+    const passwordHash = await bcrypt.hash(password, 10);
+    await userRepository.create({ username, passwordHash, role: "OWNER" });
+    console.log(`Owner account created: username "${username}", password "${password}"`);
+  },
   async achievements() {
     const achievements = [
       {

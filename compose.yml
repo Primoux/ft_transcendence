@@ -33,6 +33,7 @@ services:
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
       DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
       NODE_ENV: prod
+      OWNER_USERNAME: ${OWNER_USERNAME}
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
