@@ -41,6 +41,11 @@ export const changePasswordSchema = zod.object({
   path: ["newPasswordConfirmation"],
 })
 
+// OWNER is left out on purpose: there is only one owner and nobody can be promoted to it.
+export const changeRoleSchema = zod.object({
+  role: zod.enum(["USER", "MODERATOR", "ADMIN"]),
+})
+
 export const guessSchema = zod.object({
   session: zod.string().nonempty(),
   card: zod.string().nonempty()
