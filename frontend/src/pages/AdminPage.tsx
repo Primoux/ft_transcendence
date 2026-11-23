@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react"
 import type { Role, User } from "../types/user"
+import { useAuth } from "../useAuth"
 
 function AdminPage() {
+    const me = useAuth().authState.user
+    // same rule as the backend: only the owner can promote to admin or demote an admin
+    const canManageAdmins = me?.role === "OWNER"
     const [users, setUsers] = useState<User[]>([])
     const [error, setError] = useState(false)
     const [roleError, setRoleError] = useState(false)
@@ -66,8 +70,8 @@ function AdminPage() {
                         <tr key={user.id}>
                             <td>{user.username}</td>
                             <td>
-                                {/* the owner's role can't be changed, so no select for them */}
-                                {user.role === "OWNER" ? "OWNER" : (
+                                {/* no select when the role can't be changed: the owner, yourself, or an admin if you aren't the owner */}
+                                {user.role === "OWNER" || user.id === me?.id || (user.role === "ADMIN" && !canManageAdmins) ? user.role : (
                                     <select
                                         className="select select-sm"
                                         value={user.role}
@@ -75,7 +79,7 @@ function AdminPage() {
                                     >
                                         <option value="USER">USER</option>
                                         <option value="MODERATOR">MODERATOR</option>
-                                        <option value="ADMIN">ADMIN</option>
+                                        {canManageAdmins && <option value="ADMIN">ADMIN</option>}
                                     </select>
                                 )}
                             </td>
