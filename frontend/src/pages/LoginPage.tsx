@@ -1,5 +1,5 @@
 import { useState} from "react"
-import { Link, useSearchParams } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import AuthLayout from '../components/auth/AuthLayout'
 import TextField from '../components/auth/TextField'
 import PasswordField from '../components/auth/PasswordField'
@@ -14,6 +14,7 @@ function LoginPage() {
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [searchParams] = useSearchParams()
+    const goTo = useNavigate()
     // The backend's OAuth callback sends failures here as /login?error=oauth.
     const [errorMsg, setErrorMsg] = useState<string | null>(
         searchParams.get("error") === "oauth" ? "Discord login failed. Please try again." : null
@@ -25,7 +26,8 @@ function LoginPage() {
         setErrorMsg(null)
         setLoading(true)
         const response = await auth.login({username, password})
-        if (response.user === null) {setErrorMsg(response.error)}
+        if (response.status === "error") {setErrorMsg(response.error)}
+        else if (response.status === "2fa-required") {goTo("/2fa/verify")}
         setLoading(false)
     }
         

@@ -1,17 +1,18 @@
 import { Link } from 'react-router'
 import AuthLayout from '../components/auth/AuthLayout'
 import CodeForm from '../components/auth/CodeForm'
+import { useAuth } from '../useAuth'
 
 // Second step of login when 2FA is on. Reached from LoginPage (password login)
 // or directly by the Discord callback's redirect.
 function TwoFactorLoginPage() {
+    const auth = useAuth()
 
-    // TODO(you): send the code to POST /api/auth/login/verify (through the auth context,
-    // since success must set the logged-in state). Return null or an error message.
-    // Think about what to do on a 401 (no ticket, or an expired one).
     async function verify(code: string): Promise<string | null> {
-        void code
-        return "Not implemented yet"
+        const result = await auth.verifyLogin(code) 
+        
+        if (result.status === "error") {return result.error}
+        return null
     }
 
     const subtitle = (
