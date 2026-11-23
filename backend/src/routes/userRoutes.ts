@@ -7,6 +7,8 @@ import { userRepository, gameSessionRepository, authRepository, friendshipReposi
 import { avatarUpload } from '../middleware/uploadMiddleware.ts'
 import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
 import { requireVerifiedEmail } from '../middleware/authMiddleware.ts';
+import { io } from '../server.ts';
+import { isUserOnline } from '../services/users-status.ts';
 
 const router = express.Router();
 
@@ -86,9 +88,28 @@ router.post("/me/friend-requests/:friendshipId/accept", async (req, res) => {
     return res.status(409).json({ error: "friend request already accepted" });
   }
 
+  const senderOnline = isUserOnline(friendship.senderId);
+  // const receiverOnline = isUserOnline(friendship.receiverId);
+
+  // io.to(`user:${friendship.senderId}`).emit('friend:status', {
+  //   userId: friendship.receiverId,
+  //   online: receiverOnline
+  // });
+  io.to(`user:${friendship.receiverId}`).emit('friend:status', {
+    userId: friendship.senderId,
+    online: senderOnline
+  });
+
+  const user = await userRepository.findById(friendship.receiverId)
+  if (!user) {
+    return res.status(404).json({ error: "user not found" });
+  }
+  io.to(`user:${friendship.senderId}`).emit('friend:accepted', user);
+
   const accepted = await friendshipRepository.updateById(friendship.id, {
     status: FriendshipStatus.ACCEPTED,
   });
+
   return res.status(200).json(friendshipStateFor(req.userId, accepted));
 });
 
