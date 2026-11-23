@@ -4,6 +4,7 @@ import type { User } from '../../types/user'
 import TextField from '../auth/TextField'
 import CodeForm from '../auth/CodeForm'
 import FormError from '../auth/FormError'
+import { useAuth } from '../../useAuth'
 
 type ChangeEmailFormProps = { user: User }
 
@@ -18,25 +19,58 @@ export function ChangeEmailForm({ user }: ChangeEmailFormProps) {
     const [currentCode, setCurrentCode] = useState("")
     const [error, setError] = useState<string | null>(null)
     const twoFactorOn = user.twoFactorEnabledAt !== null
+    const auth = useAuth()
 
-    // TODO(you): POST /api/auth/email/send-change-otp (code goes to the CURRENT address).
-    // Return null or an error message.
     async function sendCodeToCurrent(): Promise<string | null> {
-        return "Not implemented yet"
+        try {
+            const response = await fetch("/api/auth/email/send-change-otp", {
+                method: "POST",
+            })
+            const body = await response.json()
+            if (!response.ok) { return body.error }
+
+            return null
+        } catch (error) {
+            console.error(error)
+            return "could not reach the server"
+        }
     }
 
-    // TODO(you): POST /api/auth/email with { newEmail } and, when 2FA is on, { code }.
-    // Return null or an error message.
     async function requestChange(email: string, code: string | null): Promise<string | null> {
-        void email; void code
-        return "Not implemented yet"
+        try {
+            const response = await fetch("/api/auth/email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ newEmail: email, code: code }),
+            })
+
+            const body = await response.json()
+            if (!response.ok) { return body.error }
+
+            return null
+        } catch (error) {
+            console.error(error)
+            return "could not reach the server"
+        }
     }
 
-    // TODO(you): POST /api/auth/email/verify with { code }, then refresh the user so the
-    // new address shows up. Return null or an error message.
     async function confirmNewEmail(code: string): Promise<string | null> {
-        void code
-        return "Not implemented yet"
+        try {
+            const response = await fetch("/api/auth/email/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code }),
+            })
+
+            const body = await response.json()
+            if (!response.ok) { return body.error }
+            await auth.refreshUser()
+
+            return null
+        } catch (error) {
+            console.error(error)
+            return "could not reach the server"
+        }
     }
 
     async function handleStart() {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { User } from '../../types/user'
 import CodeForm from '../auth/CodeForm'
 import FormError from '../auth/FormError'
+import {useAuth} from '../../useAuth'
 
 type TwoFactorToggleProps = { user: User }
 
@@ -12,18 +13,39 @@ export function TwoFactorToggle({ user }: TwoFactorToggleProps) {
     const [step, setStep] = useState<Step>("idle")
     const [error, setError] = useState<string | null>(null)
     const enabled = user.twoFactorEnabledAt !== null
+    const auth = useAuth()
 
-    // TODO(you): POST /api/auth/2fa/enable or /api/auth/2fa/disable, depending on `enabled`.
-    // Return null or an error message.
     async function requestCode(): Promise<string | null> {
-        return "Not implemented yet"
+        const action = enabled ? "disable" : "enable"
+        try {
+            const response = await fetch(`/api/auth/2fa/${action}`, {
+                    method: "POST",
+            })
+            const body = await response.json()
+            if (!response.ok) {return body.error }
+            return null
+        } catch (error) {
+            console.error(error)
+            return "could not reach the server"
+        }
     }
 
-    // TODO(you): POST the matching /verify route with { code }, then refresh the user
-    // so `enabled` flips. Return null or an error message.
     async function confirm(code: string): Promise<string | null> {
-        void code
-        return "Not implemented yet"
+        const action = enabled ? "disable" : "enable"
+        try {
+            const response = await fetch(`/api/auth/2fa/${action}/verify`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({code}),
+            })
+            const body = await response.json()
+            if (!response.ok) {return body.error }
+            await auth.refreshUser()
+            return null
+        } catch (error) {
+            console.error(error)
+            return "could not reach the server"
+        }
     }
 
     async function handleStart() {

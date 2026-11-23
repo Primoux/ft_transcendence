@@ -29,7 +29,8 @@ export default function RegisterPage() {
         setLoading(true)
         const response = await auth.register({username, email, password, passwordConfirmation})
 
-		if (response.user === null) {setErrorMsg(response.error)}
+		if (response.status === "error") {setErrorMsg(response.error)}
+
         setLoading(false)
     }
 
