@@ -9,23 +9,17 @@ services:
     image: axllent/mailpit:v1.27   # pin a version, as you do for other images
     ports: ["8025:8025"]           # web inbox; SMTP 1025 stays inside the Docker network
   backend:
-    environment: !override
-      TZ: Europe/Paris
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
-      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+    environment:
       DISCORD_REDIRECT_URI: http://localhost:5173/api/auth/discord/callback
       FRONTEND_URL: http://localhost:5173
-      NODE_ENV: dev
+      NODE_ENV: development
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
     build:
       target: dev
     image: backend-dev
     ports:
       - "127.0.0.1:5003:5003"
-    environment:
-      NODE_ENV: development
-      SMTP_HOST: mailpit
-      SMTP_PORT: "1025"
     depends_on: !override
       mailpit:
         condition: service_started

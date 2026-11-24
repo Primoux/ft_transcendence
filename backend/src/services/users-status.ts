@@ -31,7 +31,7 @@ export function deleteUser(userId: string, socketId: string, onDisconnect: () =>
     if (pendingUsers.get(userId) !== timeout) {
       return ;
     }
-    const cmp = onlineUsers.get(userId)
+    const cmp = onlineUsers.get(userId);
     if (cmp && cmp.size > 0) {
       pendingUsers.delete(userId);
       return ;

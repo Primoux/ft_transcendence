@@ -66,7 +66,7 @@ export function SocketProvider({children} : SocketProviderProps) {
 				<div className="flex items-center gap-1">
 					<button
 						className="flex items-center gap-1 link link-hover font-bold"
-						onClick={() => navigate(`/users/${encodeURIComponent(user.username)}`)}
+						onClick={() => navRef.current(`/users/${encodeURIComponent(user.username)}`)}
 					>
 						<Avatar user={user} className="h-6 w-6" />
 						{user.username}

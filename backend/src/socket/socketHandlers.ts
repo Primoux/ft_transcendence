@@ -32,10 +32,9 @@ export function statusSocketHandlers(io: Server) {
 			const friends = await friendshipRepository.findFriends(userId);
 			const friendsIds = friends.map(({friend}) => friend.id);
 
-			if (!socket.connected) {
-				return ;
+			if (socket.connected) {
+				socket.emit('presence:sync', friendsIds.filter(isUserOnline));
 			}
-			socket.emit('presence:sync', friendsIds.filter(isUserOnline));
 			
 			if (changedStatus) {
 				for (const friend of friendsIds) {
