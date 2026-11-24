@@ -48,6 +48,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The backend refuses to start in production without SMTP settings.
+      # CI never sends emails, so placeholders are enough.
+      - name: Create .env with placeholder SMTP settings
+        run: |
+          ./make_env.sh
+          sed -i \
+            -e 's/^SMTP_HOST=.*/SMTP_HOST=smtp.invalid/' \
+            -e 's/^SMTP_PORT=.*/SMTP_PORT=587/' \
+            -e 's/^SMTP_USER=.*/SMTP_USER=ci/' \
+            -e 's/^SMTP_PASS=.*/SMTP_PASS=ci/' \
+            .env
+
       - name: Build and start containers
         run: make prod
 
