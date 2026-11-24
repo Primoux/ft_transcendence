@@ -1,10 +1,12 @@
 import bcrypt from "bcryptjs";
 import express from "express";
-import { Prisma } from "../../generated/client.ts";
+import { OtpType, Prisma } from "../../generated/client.ts";
 import * as zod from 'zod'
-import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
-import {SESSION_COOKIE, authRepository, userRepository} from '../data/repositories/index.ts'
+import { loginSchema, otpSchema, registerSchema } from '../utils/validation/zodSchema.ts'
+import { LOGIN_COOKIE, SESSION_COOKIE, authRepository, otpVerificationRepository, userRepository } from '../data/repositories/index.ts'
 import { requireAuth } from '../middleware/authMiddleware.ts'
+import { attemptCode, startEmailVerification } from "../services/emailVerification.ts";
+import { completeLogin, startSession } from "../services/login.ts";
 
 const router = express.Router();
 
@@ -25,25 +27,65 @@ router.post("/login", async (req, res) => {
     // doesn't reveal which usernames exist or how they sign in.
     const validPassword = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
     if (!user?.passwordHash || !validPassword) {
-      return res.status(401).json({ error: "invalid credentials" });
+      return res.status(401).json({ status: "error", error: "invalid credentials" });
     }
-    const previous = req.cookies[SESSION_COOKIE];
-    if (previous) await authRepository.revokeSessionByToken(previous);
+    const result = await completeLogin(req, res, user.id)
 
-    await authRepository.createSession(req, res, user.id);
-    const { passwordHash, ...publicUser } = user;  // same shape as GET /users/me
-    res.json(publicUser);
+    switch (result.status) {
+      case "logged_in": {
+        const publicUser = await userRepository.findMe(user.id)
+        return res.json(publicUser);
+      }
+      case "2fa_required":
+        return res.status(200).json({ status: "success", code: "2FA_REQUIRED", codeSent: result.codeSent })
+      case "2fa_rate_limit":
+        return res.status(429).json({ status: "error", code: "2FA_RATE_LIMITED", error: "Too many attempts, wait a minute and log in again" })
+      case "error":
+        return res.status(500).json({ status: "error", error: "couldn't authenticate user" })
+      default: {
+        const unhandled: never = result
+        throw new Error(`unhandled login result: ${JSON.stringify(unhandled)}`)
+      }
+    }
   } catch (err) {
-    return res.status(500).json({ error: "Error while checking credentials" });
+    return res.status(500).json({ status: "error", error: "Error while checking credentials" });
   }
 });
+
+router.post("/login/verify", async (req, res) => {
+  if (!req.cookies[LOGIN_COOKIE])
+    return res.status(401).json({ error: "No login cookie" })
+
+  const providedOTP = zod.safeParse(otpSchema, req.body?.code)
+  if (providedOTP.error)
+    return res.status(400).json({ error: "Invalid OTP" })
+
+
+  const otpRow = await otpVerificationRepository.findByLoginToken(authRepository.hashToken(req.cookies[LOGIN_COOKIE]))
+
+  if (!otpRow)
+    return res.status(401).json({ error: "No pending OTP" })
+
+  const result = await attemptCode(otpRow.userId, providedOTP.data, OtpType.CAN_LOGIN)
+
+  if (result.status === "error")
+    return res.status(result.code).json({ error: result.error })
+  authRepository.clearLoginCookie(res)
+  await startSession(req, res, otpRow.userId)
+  return (res.json(await userRepository.findMe(otpRow.userId)))
+})
 
 router.post("/register", async (req, res) => {
   const parsedData = zod.safeParse(registerSchema, req.body);
   if (!parsedData.success) {
     return res.status(400).send(zod.flattenError(parsedData.error));
   }
-  const { username, password } = parsedData.data;
+  const { username, password, email } = parsedData.data;
+
+  const existingEmailuser = await userRepository.findByEmail(email)
+
+  if (existingEmailuser)
+    return res.status(409).json({ error: "email already in use" })
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -51,9 +93,9 @@ router.post("/register", async (req, res) => {
       username,
       passwordHash: hashedPassword,
     });
-    await authRepository.createSession(req, res, newUser.id);
 
-    return res.status(201).json(newUser);
+    await completeLogin(req, res, newUser.id)
+
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
@@ -62,6 +104,12 @@ router.post("/register", async (req, res) => {
     }
     throw error;
   }
+  try {
+    await startEmailVerification(newUser.id, email)
+  } catch (error) {
+    console.error(error)
+  }
+  return res.status(201).json(newUser);
 });
 
 router.post("/logout", async (req, res) => {

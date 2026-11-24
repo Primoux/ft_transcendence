@@ -1,4 +1,4 @@
-import type { Prisma } from "../../../generated/client.ts";
+import { OtpType, type Prisma } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
 export const userRepository = {
@@ -11,6 +11,15 @@ export const userRepository = {
   async findByUsername(username: string) {
     return prisma.user.findUnique({ where: { username } });
   },
+
+  // user.email only set once verified : no need to filter
+  async findByEmail(email: string) {
+    return prisma.user.findUnique({
+      where: {email},
+      omit: {email: false}
+    })
+  },
+
   async findForAuthByUsername(username: string) {
     return prisma.user.findUnique({
       where: { username },
@@ -52,6 +61,36 @@ export const userRepository = {
         username,
         oauthAccounts: { create: { provider, providerAccountId } },
       },
-      });
+    });
+  },
+
+  async findMe(userId: string) {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      omit: { email: false }
+    });
+  },
+
+  async confirmEmail(userId: string, email: string) {
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { email, emailVerifiedAt: new Date() }
+      }),
+      prisma.otpVerification.deleteMany({ where: { userId, type: OtpType.EMAIL_IS_VALID } })
+    ])
+  },
+
+  async purgeUnverified(olderThan: Date) {
+    const result = await prisma.user.deleteMany({
+      where: {
+        emailVerifiedAt: null,
+        createdAt: {
+          lt: olderThan
+        },
+        oauthAccounts: {none: {}}
+      }
+    })
+    return result
   }
 };

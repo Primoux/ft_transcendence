@@ -17,12 +17,17 @@ export type LoggedOut = {
 
 export type AuthSuccess = {
     user: User
-    error : null
+    status: "success"
+}
+
+export type AuthPending = {
+    status: "2fa-required"
+    codeSent: boolean
 }
 
 export type AuthFail = {
-    user: null
     error : string
+    status: "error"
 }
 
 export type LoginData = {
@@ -32,13 +37,15 @@ export type LoginData = {
 
 export type RegisterData = {
     username: string
+    email:    string
     password: string
     passwordConfirmation: string
 }
 
 export type AuthContextValueType = {
     authState : LoggedIn | LoggedOut
-    login: (loginData: LoginData) => (Promise<AuthSuccess | AuthFail>)
+    login: (loginData: LoginData) => (Promise<AuthSuccess | AuthPending | AuthFail>)
+    verifyLogin: (code: string) => (Promise<AuthSuccess | AuthFail>)
     register: (registerData: RegisterData) => (Promise<AuthSuccess | AuthFail>)
     refreshUser: () => (Promise<void>)
     logout: () => (Promise<void>)

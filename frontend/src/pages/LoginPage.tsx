@@ -1,5 +1,5 @@
 import { useState} from "react"
-import { Link, useSearchParams } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import AuthLayout from '../components/auth/AuthLayout'
 import TextField from '../components/auth/TextField'
 import PasswordField from '../components/auth/PasswordField'
@@ -9,15 +9,20 @@ import DiscordButton from '../components/auth/DiscordButton'
 import { User as UserIcon, KeyRound } from 'lucide-react'
 import {useAuth} from '../useAuth'
 
+const LOGIN_ERRORS: Record<string, string> = {
+    oauth: "Discord login failed. Please try again.",
+    rate_limit: "Too many attempts, wait a minute and try again",
+}
+
 function LoginPage() {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [searchParams] = useSearchParams()
+    const goTo = useNavigate()
     // The backend's OAuth callback sends failures here as /login?error=oauth.
-    const [errorMsg, setErrorMsg] = useState<string | null>(
-        searchParams.get("error") === "oauth" ? "Discord login failed. Please try again." : null
-    )
+    const error : string | null = searchParams.get("error") ?? null
+    const [errorMsg, setErrorMsg] = useState<string | null>(error ? LOGIN_ERRORS[error] ?? null : null)
     const auth = useAuth()
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -25,7 +30,8 @@ function LoginPage() {
         setErrorMsg(null)
         setLoading(true)
         const response = await auth.login({username, password})
-        if (response.user === null) {setErrorMsg(response.error)}
+        if (response.status === "error") {setErrorMsg(response.error)}
+        else if (response.status === "2fa-required") {goTo(response.codeSent? "/2fa/verify" : "/2fa/verify?reused=1")}
         setLoading(false)
     }
         

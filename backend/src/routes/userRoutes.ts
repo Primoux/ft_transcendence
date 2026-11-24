@@ -6,6 +6,7 @@ import { changeUsernameSchema, changePasswordSchema } from '../utils/validation/
 import { userRepository, gameSessionRepository, authRepository, friendshipRepository } from '../data/repositories/index.ts';
 import { avatarUpload } from '../middleware/uploadMiddleware.ts'
 import { normalizeAvatar, saveAvatar, deleteAvatar, InvalidImageError } from "../services/avatars.ts"
+import { requireVerifiedEmail } from '../middleware/authMiddleware.ts';
 
 const router = express.Router();
 
@@ -23,14 +24,6 @@ async function getStatData(userId: string) {
 }
 
 /**
- * @returns all users.
- */
-router.get("/", async (req, res) => {
-  const users = await userRepository.findAll();
-  res.json(users);
-});
-
-/**
  * NOTE : the existence of this route makes any user with the username 'me' unable to access their profile.
  * Indeed, "/me" shadows "/:username where 'username' is 'me'. "
  * The issue is alrady handled by the minimum of 3 characters for all usernames.
@@ -41,12 +34,22 @@ router.get("/me", async (req, res) => {
     return res.status(401).json({ error: "No token provided" });
   }
 
-  const me = await userRepository.findById(req.userId);
+  const me = await userRepository.findMe(req.userId);
   if (!me) {
     return res.status(404).json({ error: "no such user" });
   }
 
   return res.status(200).json(me);
+});
+
+router.use(requireVerifiedEmail)
+
+/**
+ * @returns all users.
+ */
+router.get("/", async (req, res) => {
+  const users = await userRepository.findAll();
+  res.json(users);
 });
 
 /**

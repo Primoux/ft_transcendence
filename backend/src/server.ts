@@ -6,14 +6,17 @@ import oauthRoutes from './routes/oauthRoutes.ts'
 import userRoutes from './routes/userRoutes.ts'
 import healthRoutes from './routes/healthRoutes.ts'
 import metricsRoutes from './routes/metricsRoutes.ts'
+import twoFactorRoutes from './routes/twoFactorRoutes.ts'
+import confirmEmailRoutes from './routes/confirmEmailRoutes.ts'
 import metricsMiddleware from './middleware/metricsMiddleware.ts'
 
-import requireAuth from './middleware/authMiddleware.ts'
+import requireAuth, { requireVerifiedEmail } from './middleware/authMiddleware.ts'
 import errorCatcher from './middleware/errorMiddleware.ts'
 
 import cookieParser from 'cookie-parser'
 
 import { UPLOADS_DIR } from './services/avatars.ts'
+import { startCleanupJob } from './services/cleanup.ts';
 
 
 const app = express();
@@ -36,14 +39,24 @@ app.use("/auth", authRoutes)
 app.use("/auth", oauthRoutes)
 app.use("/health", healthRoutes)
 
-app.use(requireAuth);
-app.use("/dle", gameRoutes)
-
 // sensitive endpoints : require a valid session
+app.use(requireAuth);
 
 app.use("/users", userRoutes)
+app.use("/auth", confirmEmailRoutes)
+
+app.use(requireVerifiedEmail)
+app.use("/dle", gameRoutes)
+app.use("/auth/2fa", twoFactorRoutes)
+
+// No route matched: answer in JSON like every other response, instead of Express's HTML page.
+app.use((req, res) => {
+    res.status(404).json({ error: "not found" })
+})
 
 app.use(errorCatcher);
+
+startCleanupJob()
 
 app.listen(5003, () => {
     console.log("server running");

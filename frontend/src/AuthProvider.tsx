@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "./types/user";
-import type { AuthProviderProps, LoggedIn, LoggedOut, RegisterData, LoginData, AuthSuccess, AuthFail } from './AuthContext'
+import type { AuthProviderProps, LoggedIn, LoggedOut, RegisterData, LoginData, AuthSuccess, AuthPending, AuthFail } from './AuthContext'
 
 import { AuthContext } from './AuthContext'
 
@@ -10,25 +10,25 @@ export function AuthProvider({children} : AuthProviderProps) {
     const [authState, setAuthState] = useState<LoggedIn | LoggedOut>({user: null, authStatus: "loading"})
 
     
-    async function register({username, password, passwordConfirmation}: RegisterData): Promise<AuthSuccess | AuthFail>{
+    async function register({username, email, password, passwordConfirmation}: RegisterData): Promise<AuthSuccess | AuthFail>{
         try{
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({username, password, passwordConfirmation}),
+                body: JSON.stringify({username, email, password, passwordConfirmation}),
             })
 			const data = await response.json()
             if (!response.ok) {
-                return ({user:null, error: data.error})
+                return ({status: "error", error: data.error})
 			}
 			else {
                 setAuthState({user: data, authStatus: "logged-in"})
-                return ({user: data, error: null})
+                return ({user: data, status: "success"})
             }
         }
         catch (error) {
             console.error(error)
-            return ({user: null, error: "fetch failed"})
+            return ({status: "error", error: "fetch failed"})
         }
     }
 
@@ -62,7 +62,7 @@ export function AuthProvider({children} : AuthProviderProps) {
         }
     }
 
-    async function login({username, password} : LoginData): Promise<AuthSuccess | AuthFail> {
+    async function login({username, password} : LoginData): Promise<AuthSuccess | AuthPending | AuthFail> {
         try{
             const response = await fetch("/api/auth/login", {
                 method: "POST",
@@ -70,16 +70,38 @@ export function AuthProvider({children} : AuthProviderProps) {
                 body: JSON.stringify({username: username, password: password}),
             })
             const body = await response.json()
-            if (!response.ok) {return {user: null, error: body.error}}
+            if (!response.ok) {return {status: "error", error: body.error}}
+            if (body.code === "2FA_REQUIRED") {return {status: "2fa-required", codeSent: body.codeSent}}
             else {
                 setAuthState({user: body, authStatus: "logged-in"})
-                return {user: body, error: null}
+                return {user: body, status: "success"}
             }
         }
         catch (error) {
             console.error(error)
-            return ({user: null, error: "fetch failed"})
+            return ({status: "error", error: "fetch failed"})
         }
+    }
+
+    async function verifyLogin(code : string): Promise<AuthSuccess | AuthFail> {
+        try {
+            const response = await fetch("/api/auth/login/verify", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({code})
+            })
+
+            const body = await response.json()
+            if (response.status === 401){ return {status:"error", error: "login expired, please log in again."}}
+            if (!response.ok) {return {status: "error", error: body.error}}
+            setAuthState({user: body, authStatus: "logged-in"})
+            return {user: body, status: "success"}
+        }
+        catch (error) {
+            console.error(error)
+            return ({status: "error", error: "fetch failed"})
+        }
+
     }
 
     useEffect(() => {
@@ -90,7 +112,7 @@ export function AuthProvider({children} : AuthProviderProps) {
 	}, [refreshUser])
 
     return (
-        <AuthContext value={{authState, login, logout, register, refreshUser}}>
+        <AuthContext value={{authState, login, verifyLogin, logout, register, refreshUser}}>
             {children}
         </AuthContext>
     )

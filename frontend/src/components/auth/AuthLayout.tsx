@@ -7,7 +7,8 @@ import Card3D from '../Card3D'
 type AuthLayoutProps = {
     title: string
     subtitle: ReactNode
-    onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void
+    // Leave it out when the children bring their own <form>s (forms can't be nested).
+    onSubmit?: (e: React.SubmitEvent<HTMLFormElement>) => void
     children: ReactNode
 }
 
@@ -28,9 +29,13 @@ function AuthLayout({ title, subtitle, onSubmit, children }: AuthLayoutProps) {
                     <h1 className="font-beleren-sc text-2xl font-bold">{title}</h1>
                     <p className="font-matrix">{subtitle}</p>
                 </div>
-                <form onSubmit={onSubmit} className="flex flex-col gap-4">
-                    {children}
-                </form>
+                {onSubmit ? (
+                    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+                        {children}
+                    </form>
+                ) : (
+                    <div className="flex flex-col gap-4">{children}</div>
+                )}
             </div>
             <div className="hidden md:flex items-center justify-center p-6">
                 <Card3D front={cardFront} back={cardBack} />

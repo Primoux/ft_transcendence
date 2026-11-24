@@ -1,9 +1,12 @@
 import express from 'express'
 import * as zod from 'zod'
 import { randomBytes, randomInt, createHash } from 'node:crypto'
-import { userRepository, authRepository, SESSION_COOKIE } from '../data/repositories/index.ts'
+import { userRepository } from '../data/repositories/index.ts'
 import { Prisma } from '../../generated/client.ts'
 import { copyDiscordAvatar } from '../services/avatars.ts'
+import { emailSchema } from '../utils/validation/zodSchema.ts'
+import { startEmailVerification } from '../services/emailVerification.ts'
+import { completeLogin } from '../services/login.ts'
 
 // Discord login is optional: without credentials (CI, a teammate without a Discord app) the backend
 // still starts, and the Discord routes send users back to the login page.
@@ -18,6 +21,8 @@ const discordUserSchema = zod.object({
 	username: zod.string(),
 	id: zod.string().regex(/^\d+$/),
 	avatar: zod.string().regex(/^(a_)?[0-9a-f]{32}$/).nullable(),   // "a_" = animated; .webp returns the first frame
+	email: emailSchema.nullish().catch(null),
+	verified: zod.boolean()
 })
 
 function baseUsername(discordName: string): string {
@@ -40,6 +45,7 @@ const oauthCookieOptions = {
 } as const
 // Absolute path: the browser resolves it against the site, so this lands on the React login page.
 const FAILURE_REDIRECT = "/login?error=oauth"
+const RATE_LIMIT_REDIRECT= "/login?error=rate_limit"
 
 const router = express.Router()
 
@@ -58,7 +64,7 @@ router.get('/discord', (req, res) => {
 		response_type: "code",
 		client_id: discord.clientId,
 		redirect_uri: discord.redirectUri,
-		scope: "identify",            // id, username, avatar: nothing more is needed
+		scope: "identify email", // identify: id + username + avatar. email to pre-verify the account's address
 		prompt: "none",
 		state,
 		code_challenge: codeChallenge,
@@ -129,8 +135,6 @@ router.get('/discord/callback', async (req, res) => {
 			if (!user) throw new Error("could not find a free username")
 			isNew = true;
 		}
-		const previous = req.cookies[SESSION_COOKIE]
-		if (previous) await authRepository.revokeSessionByToken(previous)
 		if (isNew && profile.avatar) {
 			try {
 				const avatarKey = await copyDiscordAvatar(profile.id, profile.avatar)
@@ -139,8 +143,36 @@ router.get('/discord/callback', async (req, res) => {
 				console.error("could not copy discord avatar", err)   // the user just gets the default avatar
 			}
 		}
-		await authRepository.createSession(req, res, user.id)
-		return res.redirect("/")
+		if (isNew && profile.email)
+		{
+			const existingEmailUser = await userRepository.findByEmail(profile.email)
+			if (!existingEmailUser && profile.verified) {
+				try {
+					await userRepository.confirmEmail(user.id, profile.email)
+				}
+				catch(err) {
+					console.error("could not set user email", err)
+				}
+			}
+			else if (!existingEmailUser) {
+				try {
+					const startEmailVerifResult =  await startEmailVerification(user.id, profile.email)
+					if (startEmailVerifResult.status === "error")
+						throw new Error(startEmailVerifResult.error)
+				} catch (err) {
+					console.error("could not send verification email", err)
+				}
+			}
+		}
+		const loginResult = await completeLogin(req, res, user.id)
+		if (loginResult.status === "error")
+			return res.redirect(FAILURE_REDIRECT)
+		else if (loginResult.status === "2fa_rate_limit")
+			return res.redirect(RATE_LIMIT_REDIRECT)
+		else if (loginResult.status === "logged_in")
+			return res.redirect("/")
+		else if (loginResult.status === "2fa_required")
+			return res.redirect(loginResult.codeSent ? "/2fa/verify" : "/2fa/verify?reused=1")
 	}
 	catch (err) {
 		console.error("discord oath failed", err)

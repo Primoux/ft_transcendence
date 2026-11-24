@@ -6,11 +6,12 @@ import PasswordField from '../components/auth/PasswordField'
 import SubmitButton from '../components/auth/SubmitButton'
 import FormError from '../components/auth/FormError'
 import DiscordButton from '../components/auth/DiscordButton'
-import { User as UserIcon, KeyRound } from 'lucide-react'
+import { User as UserIcon, KeyRound, Mail } from 'lucide-react'
 import { useAuth } from "../useAuth";
 
 export default function RegisterPage() {
 	const [username, setUsername] = useState('');
+	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -26,9 +27,10 @@ export default function RegisterPage() {
         }
         setErrorMsg(null)
         setLoading(true)
-        const response = await auth.register({username, password, passwordConfirmation})
+        const response = await auth.register({username, email, password, passwordConfirmation})
 
-		if (response.user === null) {setErrorMsg(response.error)}
+		if (response.status === "error") {setErrorMsg(response.error)}
+
         setLoading(false)
     }
 
@@ -55,6 +57,17 @@ export default function RegisterPage() {
 					minLength={3}
 					maxLength={15}
 					hint="3 to 15 letters, digits or underscores"
+				/>
+				<TextField
+					id="email"
+					label="Email"
+					type="email"
+					value={email}
+					onChange={setEmail}
+					placeholder="you@example.com"
+					autoComplete="email"
+					icon={<Mail className="h-[1em] opacity-50" />}
+					hint="We'll send you a code to confirm it"
 				/>
 				<PasswordField
 					id="password"

@@ -5,7 +5,7 @@ import {
 } from "../../../generated/client.ts";
 import { prisma } from "../prisma.ts";
 
-type PublicUser = Omit<User, "passwordHash">;
+type PublicUser = Omit<User, "passwordHash" | "email">;
 
 export interface FriendSummary {
   friendshipId: string;
