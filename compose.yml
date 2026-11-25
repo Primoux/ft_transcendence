@@ -25,6 +25,8 @@ services:
       context: ./backend/
       target: prod
     image: backend-prod
+    ports:
+      - "127.0.0.1:5003:5003"
     container_name: backend
     environment:
       TZ: Europe/Paris
@@ -39,6 +41,7 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       MAIL_FROM: ${MAIL_FROM}
+      FRONTEND_URL: https://localhost:8443
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:5003/health"]
       interval: 1s
@@ -70,6 +73,8 @@ services:
     build:
       context: ./frontend
       target: prod
+      args:
+        VITE_BACKEND_URL: ""
     image: frontend-prod
     container_name: frontend
     # Read by frontend/default.conf.template.

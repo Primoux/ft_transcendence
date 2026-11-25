@@ -1,4 +1,6 @@
 import express from 'express';
+import { createServer } from 'http'
+import { Server } from 'socket.io';
 
 import gameRoutes from './routes/gameRoutes.ts'
 import authRoutes from './routes/authRoutes.ts'
@@ -18,9 +20,18 @@ import cookieParser from 'cookie-parser'
 import { UPLOADS_DIR } from './services/avatars.ts'
 import { startCleanupJob } from './services/cleanup.ts';
 
+import { statusSocketHandlers } from './socket/socketHandlers.ts'
+
 
 const app = express();
 app.disable('x-powered-by');
+const server = createServer(app); 
+export const io = new Server(server, {
+    cors: {
+        origin: process.env.FRONTEND_URL,
+        credentials: true
+    }
+});
 
 app.use(metricsMiddleware)
 app.use(express.json())
@@ -58,7 +69,9 @@ app.use(errorCatcher);
 
 startCleanupJob()
 
-app.listen(5003, () => {
+statusSocketHandlers(io);
+
+server.listen(5003, () => {
     console.log("server running");
 });
 
