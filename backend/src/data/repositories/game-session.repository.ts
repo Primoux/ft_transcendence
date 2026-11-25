@@ -1,4 +1,4 @@
-import type { GameMode, Prisma } from "../../../generated/client.ts";
+import { GameMode, GameStatus, Prisma } from "../../../generated/client.js";
 import { prisma } from "../prisma.ts";
 
 export const gameSessionRepository = {
@@ -32,10 +32,10 @@ export const gameSessionRepository = {
     });
   },
   async findWonSessionsSummary(userId: string): Promise<number[]> {
-    const wonSession = await prisma.gameSession.findMany({
+    const wonSessions = await prisma.gameSession.findMany({
       where: {
         userId,
-        status: "WON",
+        status: GameStatus.WON,
       },
       select: {
         _count: {
@@ -43,7 +43,7 @@ export const gameSessionRepository = {
         },
       },
     });
-    return wonSession.map(({ _count: { guesses } }) => guesses);
+    return wonSessions.map(({ _count: { guesses } }) => guesses);
   },
   async updateById(id: string, data: Prisma.GameSessionUpdateInput) {
     return prisma.gameSession.update({
@@ -60,6 +60,14 @@ export const gameSessionRepository = {
     return prisma.gameSession.groupBy({
       by: ["status"],
       _count: true,
+    });
+  },
+  async countWinsByUserId(userId: string) {
+    return prisma.gameSession.count({
+      where: {
+        userId,
+        status: GameStatus.WON,
+      },
     });
   },
 };

@@ -33,6 +33,10 @@ export const guessRepository = {
     return prisma.guess.count();
   },
   async countByUserId(userId: string) {
-    return 0; // TODO: return number of guesses made by a user
-  }
+    return prisma.guess.count({
+      where: {
+        gameSession: { userId },
+      },
+    });
+  },
 };
