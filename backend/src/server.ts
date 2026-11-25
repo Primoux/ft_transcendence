@@ -6,6 +6,7 @@ import oauthRoutes from './routes/oauthRoutes.ts'
 import userRoutes from './routes/userRoutes.ts'
 import healthRoutes from './routes/healthRoutes.ts'
 import metricsRoutes from './routes/metricsRoutes.ts'
+import confirmEmailRoutes from './routes/confirmEmailRoutes.ts'
 import metricsMiddleware from './middleware/metricsMiddleware.ts'
 
 import requireAuth from './middleware/authMiddleware.ts'
@@ -36,10 +37,10 @@ app.use("/auth", authRoutes)
 app.use("/auth", oauthRoutes)
 app.use("/health", healthRoutes)
 
+// sensitive endpoints : require a valid session
 app.use(requireAuth);
 app.use("/dle", gameRoutes)
-
-// sensitive endpoints : require a valid session
+app.use("/auth", confirmEmailRoutes)
 
 app.use("/users", userRoutes)
 

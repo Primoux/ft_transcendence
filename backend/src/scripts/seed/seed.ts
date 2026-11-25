@@ -10,7 +10,7 @@ try {
   console.log("Starting global seed...");
 
   for (const seed of seeds) {
-    if (process.env.NODE_ENV === "prod" && seed.name == "magicCards") {
+    if (process.env.NODE_ENV === "production" && seed.name == "magicCards") {
       continue;
     }
     console.log(`Running: ${seed.name}...`);

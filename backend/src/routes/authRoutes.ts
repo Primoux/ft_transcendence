@@ -5,6 +5,7 @@ import * as zod from 'zod'
 import { loginSchema, registerSchema } from '../utils/validation/zodSchema.ts'
 import {SESSION_COOKIE, authRepository, userRepository} from '../data/repositories/index.ts'
 import { requireAuth } from '../middleware/authMiddleware.ts'
+import { start } from "../services/emailVerification.ts";
 
 const router = express.Router();
 
@@ -43,7 +44,12 @@ router.post("/register", async (req, res) => {
   if (!parsedData.success) {
     return res.status(400).send(zod.flattenError(parsedData.error));
   }
-  const { username, password } = parsedData.data;
+  const { username, password, email} = parsedData.data;
+
+  const existingEmailuser = await userRepository.findByEmail(email)
+
+  if (existingEmailuser)
+    return res.status(409).json({error: "email already in use"})
   let newUser;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -52,6 +58,7 @@ router.post("/register", async (req, res) => {
       passwordHash: hashedPassword,
     });
     await authRepository.createSession(req, res, newUser.id);
+    await start(newUser.id, email)
 
     return res.status(201).json(newUser);
   } catch (error) {
