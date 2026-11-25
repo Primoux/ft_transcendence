@@ -32,4 +32,7 @@ export const guessRepository = {
   async countAll() {
     return prisma.guess.count();
   },
+  async countByUserId(userId: string) {
+    return 0; // TODO: return number of guesses made by a user
+  }
 };
